@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="generator.mapper.OrderInfoMapper">
+
+    <resultMap id="BaseResultMap" type="generator.domain.OrderInfo">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="creatorId" column="creatorId" jdbcType="BIGINT"/>
+            <result property="orderId" column="orderId" jdbcType="VARCHAR"/>
+            <result property="amount" column="amount" jdbcType="DECIMAL"/>
+            <result property="amountPaid" column="amountPaid" jdbcType="DECIMAL"/>
+            <result property="customerContactType" column="customerContactType" jdbcType="BIGINT"/>
+            <result property="customerContact" column="customerContact" jdbcType="VARCHAR"/>
+            <result property="customerEmail" column="customerEmail" jdbcType="VARCHAR"/>
+            <result property="isAssigned" column="isAssigned" jdbcType="TINYINT"/>
+            <result property="isPaid" column="isPaid" jdbcType="TINYINT"/>
+            <result property="paymentMethod" column="paymentMethod" jdbcType="TINYINT"/>
+            <result property="orderSource" column="orderSource" jdbcType="TINYINT"/>
+            <result property="orderAssignToWxId" column="orderAssignToWxId" jdbcType="VARCHAR"/>
+            <result property="orderCommissionRate" column="orderCommissionRate" jdbcType="INTEGER"/>
+            <result property="orderCategoryId" column="orderCategoryId" jdbcType="BIGINT"/>
+            <result property="orderTags" column="orderTags" jdbcType="VARCHAR"/>
+            <result property="orderLang" column="orderLang" jdbcType="BIGINT"/>
+            <result property="orderDesc" column="orderDesc" jdbcType="VARCHAR"/>
+            <result property="orderAttachment" column="orderAttachment" jdbcType="VARCHAR"/>
+            <result property="orderRemark" column="orderRemark" jdbcType="VARCHAR"/>
+            <result property="orderDeadline" column="orderDeadline" jdbcType="TIMESTAMP"/>
+            <result property="orderCompletionTime" column="orderCompletionTime" jdbcType="TIMESTAMP"/>
+            <result property="orderStartDate" column="orderStartDate" jdbcType="TIMESTAMP"/>
+            <result property="orderEndDate" column="orderEndDate" jdbcType="TIMESTAMP"/>
+            <result property="orderStatus" column="orderStatus" jdbcType="TINYINT"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,creatorId,orderId,
+        amount,amountPaid,customerContactType,
+        customerContact,customerEmail,isAssigned,
+        isPaid,paymentMethod,orderSource,
+        orderAssignToWxId,orderCommissionRate,orderCategoryId,
+        orderTags,orderLang,orderDesc,
+        orderAttachment,orderRemark,orderDeadline,
+        orderCompletionTime,orderStartDate,orderEndDate,
+        orderStatus,createTime,updateTime,
+        isDelete
+    </sql>
+</mapper>
