@@ -33,8 +33,8 @@ export async function deleteOrderCategoryUsingPost1(
 }
 
 /** getOrderCategoryVOS GET /api/orderCategory/get/vo/list */
-export async function getOrderCategoryVosUsingGet3(options?: { [key: string]: any }) {
-  return request<API.BaseResponseOrderCategoryVO_>('/api/orderCategory/get/vo/list', {
+export async function getOrderCategoryVosUsingGet1(options?: { [key: string]: any }) {
+  return request<API.BaseResponseMapLongOrderCategoryVO_>('/api/orderCategory/get/vo/list', {
     method: 'GET',
     ...(options || {}),
   });

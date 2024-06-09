@@ -13,14 +13,20 @@ import com.caixy.adminSystem.model.dto.lang.LanguageTypeQueryRequest;
 import com.caixy.adminSystem.model.entity.LanguageType;
 import com.caixy.adminSystem.model.vo.lang.LanguageTypeVO;
 import com.caixy.adminSystem.service.LanguageTypeService;
+import com.caixy.adminSystem.service.UserService;
 import com.caixy.adminSystem.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 语言类型服务实现
@@ -31,6 +37,8 @@ public class LanguageTypeServiceImpl extends ServiceImpl<LanguageTypeMapper, Lan
 {
     private final Integer MAX_LANG_NAME = 10;
 
+    @Resource
+    private UserService userService;
     /**
      * 检查语言是否存在
      *
@@ -74,9 +82,9 @@ public class LanguageTypeServiceImpl extends ServiceImpl<LanguageTypeMapper, Lan
      * @since 2024/6/7 下午4:17
      */
     @Override
-    public LanguageTypeVO getLangTypeVOS(List<LanguageType> languageTypeList)
+    public Map<Long, LanguageTypeVO> getLangtYpeVoMap(List<LanguageType> languageTypeList)
     {
-        return LanguageTypeVO.objToVOs(languageTypeList);
+        return LanguageTypeVO.listToIdVoMap(languageTypeList);
     }
 
 
@@ -157,8 +165,36 @@ public class LanguageTypeServiceImpl extends ServiceImpl<LanguageTypeMapper, Lan
     @Override
     public Page<LanguageTypeVO> getLanguageTypeVOPage(Page<LanguageType> languageTypePage, HttpServletRequest request)
     {
-        // todo: 补充分页获取语言类型封装逻辑
-        return null;
+        // 获取数据信息
+        List<LanguageType> languageTypes = languageTypePage.getRecords();
+        Page<LanguageTypeVO> languageTypeVOPage = new Page<>(languageTypePage.getCurrent(), languageTypePage.getSize());
+        Set<Long> creatorIds = languageTypes.stream().map(LanguageType::getCreatorId).collect(Collectors.toSet());
+        Map<Long, String> userNameByIds = userService.getUserNameByIds(creatorIds);
+        // 获取封装类
+        List<LanguageTypeVO> languageTypeVOS = languageTypes.stream().map(item -> {
+            LanguageTypeVO languageTypeVO = new LanguageTypeVO();
+            BeanUtils.copyProperties(item, languageTypeVO);
+            String creatorNames = userNameByIds.get(item.getCreatorId());
+            if (creatorNames != null && !creatorNames.isEmpty())
+            {
+                languageTypeVO.setCreatorName(creatorNames);
+            }
+            else
+            {
+                languageTypeVO.setCreatorName("未知");
+            }
+            return languageTypeVO;
+        }).collect(Collectors.toList());
+        languageTypeVOPage.setRecords(languageTypeVOS);
+        languageTypeVOPage.setTotal(languageTypePage.getTotal());
+        return languageTypeVOPage;
+    }
+
+    @Override
+    public Map<Long, String> getLangNameByIds(Set<Long> langIds)
+    {
+        List<LanguageType> languageTypes = listByIds(langIds);
+        return languageTypes.stream().collect(Collectors.toMap(LanguageType::getId, LanguageType::getLanguageName));
     }
 
 }

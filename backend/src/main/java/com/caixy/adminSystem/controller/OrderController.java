@@ -77,6 +77,7 @@ public class OrderController
         // 校验语言是否合法
 
         postService.validOrderInfo(post, true);
+        log.info("验证成功: {}", post);
 
 
         User loginUser = userService.getLoginUser(request);
@@ -134,6 +135,7 @@ public class OrderController
         List<String> tags = postUpdateRequest.getTags();
         if (tags != null)
         {
+            validTags(tags);
             post.setOrderTags(JSONUtil.toJsonStr(tags));
         }
         // 参数校验
@@ -167,22 +169,6 @@ public class OrderController
         return ResultUtils.success(postService.getOrderInfoVO(post, request));
     }
 
-    /**
-     * 分页获取列表（仅管理员）
-     *
-     * @param postQueryRequest
-     * @return
-     */
-    @PostMapping("/list/page")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Page<OrderInfo>> listOrderInfoByPage(@RequestBody OrderInfoQueryRequest postQueryRequest)
-    {
-        long current = postQueryRequest.getCurrent();
-        long size = postQueryRequest.getPageSize();
-        Page<OrderInfo> postPage = postService.page(new Page<>(current, size),
-                postService.getQueryWrapper(postQueryRequest));
-        return ResultUtils.success(postPage);
-    }
 
     /**
      * 分页获取列表（封装类）
@@ -192,6 +178,7 @@ public class OrderController
      * @return
      */
     @PostMapping("/list/page/vo")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<OrderInfoVO>> listOrderInfoVOByPage(@RequestBody OrderInfoQueryRequest postQueryRequest,
                                                        HttpServletRequest request)
     {
@@ -199,36 +186,10 @@ public class OrderController
         long size = postQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<OrderInfo> postPage = postService.page(new Page<>(current, size),
-                postService.getQueryWrapper(postQueryRequest));
+        Page<OrderInfo> postPage = postService.page(new Page<>(current, size));
         return ResultUtils.success(postService.getOrderInfoVOPage(postPage, request));
     }
 
-    /**
-     * 分页获取当前用户创建的资源列表
-     *
-     * @param postQueryRequest
-     * @param request
-     * @return
-     */
-    @PostMapping("/my/list/page/vo")
-    public BaseResponse<Page<OrderInfoVO>> listMyOrderInfoVOByPage(@RequestBody OrderInfoQueryRequest postQueryRequest,
-                                                         HttpServletRequest request)
-    {
-        if (postQueryRequest == null)
-        {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        User loginUser = userService.getLoginUser(request);
-        postQueryRequest.setUserId(loginUser.getId());
-        long current = postQueryRequest.getCurrent();
-        long size = postQueryRequest.getPageSize();
-        // 限制爬虫
-        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<OrderInfo> postPage = postService.page(new Page<>(current, size),
-                postService.getQueryWrapper(postQueryRequest));
-        return ResultUtils.success(postService.getOrderInfoVOPage(postPage, request));
-    }
 
     // endregion
 
@@ -250,42 +211,6 @@ public class OrderController
         return ResultUtils.success(postService.getOrderInfoVOPage(postPage, request));
     }
 
-    /**
-     * 编辑（用户）
-     *
-     * @param postEditRequest
-     * @param request
-     * @return
-     */
-    @PostMapping("/edit")
-    public BaseResponse<Boolean> editOrderInfo(@RequestBody OrderInfoEditRequest postEditRequest, HttpServletRequest request)
-    {
-        if (postEditRequest == null || postEditRequest.getId() <= 0)
-        {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        OrderInfo post = new OrderInfo();
-        BeanUtils.copyProperties(postEditRequest, post);
-        List<String> tags = postEditRequest.getTags();
-        if (tags != null)
-        {
-            post.setOrderTags(JSONUtil.toJsonStr(tags));
-        }
-        // 参数校验
-        postService.validOrderInfo(post, false);
-        User loginUser = userService.getLoginUser(request);
-        long id = postEditRequest.getId();
-        // 判断是否存在
-        OrderInfo oldOrderInfo = postService.getById(id);
-        ThrowUtils.throwIf(oldOrderInfo == null, ErrorCode.NOT_FOUND_ERROR);
-        // 仅本人或管理员可编辑
-        if (!oldOrderInfo.getCreatorId().equals(loginUser.getId()) && !userService.isAdmin(loginUser))
-        {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-        }
-        boolean result = postService.updateById(post);
-        return ResultUtils.success(result);
-    }
 
     private void validTags(List<String> tags)
     {

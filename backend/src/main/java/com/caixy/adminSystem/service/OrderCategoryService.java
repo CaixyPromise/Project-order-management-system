@@ -9,6 +9,8 @@ import com.caixy.adminSystem.model.vo.category.OrderCategoryVO;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 订单分类服务
@@ -47,7 +49,7 @@ public interface OrderCategoryService extends IService<OrderCategory> {
      */
     OrderCategoryVO getOrderCategoryVO(OrderCategory orderCategory, HttpServletRequest request);
 
-    OrderCategoryVO getOrderCategoryVOS(List<OrderCategory> categoryList);
+    Map<Long, OrderCategoryVO> getOrderCategoryVOS(List<OrderCategory> categoryList);
 
     /**
      * 分页获取订单分类封装
@@ -57,4 +59,6 @@ public interface OrderCategoryService extends IService<OrderCategory> {
      * @return
      */
     Page<OrderCategoryVO> getOrderCategoryVOPage(Page<OrderCategory> orderCategoryPage, HttpServletRequest request);
+
+    Map<Long, String> getCategoryNameByIds(Set<Long> categoryIds);
 }

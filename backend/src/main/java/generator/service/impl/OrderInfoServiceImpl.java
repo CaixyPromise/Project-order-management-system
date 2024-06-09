@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 /**
 * @author CAIXYPROMISE
 * @description 针对表【order_info(订单信息)】的数据库操作Service实现
-* @createDate 2024-06-06 21:36:44
+* @createDate 2024-06-08 00:38:50
 */
 @Service
 public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo>

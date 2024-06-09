@@ -32,21 +32,6 @@ export async function deleteOrderInfoUsingPost1(
   });
 }
 
-/** editOrderInfo POST /api/order/edit */
-export async function editOrderInfoUsingPost1(
-  body: API.OrderInfoEditRequest,
-  options?: { [key: string]: any },
-) {
-  return request<API.BaseResponseBoolean_>('/api/order/edit', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  });
-}
-
 /** getOrderInfoVOById GET /api/order/get/vo */
 export async function getOrderInfoVoByIdUsingGet1(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -62,42 +47,12 @@ export async function getOrderInfoVoByIdUsingGet1(
   });
 }
 
-/** listOrderInfoByPage POST /api/order/list/page */
-export async function listOrderInfoByPageUsingPost1(
-  body: API.OrderInfoQueryRequest,
-  options?: { [key: string]: any },
-) {
-  return request<API.BaseResponsePageOrderInfo_>('/api/order/list/page', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  });
-}
-
 /** listOrderInfoVOByPage POST /api/order/list/page/vo */
 export async function listOrderInfoVoByPageUsingPost1(
   body: API.OrderInfoQueryRequest,
   options?: { [key: string]: any },
 ) {
   return request<API.BaseResponsePageOrderInfoVO_>('/api/order/list/page/vo', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  });
-}
-
-/** listMyOrderInfoVOByPage POST /api/order/my/list/page/vo */
-export async function listMyOrderInfoVoByPageUsingPost1(
-  body: API.OrderInfoQueryRequest,
-  options?: { [key: string]: any },
-) {
-  return request<API.BaseResponsePageOrderInfoVO_>('/api/order/my/list/page/vo', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

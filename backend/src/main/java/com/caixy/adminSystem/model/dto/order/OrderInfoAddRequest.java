@@ -13,8 +13,15 @@ import java.util.List;
 @Data
 public class OrderInfoAddRequest implements Serializable
 {
-
+    /**
+     * 订单平台id
+     */
     private String orderId;
+
+    /**
+     * 订单描述标题
+     */
+    private String orderTitle;
 
     /**
      * 订单金额
@@ -84,7 +91,7 @@ public class OrderInfoAddRequest implements Serializable
     /**
      * 订单编程语言
      */
-    private String orderLang;
+    private Long orderLangId;
 
     /**
      * 订单描述

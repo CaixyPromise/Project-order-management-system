@@ -5,8 +5,8 @@ import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -87,21 +87,15 @@ public class OrderCategoryVO implements Serializable
         return orderCategoryVO;
     }
 
-    public static OrderCategoryVO objToVOs(List<OrderCategory> orderCategoryList)
+    public static Map<Long, OrderCategoryVO> listToIdVoMap(List<OrderCategory> orderCategoryVOS)
     {
-        if (orderCategoryList == null || orderCategoryList.isEmpty())
+        if (orderCategoryVOS == null || orderCategoryVOS.isEmpty())
         {
-            return null;
+            return Collections.emptyMap();
         }
-        OrderCategoryVO categoryVO = new OrderCategoryVO();
-        // 转VO并根据ID进行分组
-        Map<Long, List<OrderCategoryVO>> collect = orderCategoryList.stream().map(item -> {
-            OrderCategoryVO orderCategoryVO = new OrderCategoryVO();
-            BeanUtils.copyProperties(item, orderCategoryVO);
-            return orderCategoryVO;
-        }).collect(Collectors.groupingBy(OrderCategoryVO::getId));
-        categoryVO.setVos(collect);
-        return categoryVO;
+        return orderCategoryVOS.stream()
+                .map(OrderCategoryVO::objToVo)
+                .collect(Collectors.toMap(OrderCategoryVO::getId, v -> v));
     }
 
 }

@@ -35,7 +35,7 @@ public class LanguageTypeVO implements Serializable
     /**
      * 批量返回vo
      */
-    private Map<Long, List<LanguageTypeVO>> vos;
+    private Map<Long, LanguageTypeVO> vos;
 
     /**
      * 更新时间
@@ -82,20 +82,20 @@ public class LanguageTypeVO implements Serializable
         return languageTypeVO;
     }
 
-    public static LanguageTypeVO objToVOs(List<LanguageType> languageTypeList)
+    /**
+     * 将语言类型列表转换为ID对应语言类型VO的映射
+     *
+     * @param languageTypeList 语言类型实体列表
+     * @return ID映射到LanguageTypeVO的Map
+     */
+    public static Map<Long, LanguageTypeVO> listToIdVoMap(List<LanguageType> languageTypeList)
     {
         if (languageTypeList == null || languageTypeList.isEmpty())
         {
             return null;
         }
-        LanguageTypeVO categoryVO = new LanguageTypeVO();
-        // 转VO并根据ID进行分组
-        Map<Long, List<LanguageTypeVO>> collect = languageTypeList.stream().map(item -> {
-            LanguageTypeVO orderCategoryVO = new LanguageTypeVO();
-            BeanUtils.copyProperties(item, orderCategoryVO);
-            return orderCategoryVO;
-        }).collect(Collectors.groupingBy(LanguageTypeVO::getId));
-        categoryVO.setVos(collect);
-        return categoryVO;
+        return languageTypeList.stream()
+                .map(LanguageTypeVO::objToVo)
+                .collect(Collectors.toMap(LanguageTypeVO::getId, vo -> vo));
     }
 }

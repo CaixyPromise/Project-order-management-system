@@ -127,5 +127,5 @@ public interface UserService extends IService<User>
 
     void validUserInfo(User user, boolean add);
 
-    Map<Long, List<String>> getUserNameByIds(Collection<Long> ids);
+    Map<Long, String> getUserNameByIds(Collection<Long> ids);
 }

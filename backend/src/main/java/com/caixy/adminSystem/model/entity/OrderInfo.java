@@ -20,7 +20,6 @@ public class OrderInfo implements Serializable
      */
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
-
     /**
      * 创建用户id
      */
@@ -30,6 +29,11 @@ public class OrderInfo implements Serializable
      * 订单号
      */
     private String orderId;
+
+    /**
+     * 订单名称描述
+     */
+    private String orderTitle;
 
     /**
      * 订单金额
@@ -97,9 +101,9 @@ public class OrderInfo implements Serializable
     private String orderTags;
 
     /**
-     * 订单编程语言
+     * 订单编程语言ID
      */
-    private Long orderLang;
+    private Long orderLangId;
 
     /**
      * 订单描述
@@ -150,7 +154,6 @@ public class OrderInfo implements Serializable
      * 更新时间
      */
     private Date updateTime;
-
 
     /**
      * 是否删除

@@ -1,6 +1,9 @@
 export default [
   { path: '/user', layout: false, routes: [{ path: '/user/login', component: './User/Login' }] },
   { path: '/welcome', icon: 'smile', component: './Welcome', name: "欢迎页" },
+  { path: '/orderList', icon: 'smile', component: './OrderList', name: "订单列表" },
+  { path: '/addOrder', icon: "add", component: './AddOrder', name: "添加订单" },
+
   {
     path: '/admin',
     icon: 'crown',
@@ -11,8 +14,6 @@ export default [
       { icon: 'table', path: '/admin/user', component: './Admin/User', name: "用户管理" },
       { icon: 'table', path: '/admin/lang', component: './Admin/Lang', name: "编程语言管理" },
       { icon: 'table', path: '/admin/category', component: './Admin/Category', name: "订单分类管理" },
-
-
     ],
   },
   { path: "/center", icon: "user", component: "./User/Settings", name: "个人中心" },

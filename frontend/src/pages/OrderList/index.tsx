@@ -1,18 +1,18 @@
-
+import CreateModal from '@/pages/Admin/User/components/CreateModal';
+import UpdateModal from '@/pages/Admin/User/components/UpdateModal';
 import {PlusOutlined} from '@ant-design/icons';
 import type {ActionType} from '@ant-design/pro-components';
 import {PageContainer, ProTable} from '@ant-design/pro-components';
 import '@umijs/max';
 import {Button, message} from 'antd';
 import React, {useMemo, useRef, useState} from 'react';
+import {deleteUserUsingPost1, listUserByPageUsingPost1} from "@/services/backend/userController";
+import {getUserTableColumn} from "@/pages/Admin/User/columns";
 import useAsyncHandler from "@/hooks/useAsyncHandler";
-import {getCategoryTableColumn} from "@/pages/Admin/Category/columns";
-import {
-    deleteOrderCategoryUsingPost1,
-    listOrderCategoryByPageUsingPost1
-} from "@/services/backend/orderCategoryController";
-import UpdateModal from "@/pages/Admin/Category/components/UpdateModal";
-import CreateModal from "@/pages/Admin/Category/components/CreateModal";
+import {listLanguageTypeByPageUsingPost1} from "@/services/backend/languageTypeController";
+import {getLangeTableColumn} from "@/pages/Admin/Lang/columns";
+import {getOrderListColumn} from "@/pages/OrderList/columns";
+import {listOrderInfoVoByPageUsingPost1} from "@/services/backend/orderController";
 
 /**
  * 用户管理页面
@@ -44,7 +44,7 @@ const UserAdminPage: React.FC = () =>
         if (!row) return true;
         try
         {
-            await deleteOrderCategoryUsingPost1({
+            await deleteUserUsingPost1({
                 id: row.id as any,
             });
             hide();
@@ -59,9 +59,8 @@ const UserAdminPage: React.FC = () =>
             return false;
         }
     };
-    const column = useMemo(
-        () => getCategoryTableColumn({ setCurrentRow , setUpdateModalVisible, handleDelete }),
-        []);
+    const column = useMemo(() => getOrderListColumn({ setCurrentRow , setUpdateModalVisible, handleDelete }), []);
+
 
 
 
@@ -71,7 +70,7 @@ const UserAdminPage: React.FC = () =>
 
     return (
         <PageContainer>
-            <ProTable<API.OrderCategoryVO>
+            <ProTable<API.User>
                 headerTitle={'查询表格'}
                 actionRef={actionRef}
                 rowKey="key"
@@ -97,12 +96,12 @@ const UserAdminPage: React.FC = () =>
 
                     const response = await queryHandler(async () =>
                     {
-                        return await listOrderCategoryByPageUsingPost1({
+                        return await listOrderInfoVoByPageUsingPost1({
                             ...params,
                             sortField,
                             sortOrder,
                             ...filter,
-                        } as API.OrderCategoryQueryRequest);
+                        } as API.UserQueryRequest);
                     }, error => {message.error(error.message)})
                     const { data, code } = response;
                     return {

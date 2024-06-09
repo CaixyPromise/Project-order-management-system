@@ -9,6 +9,8 @@ import com.caixy.adminSystem.model.vo.lang.LanguageTypeVO;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 语言类型服务
@@ -26,7 +28,7 @@ public interface LanguageTypeService extends IService<LanguageType>
      */
     void validLanguageType(LanguageType languageType, boolean add);
 
-    LanguageTypeVO getLangTypeVOS(List<LanguageType> languageTypeList);
+    Map<Long, LanguageTypeVO> getLangtYpeVoMap(List<LanguageType> languageTypeList);
 
     /**
      * 获取查询条件
@@ -53,4 +55,6 @@ public interface LanguageTypeService extends IService<LanguageType>
      * @return
      */
     Page<LanguageTypeVO> getLanguageTypeVOPage(Page<LanguageType> languageTypePage, HttpServletRequest request);
+
+    Map<Long, String> getLangNameByIds(Set<Long> langIds);
 }

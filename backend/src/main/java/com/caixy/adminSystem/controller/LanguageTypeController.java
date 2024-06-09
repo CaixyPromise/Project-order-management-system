@@ -10,13 +10,10 @@ import com.caixy.adminSystem.constant.UserConstant;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.exception.ThrowUtils;
 import com.caixy.adminSystem.model.dto.lang.LanguageTypeAddRequest;
-import com.caixy.adminSystem.model.dto.lang.LanguageTypeEditRequest;
 import com.caixy.adminSystem.model.dto.lang.LanguageTypeQueryRequest;
 import com.caixy.adminSystem.model.dto.lang.LanguageTypeUpdateRequest;
 import com.caixy.adminSystem.model.entity.LanguageType;
-import com.caixy.adminSystem.model.entity.OrderCategory;
 import com.caixy.adminSystem.model.entity.User;
-import com.caixy.adminSystem.model.vo.category.OrderCategoryVO;
 import com.caixy.adminSystem.model.vo.lang.LanguageTypeVO;
 import com.caixy.adminSystem.service.LanguageTypeService;
 import com.caixy.adminSystem.service.UserService;
@@ -28,8 +25,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 语言类型接口
@@ -156,12 +151,12 @@ public class LanguageTypeController
      * 用在获取下拉框选项里
      */
     @GetMapping("/get/vo/list")
-    public BaseResponse<LanguageTypeVO> getOrderCategoryVOS()
+    public BaseResponse<Map<Long, LanguageTypeVO>> getLangTypeVoS()
     {
         // 查询数据库
         List<LanguageType> languageTypeList = languageTypeService.list();
         // 获取封装类
-        return ResultUtils.success(languageTypeService.getLangTypeVOS(languageTypeList));
+        return ResultUtils.success(languageTypeService.getLangtYpeVoMap(languageTypeList));
     }
 
     /**
@@ -179,29 +174,8 @@ public class LanguageTypeController
         // 查询数据库
         Page<LanguageType> languageTypePage = languageTypeService.page(new Page<>(current, size),
                 languageTypeService.getQueryWrapper(languageTypeQueryRequest));
-        // 获取数据信息
-        List<LanguageType> languageTypes = languageTypePage.getRecords();
-        Page<LanguageTypeVO> languageTypeVOPage = new Page<>(current, size);
-        Set<Long> creatorIds = languageTypes.stream().map(LanguageType::getCreatorId).collect(Collectors.toSet());
-        Map<Long, List<String>> userNameByIds = userService.getUserNameByIds(creatorIds);
-        // 获取封装类
-        List<LanguageTypeVO> languageTypeVOS = languageTypes.stream().map(item -> {
-            LanguageTypeVO languageTypeVO = new LanguageTypeVO();
-            BeanUtils.copyProperties(item, languageTypeVO);
-            List<String> creatorNames = userNameByIds.get(item.getCreatorId());
-            if (creatorNames != null && !creatorNames.isEmpty())
-            {
-                languageTypeVO.setCreatorName(creatorNames.get(0));
-            }
-            else
-            {
-                languageTypeVO.setCreatorName("未知");
-            }
-            return languageTypeVO;
-        }).collect(Collectors.toList());
-        languageTypeVOPage.setRecords(languageTypeVOS);
-        languageTypeVOPage.setTotal(languageTypePage.getTotal());
-        return ResultUtils.success(languageTypeVOPage);
+
+        return ResultUtils.success(languageTypeService.getLanguageTypeVOPage(languageTypePage, null));
     }
 
     // endregion

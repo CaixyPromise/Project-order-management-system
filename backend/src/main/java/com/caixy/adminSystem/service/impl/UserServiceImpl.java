@@ -484,12 +484,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @since 2024/6/7 下午4:32
      */
     @Override
-    public Map<Long, List<String>> getUserNameByIds(Collection<Long> ids)
+    public Map<Long, String> getUserNameByIds(Collection<Long> ids)
     {
         return this.listByIds(ids).stream()
-                .collect(Collectors.groupingBy(User::getId,
-                    Collectors.mapping(User::getUserName,
-                            Collectors.toList())
-                ));
+                .collect(Collectors.toMap(User::getId, User::getUserName));
     }
 }

@@ -57,6 +57,18 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseMapLongLanguageTypeVO_ = {
+    code?: number;
+    data?: Record<string, any>;
+    message?: string;
+  };
+
+  type BaseResponseMapLongOrderCategoryVO_ = {
+    code?: number;
+    data?: Record<string, any>;
+    message?: string;
+  };
+
   type BaseResponseOrderCategoryVO_ = {
     code?: number;
     data?: OrderCategoryVO;
@@ -78,12 +90,6 @@ declare namespace API {
   type BaseResponsePageOrderCategoryVO_ = {
     code?: number;
     data?: PageOrderCategoryVO_;
-    message?: string;
-  };
-
-  type BaseResponsePageOrderInfo_ = {
-    code?: number;
-    data?: PageOrderInfo_;
     message?: string;
   };
 
@@ -228,6 +234,10 @@ declare namespace API {
     userRole?: string;
   };
 
+  type MapLongLanguageTypeVO_ = true;
+
+  type MapLongOrderCategoryVO_ = true;
+
   type OrderCategoryAddRequest = {
     categoryDesc?: string;
     categoryName?: string;
@@ -248,49 +258,19 @@ declare namespace API {
   };
 
   type OrderCategoryUpdateRequest = {
-    content?: string;
+    categoryDesc?: string;
+    categoryName?: string;
     id?: number;
-    tags?: string[];
-    title?: string;
   };
 
   type OrderCategoryVO = {
     categoryDesc?: string;
     categoryName?: string;
+    createTime?: string;
     creatorName?: string;
     id?: number;
-    vos?: Record<string, any>;
-  };
-
-  type OrderInfo = {
-    amount?: number;
-    amountPaid?: number;
-    createTime?: string;
-    creatorId?: number;
-    customerContact?: string;
-    customerContactType?: number;
-    customerEmail?: string;
-    id?: number;
-    isAssigned?: number;
-    isDelete?: number;
-    isPaid?: number;
-    orderAssignToWxId?: string;
-    orderAttachment?: string;
-    orderCategoryId?: number;
-    orderCommissionRate?: number;
-    orderCompletionTime?: string;
-    orderDeadline?: string;
-    orderDesc?: string;
-    orderEndDate?: string;
-    orderId?: string;
-    orderLang?: string;
-    orderRemark?: string;
-    orderSource?: number;
-    orderStartDate?: string;
-    orderStatus?: number;
-    orderTags?: string;
-    paymentMethod?: number;
     updateTime?: string;
+    vos?: Record<string, any>;
   };
 
   type OrderInfoAddRequest = {
@@ -310,20 +290,14 @@ declare namespace API {
     orderDesc?: string;
     orderEndDate?: string;
     orderId?: string;
-    orderLang?: string;
+    orderLangId?: number;
     orderRemark?: string;
     orderSource?: number;
     orderStartDate?: string;
     orderStatus?: number;
     orderTags?: string[];
+    orderTitle?: string;
     paymentMethod?: number;
-  };
-
-  type OrderInfoEditRequest = {
-    content?: string;
-    id?: number;
-    tags?: string[];
-    title?: string;
   };
 
   type OrderInfoQueryRequest = {
@@ -349,7 +323,23 @@ declare namespace API {
     title?: string;
   };
 
-  type OrderInfoVO = true;
+  type OrderInfoVO = {
+    amount?: number;
+    amountPaid?: number;
+    createTime?: string;
+    creatorName?: string;
+    id?: number;
+    isAssigned?: boolean;
+    isPaid?: boolean;
+    langName?: string;
+    orderCategoryName?: string;
+    orderDeadline?: string;
+    orderId?: string;
+    orderSource?: string;
+    orderStatus?: string;
+    orderTitle?: string;
+    updateTime?: string;
+  };
 
   type OrderItem = {
     asc?: boolean;
@@ -377,19 +367,6 @@ declare namespace API {
     orders?: OrderItem[];
     pages?: number;
     records?: OrderCategoryVO[];
-    searchCount?: boolean;
-    size?: number;
-    total?: number;
-  };
-
-  type PageOrderInfo_ = {
-    countId?: string;
-    current?: number;
-    maxLimit?: number;
-    optimizeCountSql?: boolean;
-    orders?: OrderItem[];
-    pages?: number;
-    records?: OrderInfo[];
     searchCount?: boolean;
     size?: number;
     total?: number;

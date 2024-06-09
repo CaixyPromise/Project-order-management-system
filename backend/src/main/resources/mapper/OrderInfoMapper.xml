@@ -2,15 +2,16 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="generator.mapper.OrderInfoMapper">
+<mapper namespace="com.caixy.adminSystem.mapper.OrderInfoMapper">
 
-    <resultMap id="BaseResultMap" type="generator.domain.OrderInfo">
+    <resultMap id="BaseResultMap" type="com.caixy.adminSystem.model.entity.OrderInfo">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="creatorId" column="creatorId" jdbcType="BIGINT"/>
             <result property="orderId" column="orderId" jdbcType="VARCHAR"/>
+            <result property="orderTitle" column="orderTitle" jdbcType="VARCHAR"/>
             <result property="amount" column="amount" jdbcType="DECIMAL"/>
             <result property="amountPaid" column="amountPaid" jdbcType="DECIMAL"/>
-            <result property="customerContactType" column="customerContactType" jdbcType="BIGINT"/>
+            <result property="customerContactType" column="customerContactType" jdbcType="TINYINT"/>
             <result property="customerContact" column="customerContact" jdbcType="VARCHAR"/>
             <result property="customerEmail" column="customerEmail" jdbcType="VARCHAR"/>
             <result property="isAssigned" column="isAssigned" jdbcType="TINYINT"/>
@@ -21,7 +22,7 @@
             <result property="orderCommissionRate" column="orderCommissionRate" jdbcType="INTEGER"/>
             <result property="orderCategoryId" column="orderCategoryId" jdbcType="BIGINT"/>
             <result property="orderTags" column="orderTags" jdbcType="VARCHAR"/>
-            <result property="orderLang" column="orderLang" jdbcType="BIGINT"/>
+            <result property="orderLangId" column="orderLangId" jdbcType="BIGINT"/>
             <result property="orderDesc" column="orderDesc" jdbcType="VARCHAR"/>
             <result property="orderAttachment" column="orderAttachment" jdbcType="VARCHAR"/>
             <result property="orderRemark" column="orderRemark" jdbcType="VARCHAR"/>
@@ -36,12 +37,12 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,creatorId,orderId,
+        id,creatorId,orderId,orderTitle,
         amount,amountPaid,customerContactType,
         customerContact,customerEmail,isAssigned,
         isPaid,paymentMethod,orderSource,
         orderAssignToWxId,orderCommissionRate,orderCategoryId,
-        orderTags,orderLang,orderDesc,
+        orderTags,orderLangId,orderDesc,
         orderAttachment,orderRemark,orderDeadline,
         orderCompletionTime,orderStartDate,orderEndDate,
         orderStatus,createTime,updateTime,

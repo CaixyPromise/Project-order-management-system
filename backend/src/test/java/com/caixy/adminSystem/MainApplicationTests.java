@@ -1,24 +1,33 @@
 package com.caixy.adminSystem;
 
-import com.caixy.adminSystem.config.WxOpenConfig;
-import javax.annotation.Resource;
+import com.caixy.adminSystem.model.entity.OrderInfo;
+import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
+import com.caixy.adminSystem.service.OrderInfoService;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.BeanUtils;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import javax.annotation.Resource;
 
 /**
  * 主类测试
- *
- 
  */
 @SpringBootTest
-class MainApplicationTests {
+class MainApplicationTests
+{
 
     @Resource
-    private WxOpenConfig wxOpenConfig;
+    private OrderInfoService orderInfoService;
+
 
     @Test
-    void contextLoads() {
-        System.out.println(wxOpenConfig);
+    public void test()
+    {
+        OrderInfo byId = orderInfoService.getById(1799120210523881473L);
+        OrderInfoVO orderInfoVO = new OrderInfoVO();
+        BeanUtils.copyProperties(byId, orderInfoVO);
+
+        System.out.println(orderInfoVO.toString());
     }
 
 }

@@ -152,7 +152,7 @@ public class OrderCategoryController
      *
      */
     @GetMapping("/get/vo/list")
-    public BaseResponse<OrderCategoryVO> getOrderCategoryVOS()
+    public BaseResponse<Map<Long, OrderCategoryVO>> getOrderCategoryVOS()
     {
         // 查询数据库
         List<OrderCategory> orderCategory = orderCategoryService.list();
@@ -173,32 +173,9 @@ public class OrderCategoryController
         long current = orderCategoryQueryRequest.getCurrent();
         long size = orderCategoryQueryRequest.getPageSize();
         // 查询数据库
-        Page<OrderCategory> languageTypePage = orderCategoryService.page(new Page<>(current, size),
+        Page<OrderCategory> categoryPage = orderCategoryService.page(new Page<>(current, size),
                 orderCategoryService.getQueryWrapper(orderCategoryQueryRequest));
-        // 获取数据信息
-        List<OrderCategory> languageTypes = languageTypePage.getRecords();
-        Page<OrderCategoryVO> languageTypeVOPage = new Page<>(current, size);
-        Set<Long> creatorIds = languageTypes.stream().map(OrderCategory::getCreatorId).collect(Collectors.toSet());
-        Map<Long, List<String>> userNameByIds = userService.getUserNameByIds(creatorIds);
-        // 获取封装类
-        List<OrderCategoryVO> categoryVOList = languageTypes.stream().map(item ->
-        {
-            OrderCategoryVO categoryVO = new OrderCategoryVO();
-            BeanUtils.copyProperties(item, categoryVO);
-            List<String> creatorNames = userNameByIds.get(item.getCreatorId());
-            if (creatorNames != null && !creatorNames.isEmpty())
-            {
-                categoryVO.setCreatorName(creatorNames.get(0));
-            }
-            else
-            {
-                categoryVO.setCreatorName("未知");
-            }
-            return categoryVO;
-        }).collect(Collectors.toList());
-        languageTypeVOPage.setRecords(categoryVOList);
-        languageTypeVOPage.setTotal(languageTypePage.getTotal());
-        return ResultUtils.success(languageTypeVOPage);
+        return ResultUtils.success(orderCategoryService.getOrderCategoryVOPage(categoryPage, null));
     }
     
 

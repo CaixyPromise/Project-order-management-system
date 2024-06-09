@@ -19,7 +19,17 @@ public class TestRegex
     {
         Date date = new Date();
 
-        System.out.println(date);
 
+
+        System.out.println(isBoolByInteger(1));
+        System.out.println(isBoolByInteger(0));
+        System.out.println(isBoolByInteger(2));
+
+    }
+
+
+    private Boolean isBoolByInteger(Integer value)
+    {
+        return value != null && value >= 0 && value <= 1;
     }
 }

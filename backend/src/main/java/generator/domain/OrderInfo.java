@@ -45,7 +45,7 @@ public class OrderInfo implements Serializable {
     /**
      * 订单联系方式类型
      */
-    private Long customerContactType;
+    private Integer customerContactType;
 
     /**
      * 订单联系方式
@@ -98,9 +98,9 @@ public class OrderInfo implements Serializable {
     private String orderTags;
 
     /**
-     * 订单编程语言
+     * 订单编程语言ID
      */
-    private String orderLang;
+    private Long orderLangId;
 
     /**
      * 订单描述

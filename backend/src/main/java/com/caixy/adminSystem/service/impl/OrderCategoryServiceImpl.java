@@ -18,11 +18,15 @@ import com.caixy.adminSystem.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 订单分类服务实现
@@ -169,9 +173,9 @@ public class OrderCategoryServiceImpl extends ServiceImpl<OrderCategoryMapper, O
      * @since 2024/6/7 下午12:46
      */
     @Override
-    public OrderCategoryVO getOrderCategoryVOS(List<OrderCategory> categoryList)
+    public Map<Long, OrderCategoryVO> getOrderCategoryVOS(List<OrderCategory> categoryList)
     {
-        return OrderCategoryVO.objToVOs(categoryList);
+        return OrderCategoryVO.listToIdVoMap(categoryList);
     }
 
 
@@ -185,8 +189,37 @@ public class OrderCategoryServiceImpl extends ServiceImpl<OrderCategoryMapper, O
     @Override
     public Page<OrderCategoryVO> getOrderCategoryVOPage(Page<OrderCategory> orderCategoryPage, HttpServletRequest request)
     {
-        // todo: 补充分页获取订单分类封装逻辑
-        return null;
+        // 获取数据信息
+        List<OrderCategory> orderCategoryList = orderCategoryPage.getRecords();
+        Page<OrderCategoryVO> orderCategoryVOPage = new Page<>(orderCategoryPage.getCurrent(), orderCategoryPage.getSize());
+        Set<Long> creatorIds = orderCategoryList.stream().map(OrderCategory::getCreatorId).collect(Collectors.toSet());
+        Map<Long, String> userNameByIds = userService.getUserNameByIds(creatorIds);
+        // 获取封装类
+        List<OrderCategoryVO> categoryVOList = orderCategoryList.stream().map(item ->
+        {
+            OrderCategoryVO categoryVO = new OrderCategoryVO();
+            BeanUtils.copyProperties(item, categoryVO);
+            String creatorNames = userNameByIds.get(item.getCreatorId());
+            if (creatorNames != null && !creatorNames.isEmpty())
+            {
+                categoryVO.setCreatorName(creatorNames);
+            }
+            else
+            {
+                categoryVO.setCreatorName("未知");
+            }
+            return categoryVO;
+        }).collect(Collectors.toList());
+        orderCategoryVOPage.setRecords(categoryVOList);
+        orderCategoryVOPage.setTotal(orderCategoryPage.getTotal());
+        return orderCategoryVOPage;
+    }
+
+    @Override
+    public Map<Long, String>getCategoryNameByIds(Set<Long> categoryIds)
+    {
+        List<OrderCategory> orderCategories = listByIds(categoryIds);
+        return orderCategories.stream().collect(Collectors.toMap(OrderCategory::getId, OrderCategory::getCategoryName));
     }
 
 }

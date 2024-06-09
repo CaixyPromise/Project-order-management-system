@@ -32,9 +32,9 @@ export async function deleteLanguageTypeUsingPost1(
   });
 }
 
-/** getOrderCategoryVOS GET /api/languageType/get/vo/list */
-export async function getOrderCategoryVosUsingGet1(options?: { [key: string]: any }) {
-  return request<API.BaseResponseLanguageTypeVO_>('/api/languageType/get/vo/list', {
+/** getLangTypeVoS GET /api/languageType/get/vo/list */
+export async function getLangTypeVoSUsingGet1(options?: { [key: string]: any }) {
+  return request<API.BaseResponseMapLongLanguageTypeVO_>('/api/languageType/get/vo/list', {
     method: 'GET',
     ...(options || {}),
   });

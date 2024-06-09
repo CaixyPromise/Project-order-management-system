@@ -1,14 +1,10 @@
 package com.caixy.adminSystem.model.vo.order;
 
-import cn.hutool.json.JSONUtil;
-import com.caixy.adminSystem.model.entity.Post;
-import com.caixy.adminSystem.model.vo.post.PostVO;
-import com.caixy.adminSystem.model.vo.user.UserVO;
-import org.springframework.beans.BeanUtils;
+import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
 
 /**
  * 订单信息VO
@@ -17,6 +13,7 @@ import java.util.List;
  * @name com.caixy.adminSystem.model.vo.order.OrderInfoVO
  * @since 2024-06-04 20:56
  **/
+@Data
 public class OrderInfoVO implements Serializable
 {
 
@@ -26,29 +23,67 @@ public class OrderInfoVO implements Serializable
     private Long id;
 
     /**
-     * 标题
+     * 创建人名称
      */
-    private String title;
+    private String creatorName;
 
     /**
-     * 内容
+     * 订单平台id
      */
-    private String content;
+    private String orderId;
 
     /**
-     * 点赞数
+     * 订单名称描述
      */
-    private Integer thumbNum;
+    private String orderTitle;
 
     /**
-     * 收藏数
+     * 订单金额
      */
-    private Integer favourNum;
+    private BigDecimal amount;
 
     /**
-     * 创建用户 id
+     * 已支付金额
      */
-    private Long userId;
+    private BigDecimal amountPaid;
+
+    /**
+     * 是否是对外分配
+     */
+    private Boolean isAssigned;
+
+    /**
+     * 是否支付
+     */
+    private Boolean isPaid;
+
+    /**
+     * 订单来源
+     */
+    private String orderSource;
+
+
+    /**
+     * 订单分类名称
+     */
+    private String orderCategoryName;
+
+
+    /**
+     * 订单编程语言ID
+     */
+    private String langName;
+
+
+    /**
+     * 交付截止日期
+     */
+    private Date orderDeadline;
+
+    /**
+     * 订单状态
+     */
+    private String orderStatus;
 
     /**
      * 创建时间
@@ -60,56 +95,5 @@ public class OrderInfoVO implements Serializable
      */
     private Date updateTime;
 
-    /**
-     * 标签列表
-     */
-    private List<String> tagList;
-
-    /**
-     * 创建人信息
-     */
-    private UserVO user;
-
-    /**
-     * 是否已点赞
-     */
-    private Boolean hasThumb;
-
-    /**
-     * 是否已收藏
-     */
-    private Boolean hasFavour;
-
-    /**
-     * 包装类转对象
-     *
-     * @param postVO
-     * @return
-     */
-    public static Post voToObj(PostVO postVO) {
-        if (postVO == null) {
-            return null;
-        }
-        Post post = new Post();
-        BeanUtils.copyProperties(postVO, post);
-        List<String> tagList = postVO.getTagList();
-        post.setTags(JSONUtil.toJsonStr(tagList));
-        return post;
-    }
-
-    /**
-     * 对象转包装类
-     *
-     * @param post
-     * @return
-     */
-    public static PostVO objToVo(Post post) {
-        if (post == null) {
-            return null;
-        }
-        PostVO postVO = new PostVO();
-        BeanUtils.copyProperties(post, postVO);
-        postVO.setTagList(JSONUtil.toList(post.getTags(), String.class));
-        return postVO;
-    }
+    private static final long serialVersionUID = 1L;
 }
