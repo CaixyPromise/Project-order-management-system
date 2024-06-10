@@ -279,10 +279,10 @@ declare namespace API {
     customerContact?: string;
     customerContactType?: number;
     customerEmail?: string;
+    fileUids?: string[];
     isAssigned?: number;
     isPaid?: number;
     orderAssignToWxId?: string;
-    orderAttachment?: string;
     orderCategoryId?: number;
     orderCommissionRate?: number;
     orderCompletionTime?: string;

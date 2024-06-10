@@ -77,3 +77,10 @@ interface ColumnsParams<T>
     setUpdateModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
     handleDelete: (record: T) => void;
 }
+
+
+interface OptionProps
+{
+    value: string;
+    label: string;
+}

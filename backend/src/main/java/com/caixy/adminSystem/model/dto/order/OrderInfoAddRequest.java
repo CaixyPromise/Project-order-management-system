@@ -86,7 +86,7 @@ public class OrderInfoAddRequest implements Serializable
     /**
      * 订单标签
      */
-    private List<String> orderTags;
+    private List<String> orderTag;
 
     /**
      * 订单编程语言
@@ -101,7 +101,7 @@ public class OrderInfoAddRequest implements Serializable
     /**
      * 订单附件
      */
-    private String orderAttachment;
+    private List<String> fileUids;
 
     /**
      * 订单备注

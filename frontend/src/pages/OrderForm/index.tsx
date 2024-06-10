@@ -13,56 +13,30 @@ import {Card, message, Space} from "antd";
 import {ProFormSelect} from "@ant-design/pro-form/lib";
 import BraftEditor, {EditorState} from 'braft-editor';
 import 'braft-editor/dist/index.css';
-import UploadBox from "@/pages/AddOrder/components/UploadBox";
+import UploadBox from "@/pages/OrderForm/components/UploadBox";
 import useAsyncHandler from "@/hooks/useAsyncHandler";
-import {getLangTypeVoSUsingGet1} from "@/services/backend/languageTypeController";
-import {getOrderCategoryVosUsingGet1} from "@/services/backend/orderCategoryController";
-import EditableTags from "@/pages/AddOrder/components/EditableTags";
-import useStyles from "@/pages/AddOrder/style.style";
+import EditableTags from "@/pages/OrderForm/components/EditableTags";
+import useStyles from "@/pages/OrderForm/style.style";
+import {fetchCategory, fetchLangType, postOrderInfo} from "@/pages/OrderForm/server";
+import {OptionProps} from "@/typings";
 
-interface OptionProps
-{
-    value: string;
-    label: string;
-}
 
 const Index: React.FC = () =>
 {
     const { styles } = useStyles();
-    const { id }: { id: string | undefined } = useParams();
+    const { id }: { id: string | undefined } = useParams<{ id?: string }>();
     const [ formRef ] = useForm();
     type CategoryResponse = { [key: string]: API.OrderCategoryVO }
     type LangTypeResponse = { [key: string]: API.LanguageTypeVO }
 
 
-    const [ orderDesc, setOrderDesc ] = useState<EditorState>(BraftEditor.createEditorState(null));
-    const [ orderRemark, setOrderRemark ] = useState<EditorState>(BraftEditor.createEditorState(null));
     const [ categoryHandle, isCategoryLoading ] = useAsyncHandler<CategoryResponse>();
     const [ langTypeHandle, isLangTypeLoading ] = useAsyncHandler<LangTypeResponse>();
     const [ categoryOption, setCategoryOption ] = useState<OptionProps[]>([]);
     const [ langTypeOption, setLangTypeOption ] = useState<OptionProps[]>([]);
-    const [ orderTag, setOrderTag ] = useState<string[]>([]);
-
-
-    const fetchCategory = async () =>
-    {
-        const { data, code } = await getOrderCategoryVosUsingGet1()
-        if (code === 0)
-        {
-            return data as CategoryResponse
-        }
-        return {} as CategoryResponse
-    }
-
-    const fetchLangType = async () =>
-    {
-        const { data, code } = await getLangTypeVoSUsingGet1()
-        if (code === 0)
-        {
-            return data as LangTypeResponse
-        }
-        return {} as CategoryResponse
-    }
+    const [ orderTag, setOrderTag ] = useState<string[]>([ "1", "2" ]);
+    const [ fileUids, setFileUids ] = useState<string[]>([]);
+    const [ submitHandler, isPending ] = useAsyncHandler<string>()
 
     const fetchOption = async () =>
     {
@@ -73,12 +47,12 @@ const Index: React.FC = () =>
             const tmpCategoryOption: OptionProps[] = [];
             Object.entries(categoryOption).forEach(([ key, value ]) =>
             {
-                tmpCategoryOption.push({ value: key, label: value.categoryName })
+                tmpCategoryOption.push({ value: key, label: value.categoryName } as OptionProps)
             })
             const tmpLangTypeOption: OptionProps[] = [];
             Object.entries(langTypeOption).forEach(([ key, value ]) =>
             {
-                tmpLangTypeOption.push({ value: key, label: value.languageName })
+                tmpLangTypeOption.push({ value: key, label: value.languageName } as OptionProps)
             })
             console.log(tmpCategoryOption);
             setCategoryOption(tmpCategoryOption);
@@ -90,7 +64,6 @@ const Index: React.FC = () =>
         }
     }
 
-
     useEffect(() =>
     {
         fetchOption();
@@ -98,7 +71,59 @@ const Index: React.FC = () =>
 
     const submitOrder = async (values: any) =>
     {
-        console.log(values)
+        // 将 BraftEditor 的内容转换为 HTML 字符串
+        const orderDescHtml = values.orderDesc ? values.orderDesc.toHTML() : '';
+        const orderRemarkHtml = values.orderRemark ? values.orderRemark.toHTML() : '';
+
+        // 构造提交的数据
+        const dataToSubmit = {
+            ...values,
+            orderTag,
+            fileUids, // 包含文件 UID
+            orderDesc: orderDescHtml, // 使用转换后的 HTML 字符串
+            orderRemark: orderRemarkHtml // 使用转换后的 HTML 字符串
+        };
+        console.log(dataToSubmit);
+        const response = await submitHandler(() => postOrderInfo(dataToSubmit),
+                    (error) => message.error(`提交异常: ${error}`)
+        )
+        if (response) {
+            message.success("提交成功");
+        }
+        else {
+            message.error("提交失败");
+        }
+
+
+    }
+
+    const handleFileUidChange = (uids: string[]) => {
+        // 将 uid 存储到 state 中
+        setFileUids(uids);
+    };
+
+    const initialValue = {
+        "orderTitle": "123",
+        "orderSource": 1,
+        "orderId": "123",
+        "orderCategoryId": "1798994019288621057",
+        "orderLangId": "1798993735380377602",
+        "amount": 2,
+        "amountPaid": 3,
+        "isAssigned": 1,
+        "isPaid": 1,
+        "orderStatus": 5,
+        "customerContactType": 3,
+        "customerContact": "2",
+        "customerEmail": "1944630344@qq.com",
+        "orderStartDate": "2024-06-09",
+        "orderDeadline": "2024-06-18",
+        "orderCompletionTime": "2024-06-09",
+        "orderCommissionRate": 60,
+        "orderAssignToWxId": "4",
+        "orderRemark": "<p>123</p>",
+        "orderDesc": "<p>123</p>",
+        "paymentMethod": 1
     }
 
 
@@ -111,6 +136,11 @@ const Index: React.FC = () =>
                     gap: "10px"
                 }}
                 onFinish={submitOrder}
+                initialValues={{
+                    ...initialValue,
+                    "orderRemark": BraftEditor.createEditorState(initialValue.orderRemark),
+                    "orderDesc": BraftEditor.createEditorState(initialValue.orderDesc),
+                }}
             >
                 <Card bordered={false} className={styles.card}>
                     <ProFormText name="orderTitle" label="订单名称描述"
@@ -136,19 +166,24 @@ const Index: React.FC = () =>
 
                     </Space.Compact>
 
-                    <ProForm.Item label="订单标签">
+                    <ProForm.Item
+                        label="订单标签"
+                        name="orderTags"
+                        getValueFromEvent={(value) => console.log("orderTags", value)}
+
+                    >
                         <EditableTags setTags={setOrderTag} tags={orderTag}/>
                     </ProForm.Item>
 
                     <ProForm.Group title="基础信息">
                         <ProFormSelect width="md"
-                                       name="orderCategory"
+                                       name="orderCategoryId"
                                        label="订单分类"
                                        options={categoryOption}
                                        rules={[ { required: true } ]}
                         />
                         <ProFormSelect width="md"
-                                       name="orderLangType"
+                                       name="orderLangId"
                                        label="订单语言类型"
                                        options={langTypeOption}
                                        rules={[ { required: true } ]}
@@ -187,6 +222,7 @@ const Index: React.FC = () =>
                             width="md"
                             name="orderStatus"
                             label="订单状态"
+                            required
                             initialValue={1}
                             options={[
                                 { value: 1, label: '待分配' },
@@ -200,8 +236,9 @@ const Index: React.FC = () =>
 
                         <ProFormSelect
                             width="md"
-                            name="orderStatus"
+                            name="paymentMethod"
                             label="支付方式"
+                            required
                             initialValue={1}
                             options={[
                                 { value: 1, label: '支付宝支付' },
@@ -275,32 +312,46 @@ const Index: React.FC = () =>
                                            rules={[ { required: true } ]}/>
                         <ProFormDatePicker width="md" name="orderDeadline" label="交付截止日期"
                                            rules={[ { required: true } ]}/>
-                        <ProFormDependency name={["orderStatus"]}>
-                            {({ orderStatus}) => {
-                                return orderStatus === 5 && <ProFormDatePicker width="md" name="orderCompletionTime" label="订单完成时间" />
+                        <ProFormDependency name={[ "orderStatus" ]}>
+                            {({ orderStatus }) =>
+                            {
+                                return orderStatus === 5 &&
+                                    <ProFormDatePicker width="md" name="orderCompletionTime" label="订单完成时间"/>
                             }}
                         </ProFormDependency>
                     </ProForm.Group>
 
                     <ProForm.Item label="订单附件">
-                        <UploadBox/>
+                        <UploadBox onFileUidChange={handleFileUidChange} />
                     </ProForm.Item>
 
-                    <Card bordered={false} title={"订单备注"} className={styles.card}>
+                    <ProForm.Item
+                        required
+                        name="orderDesc"
+                        label="订单描述"
+                        getValueFromEvent={(value: EditorState) => value?.toHTML()}
+                        // initialValue={BraftEditor.createEditorState(null)}
+                    >
                         <BraftEditor
                             className={styles.editor}
-                            value={orderRemark}
-                            onChange={(newState: any) => setOrderRemark((newState))}
+                            // value={orderDesc}
+                            // onChange={(newState: any) => setOrderDesc((newState))}
                         />
-                    </Card>
+                    </ProForm.Item>
 
-                    <Card bordered={false} title={"订单描述"} className={styles.card}>
+                    <ProForm.Item
+                        required
+                        name="orderRemark"
+                        label="订单备注"
+                        getValueFromEvent={(value: EditorState) => value?.toHTML()}
+                        // initialValue={BraftEditor.createEditorState(null)}
+                    >
                         <BraftEditor
                             className={styles.editor}
-                            value={orderDesc}
-                            onChange={(newState: any) => setOrderDesc((newState))}
+                            // value={orderRemark}
+                            // onChange={(newState: any) => setOrderRemark((newState))}
                         />
-                    </Card>
+                    </ProForm.Item>
                 </Card>
             </ProForm>
         </PageContainer>

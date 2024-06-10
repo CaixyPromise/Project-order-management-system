@@ -67,7 +67,7 @@ public class OrderController
         }
         OrderInfo post = new OrderInfo();
         BeanUtils.copyProperties(postAddRequest, post);
-        List<String> tags = postAddRequest.getOrderTags();
+        List<String> tags = postAddRequest.getOrderTag();
         // 如果标签非空，则进行校验
         if (tags != null)
         {
@@ -78,7 +78,6 @@ public class OrderController
 
         postService.validOrderInfo(post, true);
         log.info("验证成功: {}", post);
-
 
         User loginUser = userService.getLoginUser(request);
         post.setCreatorId(loginUser.getId());
