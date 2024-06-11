@@ -94,9 +94,9 @@ public class RedisUtils
      * @version 2.0
      * @since 2024/2/16 20:19
      */
-    public boolean delete(RedisConstant Enum, Object itemName)
+    public boolean delete(RedisConstant Enum, String... items)
     {
-        return Boolean.TRUE.equals(stringRedisTemplate.delete(getFullKey(Enum, itemName)));
+        return Boolean.TRUE.equals(stringRedisTemplate.delete(Enum.generateKey(items)));
     }
 
     /**
@@ -173,9 +173,9 @@ public class RedisUtils
      * @version 1.0
      * @since 2023/1220 20:18
      */
-    public Map<Object, Object> getHash(RedisConstant Enum, Object objectName)
+    public Map<Object, Object> getHash(RedisConstant Enum, String... items)
     {
-        return stringRedisTemplate.opsForHash().entries(getFullKey(Enum, objectName));
+        return stringRedisTemplate.opsForHash().entries(Enum.generateKey(items));
     }
 
 
@@ -183,18 +183,20 @@ public class RedisUtils
      * 获取hash数据，接受常量配置，并且根据类型回传对应类型的HashMap
      *
      * @param enumKey    key常量
-     * @param objectName key名称
+     * @param items key名称
      * @param keyType    key类型
      * @param valueType  value类型
      * @author CAIXYPROMISE
      * @version 1.0
      * @since 2024/2/24 00:16
      */
-    public <K, V> HashMap<K, V> getHash(RedisConstant enumKey, Object objectName,
+    public <K, V> HashMap<K, V> getHash(RedisConstant enumKey,
                                         Class<K> keyType,
-                                        Class<V> valueType)
+                                        Class<V> valueType,
+                                        String items
+                                        )
     {
-        Map<Object, Object> rawMap = stringRedisTemplate.opsForHash().entries(getFullKey(enumKey, objectName));
+        Map<Object, Object> rawMap = stringRedisTemplate.opsForHash().entries(enumKey.generateKey(items));
         HashMap<K, V> typedMap = new HashMap<>();
         rawMap.forEach((rawKey, rawValue) ->
         {
@@ -213,19 +215,19 @@ public class RedisUtils
      * @version 1.0
      * @since 2023/12/20 2:16
      */
-    public void setHashMap(RedisConstant Enum, Object itemName, HashMap<String, Object> data)
+    public void setHashMap(RedisConstant Enum, Map<String, Object> data, String... item)
     {
-        String fullKey = getFullKey(Enum, itemName);
         Long expire = Enum.getExpire();
         HashMap<String, String> stringData = new HashMap<>();
         data.forEach((dataKey, value) ->
                 stringData.put(dataKey, JsonUtils.toJsonString(value)));
+        String fullKey = Enum.generateKey(item);
+        log.info("[setHashMap] key: {}, data: {}, expire: {}", fullKey, data, expire);
         stringRedisTemplate.opsForHash().putAll(fullKey, stringData);
         if (expire != null)
         {
             refreshExpire(fullKey, expire);
         }
-        log.info("[setHashMap] key: {}, data: {}, expire: {}", fullKey, data, expire);
     }
 
     /**

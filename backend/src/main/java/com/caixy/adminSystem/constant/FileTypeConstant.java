@@ -9,5 +9,13 @@ package com.caixy.adminSystem.constant;
  **/
 public interface FileTypeConstant
 {
+    /**
+     * 用户投降
+     */
     String AVATAR = "user_avatar";
+
+    /**
+     * 订单附件
+     */
+    String ORDER_ATTACHMENT = "order_attachment";
 }

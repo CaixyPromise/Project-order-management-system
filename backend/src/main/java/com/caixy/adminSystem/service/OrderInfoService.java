@@ -4,11 +4,14 @@ package com.caixy.adminSystem.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import com.caixy.adminSystem.model.dto.order.OrderInfoQueryRequest;
 import com.caixy.adminSystem.model.entity.OrderInfo;
 import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author CAIXYPROMISE
@@ -58,4 +61,7 @@ public interface OrderInfoService extends IService<OrderInfo>
      * @return
      */
     Page<OrderInfoVO> getOrderInfoVOPage(Page<OrderInfo> postPage, HttpServletRequest request);
+
+    Map<String, UploadFileInfoDTO> generateFileUploadToken(List<UploadFileInfoDTO> fileInfoList,
+                                                           Long orderId);
 }

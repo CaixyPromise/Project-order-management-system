@@ -1,6 +1,6 @@
 import {getOrderCategoryVosUsingGet1} from "@/services/backend/orderCategoryController";
-import {getLangTypeVoSUsingGet1} from "@/services/backend/languageTypeController";
 import {addOrderInfoUsingPost1} from "@/services/backend/orderController";
+import {getLangTypeVoSUsingGet1} from "@/services/backend/languageTypeController";
 
 const fetchCategory = async () =>
 {

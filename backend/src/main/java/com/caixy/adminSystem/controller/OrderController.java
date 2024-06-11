@@ -11,19 +11,18 @@ import com.caixy.adminSystem.constant.UserConstant;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.exception.ThrowUtils;
 
-import com.caixy.adminSystem.model.dto.order.OrderInfoAddRequest;
-import com.caixy.adminSystem.model.dto.order.OrderInfoEditRequest;
-import com.caixy.adminSystem.model.dto.order.OrderInfoQueryRequest;
-import com.caixy.adminSystem.model.dto.order.OrderInfoUpdateRequest;
+import com.caixy.adminSystem.model.dto.order.*;
 import com.caixy.adminSystem.model.entity.OrderInfo;
 
 import com.caixy.adminSystem.model.entity.User;
 import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
 import com.caixy.adminSystem.service.OrderInfoService;
 import com.caixy.adminSystem.service.UserService;
+import com.caixy.adminSystem.service.impl.OrderInfoServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -39,7 +38,7 @@ import java.util.List;
 public class OrderController
 {
     @Resource
-    private OrderInfoService postService;
+    private OrderInfoService orderInfoService;
 
     @Resource
     private UserService userService;
@@ -48,6 +47,8 @@ public class OrderController
     private final static Integer MAX_TAGS_SIZE = 10;
     // 最大标签字数
     private final static Integer MAX_TAG_TEXT_SIZE = 8;
+    @Autowired
+    private OrderInfoServiceImpl orderInfoServiceImpl;
 
     // region 增删改查
 
@@ -59,7 +60,8 @@ public class OrderController
      * @return
      */
     @PostMapping("/add")
-    public BaseResponse<Long> addOrderInfo(@RequestBody OrderInfoAddRequest postAddRequest, HttpServletRequest request)
+    public BaseResponse<OrderInfoAddResponse> addOrderInfo(@RequestBody OrderInfoAddRequest postAddRequest,
+                                                           HttpServletRequest request)
     {
         if (postAddRequest == null)
         {
@@ -75,16 +77,24 @@ public class OrderController
             post.setOrderTags(JSONUtil.toJsonStr(tags));
         }
         // 校验语言是否合法
-
-        postService.validOrderInfo(post, true);
+        orderInfoService.validOrderInfo(post, true);
         log.info("验证成功: {}", post);
-
         User loginUser = userService.getLoginUser(request);
         post.setCreatorId(loginUser.getId());
-        boolean result = postService.save(post);
+        boolean result = orderInfoService.save(post);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         long newOrderInfoId = post.getId();
-        return ResultUtils.success(newOrderInfoId);
+        OrderInfoAddResponse orderInfoAddResponse = new OrderInfoAddResponse();
+        if (!postAddRequest.getAttachmentList().isEmpty())
+        {
+            orderInfoAddResponse.setIsFinish(false);
+            orderInfoAddResponse.setTokenMap(orderInfoService.generateFileUploadToken(postAddRequest.getAttachmentList(), newOrderInfoId));
+        }
+        else {
+            orderInfoAddResponse.setIsFinish(true);
+        }
+
+        return ResultUtils.success(orderInfoAddResponse);
     }
 
     /**
@@ -104,14 +114,14 @@ public class OrderController
         User user = userService.getLoginUser(request);
         long id = deleteRequest.getId();
         // 判断是否存在
-        OrderInfo oldOrderInfo = postService.getById(id);
+        OrderInfo oldOrderInfo = orderInfoService.getById(id);
         ThrowUtils.throwIf(oldOrderInfo == null, ErrorCode.NOT_FOUND_ERROR);
         // 仅本人或管理员可删除
         if (!oldOrderInfo.getCreatorId().equals(user.getId()) && !userService.isAdmin(request))
         {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
-        boolean b = postService.removeById(id);
+        boolean b = orderInfoService.removeById(id);
         return ResultUtils.success(b);
     }
 
@@ -138,12 +148,12 @@ public class OrderController
             post.setOrderTags(JSONUtil.toJsonStr(tags));
         }
         // 参数校验
-        postService.validOrderInfo(post, false);
+        orderInfoService.validOrderInfo(post, false);
         long id = postUpdateRequest.getId();
         // 判断是否存在
-        OrderInfo oldOrderInfo = postService.getById(id);
+        OrderInfo oldOrderInfo = orderInfoService.getById(id);
         ThrowUtils.throwIf(oldOrderInfo == null, ErrorCode.NOT_FOUND_ERROR);
-        boolean result = postService.updateById(post);
+        boolean result = orderInfoService.updateById(post);
         return ResultUtils.success(result);
     }
 
@@ -160,12 +170,12 @@ public class OrderController
         {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        OrderInfo post = postService.getById(id);
+        OrderInfo post = orderInfoService.getById(id);
         if (post == null)
         {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
-        return ResultUtils.success(postService.getOrderInfoVO(post, request));
+        return ResultUtils.success(orderInfoService.getOrderInfoVO(post, request));
     }
 
 
@@ -185,8 +195,8 @@ public class OrderController
         long size = postQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<OrderInfo> postPage = postService.page(new Page<>(current, size));
-        return ResultUtils.success(postService.getOrderInfoVOPage(postPage, request));
+        Page<OrderInfo> postPage = orderInfoService.page(new Page<>(current, size));
+        return ResultUtils.success(orderInfoService.getOrderInfoVOPage(postPage, request));
     }
 
 
@@ -206,8 +216,8 @@ public class OrderController
         long size = postQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<OrderInfo> postPage = postService.searchFromEs(postQueryRequest);
-        return ResultUtils.success(postService.getOrderInfoVOPage(postPage, request));
+        Page<OrderInfo> postPage = orderInfoService.searchFromEs(postQueryRequest);
+        return ResultUtils.success(orderInfoService.getOrderInfoVOPage(postPage, request));
     }
 
 

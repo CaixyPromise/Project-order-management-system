@@ -3,7 +3,9 @@ package com.caixy.adminSystem;
 import com.caixy.adminSystem.utils.EncryptionUtils;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 测试密码
@@ -17,19 +19,11 @@ public class TestRegex
     @Test
     public void test()
     {
-        Date date = new Date();
-
-
-
-        System.out.println(isBoolByInteger(1));
-        System.out.println(isBoolByInteger(0));
-        System.out.println(isBoolByInteger(2));
-
+        List<String> strList = Arrays.asList("1", "2", "3");
+        String join = String.join(",", strList);
+        System.out.println(join);
     }
 
 
-    private Boolean isBoolByInteger(Integer value)
-    {
-        return value != null && value >= 0 && value <= 1;
-    }
+
 }

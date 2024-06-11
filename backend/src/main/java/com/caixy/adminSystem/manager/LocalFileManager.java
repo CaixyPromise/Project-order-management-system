@@ -26,19 +26,20 @@ public class LocalFileManager
 {
     private final LocalFileConfig localFileConfig;
 
-    public String saveFile(MultipartFile multipartFile, UploadFileConfig.FileInfo fileInfo)
+    public String saveFile(MultipartFile multipartFile, UploadFileConfig fileConfig)
     {
+        UploadFileConfig.FileInfo fileInfo = fileConfig.getFileInfo();
         // 文件目录：根据业务、用户来划分保存文件位置
         String filePath = fileInfo.getFilePath();
         String filename = fileInfo.getFilename();
-        FileUploadBizEnum fileUploadBizEnum = fileInfo.getFileUploadBizEnum();
-        Long userId = fileInfo.getUserId();
+        FileUploadBizEnum fileUploadBizEnum = fileConfig.getFileUploadBizEnum();
+        Long userId = fileConfig.getUserId();
         // 创建文件目录
         File directory = new File(localFileConfig.getRootLocation().toString(), filePath);
         if (!directory.exists())
         {
-            boolean mkdirs = directory.mkdirs();
-            if (!mkdirs)
+            boolean dirIsExist = directory.mkdirs();
+            if (!dirIsExist)
             {
                 log.error("create directory error, directory = {}", directory.getPath());
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");

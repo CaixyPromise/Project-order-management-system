@@ -1,5 +1,6 @@
 package com.caixy.adminSystem.model.dto.order;
 
+import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -23,7 +24,7 @@ public class OrderInfoAddResponse implements Serializable
     /**
      * 对应文件uid的token映射
      */
-    Map<String, String> uidToTokenMap;
+    Map<String, UploadFileInfoDTO> tokenMap;
 
     private static final long serialVersionUID = 1L;
 }

@@ -23,9 +23,20 @@ public enum FileUploadBizEnum
             "avatar",
             FileTypeConstant.AVATAR,
             SizeUtils.of(2, SizeUtils.SizeType.MB),
-            new HashSet<>(Arrays.asList("jpeg", "jpg", "svg", "png", "webp")),
-            "UserService"
-    );
+            new HashSet<>(Arrays.asList("jpeg", "jpg", "svg", "png", "webp"))
+    ),
+
+    ORDER_ATTACHMENT(
+            "订单附件",
+            "attachment",
+            FileTypeConstant.ORDER_ATTACHMENT,
+            SizeUtils.of(50, SizeUtils.SizeType.MB),
+            new HashSet<>(Arrays.asList("jpeg", "jpg", "svg", "png", "webp", "pdf", "doc", "docx", "ppt", "txt"))
+    )
+
+
+    ;
+
 
     /**
      * 用途说明
@@ -47,22 +58,19 @@ public enum FileUploadBizEnum
 
     private final Set<String> fileSuffix;
 
-    private final String handlerClassName;
 
     FileUploadBizEnum(String text,
                       String routePath,
                       String value,
                       SizeUtils.ByteSize maxSize,
-                      Set<String> fileSuffix,
-                      String handlerClassName
-                       )
+                      Set<String> fileSuffix
+        )
     {
         this.text = text;
         this.routePath = routePath;
         this.value = value;
         this.maxSize = maxSize;
         this.fileSuffix = fileSuffix;
-        this.handlerClassName = handlerClassName;
     }
 
     /**

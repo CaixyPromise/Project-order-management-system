@@ -1,5 +1,6 @@
 package com.caixy.adminSystem.model.dto.order;
 
+import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -101,7 +102,7 @@ public class OrderInfoAddRequest implements Serializable
     /**
      * 订单附件
      */
-    private List<String> fileUids;
+    private List<UploadFileInfoDTO> attachmentList;
 
     /**
      * 订单备注

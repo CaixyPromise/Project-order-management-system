@@ -35,7 +35,7 @@ const Index: React.FC = () =>
     const [ categoryOption, setCategoryOption ] = useState<OptionProps[]>([]);
     const [ langTypeOption, setLangTypeOption ] = useState<OptionProps[]>([]);
     const [ orderTag, setOrderTag ] = useState<string[]>([ "1", "2" ]);
-    const [ fileUids, setFileUids ] = useState<string[]>([]);
+    const [ fileInfo, setFileInfo ] = useState<OrderFormType.FileInfo[]>([]);
     const [ submitHandler, isPending ] = useAsyncHandler<string>()
 
     const fetchOption = async () =>
@@ -76,30 +76,31 @@ const Index: React.FC = () =>
         const orderRemarkHtml = values.orderRemark ? values.orderRemark.toHTML() : '';
 
         // 构造提交的数据
-        const dataToSubmit = {
+        const dataToSubmit: API.OrderInfoAddRequest = {
             ...values,
             orderTag,
-            fileUids, // 包含文件 UID
+            attachmentList: fileInfo, // 包含文件 UID
             orderDesc: orderDescHtml, // 使用转换后的 HTML 字符串
             orderRemark: orderRemarkHtml // 使用转换后的 HTML 字符串
         };
-        console.log(dataToSubmit);
         const response = await submitHandler(() => postOrderInfo(dataToSubmit),
-                    (error) => message.error(`提交异常: ${error}`)
+            (error) => message.error(`提交异常: ${error}`)
         )
-        if (response) {
+        if (response)
+        {
+            // todo: 拿到token，上传文件
             message.success("提交成功");
         }
-        else {
+        else
+        {
             message.error("提交失败");
         }
-
-
     }
 
-    const handleFileUidChange = (uids: string[]) => {
+    const handleFileUidChange = (uids: string[]) =>
+    {
         // 将 uid 存储到 state 中
-        setFileUids(uids);
+        setFileInfo(uids);
     };
 
     const initialValue = {
@@ -322,7 +323,7 @@ const Index: React.FC = () =>
                     </ProForm.Group>
 
                     <ProForm.Item label="订单附件">
-                        <UploadBox onFileUidChange={handleFileUidChange} />
+                        <UploadBox onFileUidChange={handleFileUidChange}/>
                     </ProForm.Item>
 
                     <ProForm.Item

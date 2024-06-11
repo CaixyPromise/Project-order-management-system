@@ -75,6 +75,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseOrderInfoAddResponse_ = {
+    code?: number;
+    data?: OrderInfoAddResponse;
+    message?: string;
+  };
+
   type BaseResponseOrderInfoVO_ = {
     code?: number;
     data?: OrderInfoVO;
@@ -238,6 +244,13 @@ declare namespace API {
 
   type MapLongOrderCategoryVO_ = true;
 
+  type OrderAttachmentInfoDTO = {
+    fileName?: string;
+    fileSha256?: string;
+    fileUid?: string;
+    token?: string;
+  };
+
   type OrderCategoryAddRequest = {
     categoryDesc?: string;
     categoryName?: string;
@@ -276,10 +289,10 @@ declare namespace API {
   type OrderInfoAddRequest = {
     amount?: number;
     amountPaid?: number;
+    attachmentList?: OrderAttachmentInfoDTO[];
     customerContact?: string;
     customerContactType?: number;
     customerEmail?: string;
-    fileUids?: string[];
     isAssigned?: number;
     isPaid?: number;
     orderAssignToWxId?: string;
@@ -295,9 +308,14 @@ declare namespace API {
     orderSource?: number;
     orderStartDate?: string;
     orderStatus?: number;
-    orderTags?: string[];
+    orderTag?: string[];
     orderTitle?: string;
     paymentMethod?: number;
+  };
+
+  type OrderInfoAddResponse = {
+    isFinish?: boolean;
+    tokenMap?: Record<string, any>;
   };
 
   type OrderInfoQueryRequest = {

@@ -1,25 +1,28 @@
 package com.caixy.adminSystem.service.impl;
 
+import cn.hutool.jwt.JWT;
+import cn.hutool.jwt.JWTException;
+import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.caixy.adminSystem.annotation.FileUploadActionTarget;
 import com.caixy.adminSystem.common.ErrorCode;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.exception.ThrowUtils;
 import com.caixy.adminSystem.mapper.OrderInfoMapper;
+import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
+import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
+import com.caixy.adminSystem.model.dto.file.UploadFileRequest;
 import com.caixy.adminSystem.model.dto.order.OrderInfoQueryRequest;
 import com.caixy.adminSystem.model.entity.OrderInfo;
-import com.caixy.adminSystem.model.enums.ContactTypeEnum;
-import com.caixy.adminSystem.model.enums.OrderSourceEnum;
-import com.caixy.adminSystem.model.enums.OrderStatusEnum;
-import com.caixy.adminSystem.model.enums.PaymentMethodEnum;
+import com.caixy.adminSystem.model.enums.*;
 import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
-import com.caixy.adminSystem.service.LanguageTypeService;
-import com.caixy.adminSystem.service.OrderCategoryService;
-import com.caixy.adminSystem.service.OrderInfoService;
-import com.caixy.adminSystem.service.UserService;
+import com.caixy.adminSystem.service.*;
+import com.caixy.adminSystem.utils.RedisUtils;
 import com.caixy.adminSystem.utils.RegexUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -34,12 +37,18 @@ import java.util.stream.Collectors;
  * @createDate 2024-06-04 20:50:04
  */
 @Service
+@FileUploadActionTarget(FileUploadBizEnum.ORDER_ATTACHMENT)
 public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo>
-        implements OrderInfoService
+        implements OrderInfoService, FileUploadActionService
 {
     private static final Integer MAX_DESC_SIZE = 1024;
 
     private static final Integer MAX_TITLE_SIZE = 30;
+
+    private static final byte[] TOKEN_SIGN = "orderAttachment_syu".getBytes();
+
+    // token过期时间: 10分钟
+    private static final Long TOKEN_EXPIRE_TIME = RedisConstant.UPLOAD_FILE_KEY.getExpire();
 
 
     @Resource
@@ -50,6 +59,8 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 
     @Resource
     private UserService userService;
+    @Autowired
+    private RedisUtils redisUtils;
 
     @Override
     public void validOrderInfo(OrderInfo post, boolean add)
@@ -218,6 +229,99 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     private Boolean integerToBool(Integer value)
     {
         return value != null && value >= 0 && value <= 1;
+    }
+
+    @Override
+    public Map<String, UploadFileInfoDTO> generateFileUploadToken(List<UploadFileInfoDTO> fileInfoList,
+                                                                  Long orderId)
+    {
+        Map<String, UploadFileInfoDTO> tokenMap = new HashMap<>();
+
+        for (UploadFileInfoDTO fileInfo : fileInfoList)
+        {
+            String uuid = UUID.randomUUID().toString();
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("fileUid", fileInfo.getFileUid());
+            payload.put("fileName", fileInfo.getFileName());
+            payload.put("fileSha256", fileInfo.getFileSha256());
+            payload.put("orderId", orderId);
+            payload.put("uuid", uuid);
+
+            String token = generateToken(payload);
+            fileInfo.setToken(token);
+            // 设置文件信息进入redis，对应的key为：upload_file_key:orderId:uuid
+            redisUtils.setHashMap(
+                    RedisConstant.UPLOAD_FILE_KEY,
+                    payload,
+                    orderId.toString(),
+                    uuid
+            );
+            tokenMap.put(fileInfo.getFileUid(), fileInfo);
+        }
+        return tokenMap;
+    }
+
+    public Map<String, Object> getTokenPayload(String token)
+    {
+        try
+        {   // 解析 JWT 并获取 payload
+            JWT jwt = JWTUtil.parseToken(token);
+            if (jwt.setKey(TOKEN_SIGN).verify())
+            {
+                return jwt.getPayload().getClaimsJson();
+            }
+            else
+            {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "Token 验证失败");
+            }
+        }
+        catch (JWTException e)
+        {
+            // 处理校验失败
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "Token 无效或已过期");
+        }
+    }
+
+    private String generateToken(Map<String, Object> params)
+    {
+        JWT jWtCreator = JWT.create();
+        params.forEach(jWtCreator::setPayload);
+        jWtCreator.setKey(TOKEN_SIGN);
+        jWtCreator.setExpiresAt(new Date(System.currentTimeMillis() + TOKEN_EXPIRE_TIME * 1000));
+        return jWtCreator.sign();
+    }
+
+    @Override
+    public Boolean doAfterUploadAction(UploadFileConfig uploadFileConfig, String savePath)
+    {
+        return null;
+    }
+
+    @Override
+    public Boolean doBeforeUploadAction(UploadFileConfig uploadFileConfig,
+                                        UploadFileRequest uploadFileRequest)
+    {
+        String token = uploadFileRequest.getToken();
+        String fileUid = uploadFileRequest.getFileInfo().getFileUid();
+        String uploadFileSha256 = uploadFileConfig.getSha256();
+        Map<String, Object> payload = getTokenPayload(token);
+        String orderId = payload.get("orderId").toString();
+        String uuid = payload.get("uuid").toString();
+        Map<Object, Object> cacheData = redisUtils.getHash(RedisConstant.UPLOAD_FILE_KEY, orderId, uuid);
+        if (cacheData == null || cacheData.isEmpty())
+        {
+            return false;
+        }
+        String fileSha256 = cacheData.get("fileSha256").toString();
+        if (!fileSha256.equals(uploadFileSha256) ||
+                !uuid.equals(cacheData.get("uuid")) ||
+                !fileUid.equals(cacheData.get("fileUid")))
+        {
+            return false;
+        }
+        // 删除redis中的缓存数据
+        redisUtils.delete(RedisConstant.UPLOAD_FILE_KEY, orderId, uuid);
+        return true;
     }
 }
 

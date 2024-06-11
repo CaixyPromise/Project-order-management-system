@@ -10,7 +10,7 @@ import {RcFile} from "antd/lib/upload";
 import useAsyncHandler from "@/hooks/useAsyncHandler";
 import {uploadFileToLocalUsingPost1} from "@/services/backend/fileController";
 import {UploadType} from "@/constants/uploadType";
-import {API_URL, STATIC_URL} from "@/constants";
+import {STATIC_URL} from "@/constants";
 
 const BaseView: React.FC = () =>
 {

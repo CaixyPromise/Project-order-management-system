@@ -20,20 +20,12 @@ public class UploadFileConfig
     private MultipartFile multipartFile;
     private FileUploadBizEnum fileUploadBizEnum;
     private FileInfo fileInfo;
-
+    private String sha256;
 
     @Data
     @Builder
     public static class FileInfo
     {
-        /**
-         * 用户ID
-         */
-        private Long userId;
-        /**
-         * 文件业务类型
-         */
-        private FileUploadBizEnum fileUploadBizEnum;
         /**
          * 文件唯一标识
          */
@@ -66,8 +58,6 @@ public class UploadFileConfig
         String uuid = RandomStringUtils.randomAlphanumeric(8);
         String filename = uuid + "-" + multipartFile.getOriginalFilename();
         FileInfo.FileInfoBuilder fileInfoBuilder = FileInfo.builder()
-                .userId(userId)
-                .fileUploadBizEnum(fileUploadBizEnum)
                 .uuid(uuid)
                 .filename(filename);
         if (isLocal)

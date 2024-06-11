@@ -5,8 +5,10 @@ import lombok.Getter;
 @Getter
 public enum RedisConstant
 {
-    CATEGORY_PARENT_BY_KEY("category:parent:", 3600L * 24 * 7);
-
+    CATEGORY_PARENT_BY_KEY("category:parent:", 3600L * 24 * 7),
+    // 上传文件key, 过期时间10分钟
+    UPLOAD_FILE_KEY("upload:file:", 60L * 10),
+    ;
     private final String key;
     private final Long expire;
 
@@ -16,6 +18,13 @@ public enum RedisConstant
         this.expire = expire;
     }
 
-
-
+    public String generateKey(String... values)
+    {
+        String joinValue = String.join(":", values);
+        if (this.key.charAt(this.key.length() - 1) == ':')
+        {
+            return this.key + joinValue;
+        }
+        return this.key + ":" + joinValue;
+    }
 }

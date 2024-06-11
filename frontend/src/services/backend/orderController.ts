@@ -7,7 +7,7 @@ export async function addOrderInfoUsingPost1(
   body: API.OrderInfoAddRequest,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseLong_>('/api/order/add', {
+  return request<API.BaseResponseOrderInfoAddResponse_>('/api/order/add', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

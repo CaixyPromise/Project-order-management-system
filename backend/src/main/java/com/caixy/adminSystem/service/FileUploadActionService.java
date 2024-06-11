@@ -1,6 +1,7 @@
 package com.caixy.adminSystem.service;
 
 import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
+import com.caixy.adminSystem.model.dto.file.UploadFileRequest;
 
 /**
  * @name: com.caixy.adminSystem.service.FileUploadActionService
@@ -10,5 +11,25 @@ import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
  **/
 public interface FileUploadActionService
 {
-    Boolean doAfterUpload(UploadFileConfig uploadFileConfig, String savePath);
+    /**
+     * 文件上传后处理操作
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @since 2024/6/10 下午11:51
+     */
+    Boolean doAfterUploadAction(UploadFileConfig uploadFileConfig, String savePath);
+
+    /**
+     * 解密token
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @since 2024/6/10 下午11:51
+     */
+    default Boolean doBeforeUploadAction(UploadFileConfig uploadFileConfig
+            , UploadFileRequest uploadFileRequest)
+    {
+        return true;
+    }
 }

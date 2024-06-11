@@ -1,9 +1,7 @@
 package com.caixy.adminSystem.service;
 
 import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
-import com.caixy.adminSystem.model.enums.FileUploadBizEnum;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+import com.caixy.adminSystem.model.dto.file.properties.SaveFileResultDTO;
 
 import java.io.File;
 

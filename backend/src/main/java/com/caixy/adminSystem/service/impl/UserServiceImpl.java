@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.caixy.adminSystem.annotation.FileUploadActionTarget;
 import com.caixy.adminSystem.common.ErrorCode;
 import com.caixy.adminSystem.constant.CommonConstant;
 import com.caixy.adminSystem.constant.FileTypeConstant;
@@ -17,6 +18,7 @@ import com.caixy.adminSystem.model.dto.user.UserModifyPasswordRequest;
 import com.caixy.adminSystem.model.dto.user.UserQueryRequest;
 import com.caixy.adminSystem.model.dto.user.UserRegisterRequest;
 import com.caixy.adminSystem.model.entity.User;
+import com.caixy.adminSystem.model.enums.FileUploadBizEnum;
 import com.caixy.adminSystem.model.enums.UserGenderEnum;
 import com.caixy.adminSystem.model.enums.UserRoleEnum;
 import com.caixy.adminSystem.model.vo.user.LoginUserVO;
@@ -44,7 +46,7 @@ import static com.caixy.adminSystem.constant.UserConstant.USER_LOGIN_STATE;
  */
 @Service
 @Slf4j
-@Qualifier(FileTypeConstant.AVATAR)
+@FileUploadActionTarget(FileUploadBizEnum.USER_AVATAR)
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService, FileUploadActionService
 {
 
@@ -465,7 +467,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @since 2024/6/7 下午4:31
      */
     @Override
-    public Boolean doAfterUpload(UploadFileConfig uploadFileConfig, String savePath)
+    public Boolean doAfterUploadAction(UploadFileConfig uploadFileConfig, String savePath)
     {
         User user = this.getById(uploadFileConfig.getUserId());
         if (user == null)

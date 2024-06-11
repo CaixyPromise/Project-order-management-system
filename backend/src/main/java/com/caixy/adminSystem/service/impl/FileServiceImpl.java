@@ -6,6 +6,7 @@ import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.manager.CosManager;
 import com.caixy.adminSystem.manager.LocalFileManager;
 import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
+import com.caixy.adminSystem.model.dto.file.properties.SaveFileResultDTO;
 import com.caixy.adminSystem.service.FileService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,7 +79,7 @@ public class FileServiceImpl implements FileService
     {
         UploadFileConfig.FileInfo fileInfo = uploadFileConfig.convertFileInfo(true);
         uploadFileConfig.setFileInfo(fileInfo);
-        return localFileManager.saveFile(uploadFileConfig.getMultipartFile(), fileInfo);
+        return localFileManager.saveFile(uploadFileConfig.getMultipartFile(), uploadFileConfig);
     }
 
     @Override
