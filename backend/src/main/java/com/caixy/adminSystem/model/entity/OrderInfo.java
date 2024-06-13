@@ -111,9 +111,9 @@ public class OrderInfo implements Serializable
     private String orderDesc;
 
     /**
-     * 订单附件
+     * 是否包含订单附件
      */
-    private String orderAttachment;
+    private Integer hasOrderAttachment;
 
     /**
      * 订单备注

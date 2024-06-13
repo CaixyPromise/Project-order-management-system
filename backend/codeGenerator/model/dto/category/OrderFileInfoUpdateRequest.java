@@ -1,36 +1,23 @@
 package com.caixy.adminSystem.model.dto.category;
 
-import com.caixy.adminSystem.common.PageRequest;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.util.List;
 
 /**
- * 查询订单分类请求
+ * 更新订单文件附件请求
  *
 
 
  */
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class OrderCategoryQueryRequest extends PageRequest implements Serializable {
+public class OrderFileInfoUpdateRequest implements Serializable {
 
     /**
      * id
      */
     private Long id;
-
-    /**
-     * id
-     */
-    private Long notId;
-
-    /**
-     * 搜索词
-     */
-    private String searchText;
 
     /**
      * 标题
@@ -46,11 +33,6 @@ public class OrderCategoryQueryRequest extends PageRequest implements Serializab
      * 标签列表
      */
     private List<String> tags;
-
-    /**
-     * 创建用户 id
-     */
-    private Long userId;
 
     private static final long serialVersionUID = 1L;
 }

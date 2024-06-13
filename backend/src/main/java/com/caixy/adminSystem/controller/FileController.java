@@ -6,15 +6,19 @@ import com.caixy.adminSystem.common.BaseResponse;
 import com.caixy.adminSystem.common.ErrorCode;
 import com.caixy.adminSystem.common.ResultUtils;
 import com.caixy.adminSystem.exception.BusinessException;
+import com.caixy.adminSystem.exception.FileUploadActionException;
 import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
 import com.caixy.adminSystem.model.dto.file.UploadFileRequest;
 import com.caixy.adminSystem.model.entity.User;
 import com.caixy.adminSystem.model.enums.FileUploadBizEnum;
-import com.caixy.adminSystem.service.FileService;
 import com.caixy.adminSystem.service.FileUploadActionService;
+import com.caixy.adminSystem.service.UploadFileService;
 import com.caixy.adminSystem.service.UserService;
 import com.caixy.adminSystem.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.framework.AopProxyUtils;
+import org.springframework.aop.support.AopUtils;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -41,7 +45,7 @@ public class FileController
     private UserService userService;
 
     @Resource
-    private FileService fileService;
+    private UploadFileService uploadFileService;
 
     @Resource
     private List<FileUploadActionService> fileUploadActionService;
@@ -52,11 +56,18 @@ public class FileController
     public void initActionService()
     {
         // 在应用启动时填充缓存
+        log.info("初始化文件上传处理类");
         for (FileUploadActionService service : fileUploadActionService)
         {
-            FileUploadActionTarget annotation = service.getClass().getAnnotation(FileUploadActionTarget.class);
-            if (annotation != null)
-            {
+            // 获取实际类
+            Class<?> targetClass = AopUtils.isAopProxy(service) ? AopProxyUtils.ultimateTargetClass(service) : service.getClass();
+
+            log.info("获取-初始化文件上传处理类：{}", targetClass.getName());
+
+            // 获取实际类上的注解
+            FileUploadActionTarget annotation = targetClass.getAnnotation(FileUploadActionTarget.class);
+            if (annotation != null) {
+                log.info("成功-初始化文件上传处理类：{} -> {}", annotation.value(), targetClass.getName());
                 serviceCache.put(annotation.value(), service);
             }
         }
@@ -76,27 +87,45 @@ public class FileController
                                            UploadFileRequest uploadFileRequest,
                                            HttpServletRequest request)
     {
-        UploadFileConfig uploadFileConfig = getUploadFileConfig(multipartFile, uploadFileRequest, request);
-        // 获取文件处理类，如果找不到就会直接报错
-        FileUploadActionService actionService = getFileUploadActionService(uploadFileConfig);
-        boolean doVerifyFileToken = doBeforeFileUploadAction(actionService, uploadFileConfig, uploadFileRequest);
-        if (!doVerifyFileToken)
+        String savePath = null;
+        try
         {
-            log.error("COS对象存储-验证token：文件上传失败，文件信息：{}, 上传用户Id: {}", uploadFileConfig.getFileInfo(),
-                    uploadFileConfig.getUserId());
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件上传失败");
+            UploadFileConfig uploadFileConfig = getUploadFileConfig(multipartFile, uploadFileRequest, request);
+            // 获取文件处理类，如果找不到就会直接报错
+            FileUploadActionService actionService = getFileUploadActionService(uploadFileConfig);
+            boolean doVerifyFileToken = doBeforeFileUploadAction(actionService, uploadFileConfig, uploadFileRequest);
+            if (!doVerifyFileToken)
+            {
+                log.error("COS对象存储-验证token：文件上传失败，文件信息：{}, 上传用户Id: {}", uploadFileConfig.getFileInfo(),
+                        uploadFileConfig.getUserId());
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件上传失败");
+            }
+            savePath = uploadFileService.saveFileToCos(uploadFileConfig);
+            boolean doAfterFileUpload =
+                    doAfterFileUploadAction(actionService, uploadFileConfig, savePath, uploadFileRequest);
+            if (!doAfterFileUpload)
+            {
+                log.error("COS对象存储：文件上传成功，文件路径：{}，但后续处理失败", savePath);
+                uploadFileService.deleteFileOnCos(savePath);
+                log.error("COS对象存储：文件上传成功，文件路径：{}，后处理失败后，成功删除文件", savePath);
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件上传成功，但后续处理失败");
+            }
+            log.info("COS对象存储：文件上传成功，文件路径：{}", savePath);
+            return ResultUtils.success(savePath);
         }
-        String savePath = fileService.saveFileToCos(uploadFileConfig);
-        boolean doAfterFileUpload = doAfterFileUploadAction(actionService, uploadFileConfig, savePath);
-        if (!doAfterFileUpload)
+        catch (FileUploadActionException e)
         {
-            log.error("COS对象存储：文件上传成功，文件路径：{}，但后续处理失败", savePath);
-            fileService.deleteFileOnCos(savePath);
-            log.error("COS对象存储：文件上传成功，文件路径：{}，后处理失败后，成功删除文件", savePath);
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件上传成功，但后续处理失败");
+            log.error("文件上传失败，错误信息: {}", e.getMessage());
+
+            // 如果 savePath 不为空，则意味着文件已经上传成功，需要删除它
+            if (savePath != null)
+            {
+                uploadFileService.deleteFileOnCos(savePath);
+                log.info("COS对象存储：文件上传失败，删除文件成功，文件路径：{}", savePath);
+            }
+            // 抛出业务异常，以触发事务回滚
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, e.getMessage());
         }
-        log.info("COS对象存储：文件上传成功，文件路径：{}", savePath);
-        return ResultUtils.success(savePath);
     }
 
 
@@ -112,26 +141,44 @@ public class FileController
                                                   UploadFileRequest uploadFileRequest,
                                                   HttpServletRequest request)
     {
-        UploadFileConfig uploadFileConfig = getUploadFileConfig(multipartFile, uploadFileRequest, request);
-        // 获取文件处理类，如果找不到就会直接报错
-        FileUploadActionService actionService = getFileUploadActionService(uploadFileConfig);
-        boolean doVerifyFileToken = doBeforeFileUploadAction(actionService, uploadFileConfig, uploadFileRequest);
-        if (!doVerifyFileToken)
+        String savePath = null;
+        try
         {
-            log.error("本地文件存储-验证token：文件上传失败，文件信息：{}, 上传用户Id: {}", uploadFileConfig.getFileInfo(),
-                    uploadFileConfig.getUserId());
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件上传失败");
+            UploadFileConfig uploadFileConfig = getUploadFileConfig(multipartFile, uploadFileRequest, request);
+            // 获取文件处理类，如果找不到就会直接报错
+            FileUploadActionService actionService = getFileUploadActionService(uploadFileConfig);
+            boolean doVerifyFileToken = doBeforeFileUploadAction(actionService, uploadFileConfig, uploadFileRequest);
+            if (!doVerifyFileToken)
+            {
+                log.error("本地文件存储-验证token：文件上传失败，文件信息：{}, 上传用户Id: {}", uploadFileConfig.getFileInfo(),
+                        uploadFileConfig.getUserId());
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件上传失败");
+            }
+            savePath = uploadFileService.saveFileToLocal(uploadFileConfig);
+            log.info("本地存储：文件上传成功，文件路径：{}", savePath);
+            boolean doAfterFileUpload =
+                    doAfterFileUploadAction(actionService, uploadFileConfig, savePath, uploadFileRequest);
+            if (!doAfterFileUpload)
+            {
+                log.error("本地文件存储：文件上传成功，文件路径：{}，但后续处理失败", savePath);
+                uploadFileService.deleteFileOnCos(savePath);
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件上传成功，但后续处理失败");
+            }
+            return ResultUtils.success(uploadFileConfig.getFileInfo().getFileURL());
         }
-        String savePath = fileService.saveFileToLocal(uploadFileConfig);
-        log.info("本地存储：文件上传成功，文件路径：{}", savePath);
-        boolean doAfterFileUpload = doAfterFileUploadAction(actionService, uploadFileConfig, savePath);
-        if (!doAfterFileUpload)
+        catch (FileUploadActionException e)
         {
-            log.error("本地文件存储：文件上传成功，文件路径：{}，但后续处理失败", savePath);
-            fileService.deleteFileOnCos(savePath);
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件上传成功，但后续处理失败");
+            log.error("本地文件上传失败，错误信息: {}", e.getMessage());
+
+            // 如果 savePath 不为空，则意味着文件已经上传成功，需要删除它
+            if (savePath != null)
+            {
+                uploadFileService.deleteFileOnLocal(savePath);
+                log.info("本地文件存储：文件上传失败，删除文件成功，文件路径：{}", savePath);
+            }
+            // 抛出业务异常，以触发事务回滚
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, e.getMessage());
         }
-        return ResultUtils.success(uploadFileConfig.getFileInfo().getFileURL());
     }
 
     /**
@@ -183,6 +230,7 @@ public class FileController
         uploadFileConfig.setMultipartFile(multipartFile);
         uploadFileConfig.setUserId(loginUser.getId());
         uploadFileConfig.setSha256(FileUtils.getMultiPartFileSha256(multipartFile));
+        uploadFileConfig.setFileSize(multipartFile.getSize());
         return uploadFileConfig;
     }
 
@@ -204,9 +252,9 @@ public class FileController
         return actionService;
     }
 
-    private boolean doAfterFileUploadAction(FileUploadActionService actionService, UploadFileConfig uploadFileConfig, String savePath)
+    private boolean doAfterFileUploadAction(FileUploadActionService actionService, UploadFileConfig uploadFileConfig, String savePath, UploadFileRequest uploadFileRequest)
     {
-        return actionService.doAfterUploadAction(uploadFileConfig, savePath);
+        return actionService.doAfterUploadAction(uploadFileConfig, savePath, uploadFileRequest);
     }
 
     private boolean doBeforeFileUploadAction(FileUploadActionService actionService, UploadFileConfig uploadFileConfig

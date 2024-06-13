@@ -5,7 +5,6 @@ import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
 
 /**
  * 订单信息VO
@@ -15,7 +14,7 @@ import java.util.List;
  * @since 2024-06-04 20:56
  **/
 @Data
-public class OrderInfoVO implements Serializable
+public class OrderInfoPageVO implements Serializable
 {
 
     /**
@@ -102,35 +101,5 @@ public class OrderInfoVO implements Serializable
      */
     private Date updateTime;
 
-    /**
-     * 订单附件列表
-     */
-    private List<OrderAttachmentList> orderAttachmentList;
-
-    @Data
-    public static class OrderAttachmentList implements Serializable
-    {
-        /**
-         * 文件名
-         */
-        private String fileName;
-
-        /**
-         * 文件大小（单位：字节）
-         */
-        private Long fileSize;
-
-        /**
-         * 创建人名称
-         */
-        private String creatorName;
-
-        /**
-         * 下载链接
-         */
-        private String downloadUrl;
-
-        private static final long serialVersionUID = 1L;
-    }
     private static final long serialVersionUID = 1L;
 }

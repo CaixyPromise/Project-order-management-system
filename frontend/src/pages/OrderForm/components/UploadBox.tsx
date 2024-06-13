@@ -3,16 +3,24 @@ import {message, UploadFile, UploadProps} from "antd";
 import Dragger from "antd/lib/upload/Dragger";
 import {InboxOutlined} from "@ant-design/icons";
 import crypto from "crypto-js";
-
+import useAsyncHandler from "@/hooks/useAsyncHandler";
+import {RcFile} from "antd/lib/upload";
+import {history} from "@umijs/max";
 
 interface UploadBoxProps
 {
     onFileUidChange: (files: OrderFormType.FileInfo[]) => void;
 }
 
-const UploadBox: React.FC<UploadBoxProps> = forwardRef(({ onFileUidChange }: UploadBoxProps, ref) =>
+export interface UploadBoxHandle
+{
+    uploadFiles: (tokenMap: Record<string, API.UploadFileInfoDTO>, uploadActionFunction: (file: RcFile, token: string) => Promise<boolean>) => Promise<boolean>;
+}
+
+const UploadBox: React.ForwardRefRenderFunction<UploadBoxHandle, UploadBoxProps> = ({ onFileUidChange }, ref) =>
 {
     const [ fileList, setFileList ] = useState<UploadFile[]>([]);
+    const [ uploadHandler, isRunning ] = useAsyncHandler<boolean>();
 
     const calculateSHA256 = (file: File): Promise<string> =>
     {
@@ -50,27 +58,60 @@ const UploadBox: React.FC<UploadBoxProps> = forwardRef(({ onFileUidChange }: Upl
         onFileUidChange(fileWithHashes);
     };
 
-
     useImperativeHandle(ref, () => ({
-        uploadFiles: async (tokenMap) =>
+        uploadFiles: async (tokenMap: Record<string, API.UploadFileInfoDTO>, uploadActionFunction: (file: RcFile, token: string) => Promise<boolean>): Promise<boolean> =>
         {
+            if (isRunning)
+            {
+                message.warning("文件上传正在进行中，请稍候...");
+                return false;
+            }
+
+            let allSuccessful = true;
+
             for (const file of fileList)
             {
-                const token = tokenMap[file.uid];
+                const fileInfoDTO = tokenMap[file.uid];
 
-                if (token)
+                if (fileInfoDTO)
                 {
-                    const closeMsgBox = message.loading(`上传中：${file.name}`, 0)
-
-                    closeMsgBox()
+                    const closeMsgBox = message.loading(`上传中：${file.name}`, 0);
+                    try
+                    {
+                        const result = await uploadHandler(
+                            uploadActionFunction,
+                            [ file.originFileObj as RcFile, fileInfoDTO ],
+                            (error) => message.error(`上传失败: ${file.name}，错误信息: ${error}`)
+                        );
+                        if (!result)
+                        {
+                            allSuccessful = false;
+                        }
+                    }
+                    finally
+                    {
+                        closeMsgBox();
+                    }
                 }
-                else {
+                else
+                {
                     message.error(`上传失败：文件 ${file.name} 未找到对应的 token`);
+                    allSuccessful = false;
                 }
             }
-        },
-    }));
 
+            if (allSuccessful)
+            {
+                message.success("所有文件上传成功");
+                setTimeout(() => {
+                    message.success("正在跳转至订单列表页面...", 1000)
+                    history.push("/orderList")
+                }, 1000)
+            }
+
+            return allSuccessful;
+        },
+    }), [ fileList, isRunning, uploadHandler ]);
 
     const uploadProps: UploadProps = {
         name: "file",
@@ -78,7 +119,6 @@ const UploadBox: React.FC<UploadBoxProps> = forwardRef(({ onFileUidChange }: Upl
         fileList,
         onChange: handleChange,
     };
-
 
     return (
         <Dragger {...uploadProps}>
@@ -89,6 +129,6 @@ const UploadBox: React.FC<UploadBoxProps> = forwardRef(({ onFileUidChange }: Upl
             <p className="ant-upload-hint">支持单个或批量上传</p>
         </Dragger>
     );
-});
+};
 
-export default UploadBox;
+export default forwardRef<UploadBoxHandle, UploadBoxProps>(UploadBox);

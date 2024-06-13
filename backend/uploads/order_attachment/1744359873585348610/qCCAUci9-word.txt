@@ -1,0 +1,71 @@
+int main() {
+    BiTree bt;
+    int wedding1, health1, i, j, n;
+    char name1[20], birth1[20], add1[20], death_date1[20];
+    
+    printf("欢迎来到家谱管理系统！\n");
+    bt = create(); // 假设`create`函数已经定义并返回一个家谱树的根节点
+
+    while (1) {
+        menu(); // 显示菜单
+        printf("\n请输入你的选择:\n");
+        scanf("%d", &i);
+
+        switch (i) {
+            case 1: {
+                FILE *fin = fopen("zupu.txt", "r");
+                if (fin == NULL) {
+                    printf("无法打开文件 zupu.txt\n");
+                    break;
+                }
+                printf("从文件里读出来的信息是：\n");
+                printf("姓名   出生日期     婚否      地址      健在否       死亡日期\n");
+                for (j = 0; j < 11; j++) {
+                    if (fscanf(fin, "%s %s %d %s %d %s", name1, birth1, &wedding1, add1, &health1, death_date1) == 6) {
+                        printf("%-7s%-11s%-10d%-12s%-10d%-17s\n", name1, birth1, wedding1, add1, health1, death_date1);
+                    } else {
+                        printf("读取文件时出错或到达文件结尾\n");
+                        break;
+                    }
+                }
+                fclose(fin);
+                break;
+            }
+            case 2: {
+                FILE *fout = fopen("zupu.txt", "w");
+                if (fout == NULL) {
+                    printf("无法打开文件 zupu.txt\n");
+                    break;
+                }
+                struct Infomation man[11] = {
+                    {"John", "19000511", 1, "nefu", 0, "19800401"},
+                    {"Jack", "19200721", 1, "hit", 0, "19900402"},
+                    {"Mary", "19230526", 1, "mit", 0, "19981221"},
+                    {"Tom", "19440501", 1, "bit", 0, "20080419"},
+                    {"Lily", "19480711", 0, "nefu", 0, "20010201"},
+                    {"Ben", "19480505", 1, "hit", 0, "20070401"},
+                    {"June", "19490541", 1, "baidu", 0, "20141111"},
+                    {"Mark", "19600430", 0, "nefu", 1, "I_am_alive!"},
+                    {"Lucy", "19760301", 0, "jingdong", 1, "I_am_alive!"},
+                    {"Steven", "19770519", 1, "alibaba", 1, "I_am_alive!"},
+                    {"Ann", "20000101", 0, "nefu", 1, "I_am_alive!"}
+                };
+                for (j = 0; j < 11; j++) {
+                    fprintf(fout, "%s %s %d %s %d %s\n", man[j].name, man[j].birth, man[j].wedding, man[j].add, man[j].health, man[j].death_date);
+                }
+                fclose(fout);
+                printf("保存成功！\n");
+                break;
+            }
+            case 3: {
+                show_family(bt); // 假设`show_family`函数已经定义并展示家谱树
+                break;
+            }
+            default:
+                printf("无效的选择，请重新输入。\n");
+                break;
+        }
+    }
+
+    return 0;
+}

@@ -21,6 +21,7 @@ public class UploadFileConfig
     private FileUploadBizEnum fileUploadBizEnum;
     private FileInfo fileInfo;
     private String sha256;
+    private Long fileSize;
 
     @Data
     @Builder
@@ -38,7 +39,6 @@ public class UploadFileConfig
          * 文件保存路径
          */
         private String filePath;
-
         /**
          * 文件可访问路径
          */

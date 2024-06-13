@@ -1,17 +1,16 @@
 package com.caixy.adminSystem.service;
 
 import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
-import com.caixy.adminSystem.model.dto.file.properties.SaveFileResultDTO;
 
 import java.io.File;
 
 /**
- * @name: com.caixy.adminSystem.service.FileService
+ * @name: com.caixy.adminSystem.service.UploadFileService
  * @description: 文件上传下载服务
  * @author: CAIXYPROMISE
  * @date: 2024-05-21 21:52
  **/
-public interface FileService
+public interface UploadFileService
 {
     /**
      * 上传文件到COS
@@ -32,6 +31,8 @@ public interface FileService
     String saveFileToLocal(UploadFileConfig uploadFileConfig);
 
     void deleteFileOnCos(String filepath);
+
+    void deleteFileOnLocal(String filePath);
 
     void deleteFileOnLocal(File file);
 }

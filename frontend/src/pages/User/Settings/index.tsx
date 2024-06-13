@@ -97,7 +97,7 @@ const Settings: React.FC = () =>
                 return Promise.reject('获取信息失败')
             }
             return data as API.AboutMeVO;
-        }, onError)
+        },[], onError)
 
         if (response)
         {

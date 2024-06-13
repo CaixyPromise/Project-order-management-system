@@ -6,8 +6,7 @@ import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.manager.CosManager;
 import com.caixy.adminSystem.manager.LocalFileManager;
 import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
-import com.caixy.adminSystem.model.dto.file.properties.SaveFileResultDTO;
-import com.caixy.adminSystem.service.FileService;
+import com.caixy.adminSystem.service.UploadFileService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,13 +18,13 @@ import java.io.File;
  * 文件服务实现类
  *
  * @author CAIXYPROMISE
- * @name com.caixy.adminSystem.service.impl.FileServiceImpl
+ * @name com.caixy.adminSystem.service.impl.UploadUploadFileServiceImpl
  * @since 2024-05-21 21:55
  **/
 @Service
 @Slf4j
 @AllArgsConstructor
-public class FileServiceImpl implements FileService
+public class UploadUploadFileServiceImpl implements UploadFileService
 {
     private final CosManager cosManager;
 
@@ -86,6 +85,21 @@ public class FileServiceImpl implements FileService
     public void deleteFileOnCos(String filepath)
     {
         cosManager.deleteObject(filepath);
+    }
+
+    @Override
+    public void deleteFileOnLocal(String filePath)
+    {
+        File file = new File(filePath);
+        if (file.exists())
+        {
+            // 删除临时文件
+            boolean delete = file.delete();
+            if (!delete)
+            {
+                log.error("file delete error, filepath = {}", file.getAbsolutePath());
+            }
+        }
     }
 
     @Override

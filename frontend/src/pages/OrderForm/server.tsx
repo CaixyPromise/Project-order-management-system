@@ -1,6 +1,9 @@
 import {getOrderCategoryVosUsingGet1} from "@/services/backend/orderCategoryController";
 import {addOrderInfoUsingPost1} from "@/services/backend/orderController";
 import {getLangTypeVoSUsingGet1} from "@/services/backend/languageTypeController";
+import {RcFile} from "antd/lib/upload";
+import {UploadType} from "@/constants/uploadType";
+import {uploadFileToLocalUsingPost1} from "@/services/backend/fileController";
 
 const fetchCategory = async () =>
 {
@@ -25,12 +28,21 @@ const fetchLangType = async () =>
 
 const postOrderInfo = async (orderInfo: API.OrderInfoAddRequest) =>
 {
-    const {data, code} = await addOrderInfoUsingPost1(orderInfo)
+    const { data, code } = await addOrderInfoUsingPost1(orderInfo)
     if (code === 0)
     {
-        return data as unknown as string
+        return data as unknown as API.OrderInfoAddResponse
     }
-    return ''
+    return {}
+}
+
+const uploadAttachment = async (file: RcFile, token: string): Promise<boolean> =>
+{
+    const { data, code } = await uploadFileToLocalUsingPost1({
+        biz: UploadType.ORDER_ATTACHMENT,
+        token
+    }, {}, file)
+    return code === 0;
 }
 
 
@@ -38,4 +50,5 @@ export {
     fetchCategory,
     fetchLangType,
     postOrderInfo,
+    uploadAttachment
 }

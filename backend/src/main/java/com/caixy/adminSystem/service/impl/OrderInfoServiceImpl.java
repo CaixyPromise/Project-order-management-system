@@ -9,20 +9,23 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.caixy.adminSystem.annotation.FileUploadActionTarget;
 import com.caixy.adminSystem.common.ErrorCode;
 import com.caixy.adminSystem.exception.BusinessException;
+import com.caixy.adminSystem.exception.FileUploadActionException;
 import com.caixy.adminSystem.exception.ThrowUtils;
 import com.caixy.adminSystem.mapper.OrderInfoMapper;
 import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
 import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import com.caixy.adminSystem.model.dto.file.UploadFileRequest;
 import com.caixy.adminSystem.model.dto.order.OrderInfoQueryRequest;
+import com.caixy.adminSystem.model.entity.OrderFileInfo;
 import com.caixy.adminSystem.model.entity.OrderInfo;
 import com.caixy.adminSystem.model.enums.*;
-import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
+import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
 import com.caixy.adminSystem.service.*;
 import com.caixy.adminSystem.utils.RedisUtils;
 import com.caixy.adminSystem.utils.RegexUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -38,6 +41,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @FileUploadActionTarget(FileUploadBizEnum.ORDER_ATTACHMENT)
+@Slf4j
 public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo>
         implements OrderInfoService, FileUploadActionService
 {
@@ -59,8 +63,10 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 
     @Resource
     private UserService userService;
-    @Autowired
+    @Resource
     private RedisUtils redisUtils;
+    @Resource
+    private OrderFileInfoService orderFileInfoService;
 
     @Override
     public void validOrderInfo(OrderInfo post, boolean add)
@@ -171,15 +177,15 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     }
 
     @Override
-    public OrderInfoVO getOrderInfoVO(OrderInfo post, HttpServletRequest request)
+    public OrderInfoPageVO getOrderInfoVO(OrderInfo post, HttpServletRequest request)
     {
         return null;
     }
 
     @Override
-    public Page<OrderInfoVO> getOrderInfoVOPage(Page<OrderInfo> postPage, HttpServletRequest request)
+    public Page<OrderInfoPageVO> getOrderInfoVOPage(Page<OrderInfo> postPage, HttpServletRequest request)
     {
-        Page<OrderInfoVO> orderInfoVOPage = new Page<>(postPage.getCurrent(), postPage.getSize());
+        Page<OrderInfoPageVO> orderInfoVOPage = new Page<>(postPage.getCurrent(), postPage.getSize());
         List<OrderInfo> orderInfos = postPage.getRecords();
         Set<Long> userIds = new HashSet<>();
         Set<Long> langIds = new HashSet<>();
@@ -202,25 +208,26 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         Map<Long, String> langNameByIds = languageTypeService.getLangNameByIds(langIds);
         Map<Long, String> categoryNameByIds = orderCategoryService.getCategoryNameByIds(categoryIds);
 
-        List<OrderInfoVO> orderInfoVOList = orderInfos.stream().map(item -> {
-            OrderInfoVO orderInfoVO = new OrderInfoVO();
-            BeanUtils.copyProperties(item, orderInfoVO);
+        List<OrderInfoPageVO> orderInfoPageVOList = orderInfos.stream().map(item -> {
+            OrderInfoPageVO orderInfoPageVO = new OrderInfoPageVO();
+            BeanUtils.copyProperties(item, orderInfoPageVO);
             OrderStatusEnum orderStatus = OrderStatusEnum.getByCode(item.getOrderStatus());
             OrderSourceEnum orderSource = OrderSourceEnum.getByCode(item.getOrderSource());
 
-            orderInfoVO.setIsAssigned(integerToBool(item.getIsAssigned()));
-            orderInfoVO.setIsPaid(integerToBool(item.getIsPaid()));
-            orderInfoVO.setOrderStatus(orderStatus == null ? "未知状态" : orderStatus.getDesc());
-            orderInfoVO.setOrderSource(orderSource == null ? "未知来源" : orderSource.getDesc());
-            orderInfoVO.setCreatorName(userNameByIds.get(item.getCreatorId()) == null ? "未知用户" :
-                                       userNameByIds.get(item.getCreatorId()));
-            orderInfoVO.setLangName(langNameByIds.get(item.getOrderLangId()) == null ? "未知语言" :
-                                    langNameByIds.get(item.getOrderLangId()));
-            orderInfoVO.setOrderCategoryName(categoryNameByIds.get(item.getOrderCategoryId()) == null ? "未知分类" :
-                                             categoryNameByIds.get(item.getOrderCategoryId()));
-            return orderInfoVO;
+            orderInfoPageVO.setIsAssigned(integerToBool(item.getIsAssigned()));
+            orderInfoPageVO.setIsPaid(integerToBool(item.getIsPaid()));
+            orderInfoPageVO.setHasOrderAttachment(integerToBool(item.getHasOrderAttachment()));
+            orderInfoPageVO.setOrderStatus(orderStatus == null ? "未知状态" : orderStatus.getDesc());
+            orderInfoPageVO.setOrderSource(orderSource == null ? "未知来源" : orderSource.getDesc());
+            orderInfoPageVO.setCreatorName(userNameByIds.get(item.getCreatorId()) == null ? "未知用户" :
+                                           userNameByIds.get(item.getCreatorId()));
+            orderInfoPageVO.setLangName(langNameByIds.get(item.getOrderLangId()) == null ? "未知语言" :
+                                        langNameByIds.get(item.getOrderLangId()));
+            orderInfoPageVO.setOrderCategoryName(categoryNameByIds.get(item.getOrderCategoryId()) == null ? "未知分类" :
+                                                 categoryNameByIds.get(item.getOrderCategoryId()));
+            return orderInfoPageVO;
         }).collect(Collectors.toList());
-        orderInfoVOPage.setRecords(orderInfoVOList);
+        orderInfoVOPage.setRecords(orderInfoPageVOList);
         orderInfoVOPage.setTotal(postPage.getTotal());
         return orderInfoVOPage;
     }
@@ -232,10 +239,10 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     }
 
     @Override
-    public Map<String, UploadFileInfoDTO> generateFileUploadToken(List<UploadFileInfoDTO> fileInfoList,
-                                                                  Long orderId)
+    public Map<String, String> generateFileUploadToken(List<UploadFileInfoDTO> fileInfoList,
+                                                       Long orderId)
     {
-        Map<String, UploadFileInfoDTO> tokenMap = new HashMap<>();
+        Map<String, String> tokenMap = new HashMap<>();
 
         for (UploadFileInfoDTO fileInfo : fileInfoList)
         {
@@ -256,7 +263,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
                     orderId.toString(),
                     uuid
             );
-            tokenMap.put(fileInfo.getFileUid(), fileInfo);
+            tokenMap.put(fileInfo.getFileUid(), token);
         }
         return tokenMap;
     }
@@ -292,9 +299,24 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     }
 
     @Override
-    public Boolean doAfterUploadAction(UploadFileConfig uploadFileConfig, String savePath)
+    public Boolean doAfterUploadAction(UploadFileConfig uploadFileConfig, String savePath, UploadFileRequest uploadFileRequest)
     {
-        return null;
+        String token = uploadFileRequest.getToken();
+        Map<String, Object> payload = getTokenPayload(token);
+        Long orderId = Long.parseLong(payload.get("orderId").toString());
+        OrderFileInfo orderFileInfo = new OrderFileInfo();
+        orderFileInfo.setOrderId(orderId);
+        orderFileInfo.setUserId(uploadFileConfig.getUserId());
+        orderFileInfo.setFileSize(uploadFileConfig.getFileSize());
+        orderFileInfo.setFileSha256(uploadFileConfig.getSha256());
+        orderFileInfo.setFileName(uploadFileConfig.getFileInfo().getFilename());
+        boolean save = orderFileInfoService.save(orderFileInfo);
+        if (!save)
+        {
+            removeById(orderId);
+            throw new FileUploadActionException(ErrorCode.SYSTEM_ERROR, "文件上传失败");
+        }
+        return true;
     }
 
     @Override
@@ -302,7 +324,10 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
                                         UploadFileRequest uploadFileRequest)
     {
         String token = uploadFileRequest.getToken();
-        String fileUid = uploadFileRequest.getFileInfo().getFileUid();
+        if (token == null || StringUtils.isBlank(token))
+        {
+            throw new FileUploadActionException(ErrorCode.PARAMS_ERROR, "Token 不存在");
+        }
         String uploadFileSha256 = uploadFileConfig.getSha256();
         Map<String, Object> payload = getTokenPayload(token);
         String orderId = payload.get("orderId").toString();
@@ -310,14 +335,18 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         Map<Object, Object> cacheData = redisUtils.getHash(RedisConstant.UPLOAD_FILE_KEY, orderId, uuid);
         if (cacheData == null || cacheData.isEmpty())
         {
-            return false;
+            removeById(Long.parseLong(orderId));
+            throw new FileUploadActionException(ErrorCode.PARAMS_ERROR, "文件上传超时");
         }
-        String fileSha256 = cacheData.get("fileSha256").toString();
-        if (!fileSha256.equals(uploadFileSha256) ||
-                !uuid.equals(cacheData.get("uuid")) ||
-                !fileUid.equals(cacheData.get("fileUid")))
+        String cacheFileSha256 = cacheData.get("fileSha256").toString().replaceAll("\"", "");
+        String cacheUuid = cacheData.get("uuid").toString().replaceAll("\"", "");
+        log.info("payload: {}", payload);
+        log.info("cacheData: {}", cacheData);
+        if (!cacheFileSha256.equals(uploadFileSha256) ||
+                !uuid.equals(cacheUuid))
         {
-            return false;
+            removeById(Long.parseLong(orderId));
+            throw new FileUploadActionException(ErrorCode.PARAMS_ERROR, "文件校验失败");
         }
         // 删除redis中的缓存数据
         redisUtils.delete(RedisConstant.UPLOAD_FILE_KEY, orderId, uuid);

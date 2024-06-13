@@ -24,7 +24,7 @@
             <result property="orderTags" column="orderTags" jdbcType="VARCHAR"/>
             <result property="orderLangId" column="orderLangId" jdbcType="BIGINT"/>
             <result property="orderDesc" column="orderDesc" jdbcType="VARCHAR"/>
-            <result property="orderAttachment" column="orderAttachment" jdbcType="VARCHAR"/>
+            <result property="hasOrderAttachment" column="hasOrderAttachment" jdbcType="TINYINT"/>
             <result property="orderRemark" column="orderRemark" jdbcType="VARCHAR"/>
             <result property="orderDeadline" column="orderDeadline" jdbcType="TIMESTAMP"/>
             <result property="orderCompletionTime" column="orderCompletionTime" jdbcType="TIMESTAMP"/>
@@ -37,15 +37,15 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,creatorId,orderId,orderTitle,
-        amount,amountPaid,customerContactType,
-        customerContact,customerEmail,isAssigned,
-        isPaid,paymentMethod,orderSource,
-        orderAssignToWxId,orderCommissionRate,orderCategoryId,
-        orderTags,orderLangId,orderDesc,
-        orderAttachment,orderRemark,orderDeadline,
-        orderCompletionTime,orderStartDate,orderEndDate,
-        orderStatus,createTime,updateTime,
-        isDelete
+        id,creatorId,orderId,
+        orderTitle,amount,amountPaid,
+        customerContactType,customerContact,customerEmail,
+        isAssigned,isPaid,paymentMethod,
+        orderSource,orderAssignToWxId,orderCommissionRate,
+        orderCategoryId,orderTags,orderLangId,
+        orderDesc,hasOrderAttachment,orderRemark,
+        orderDeadline,orderCompletionTime,orderStartDate,
+        orderEndDate,orderStatus,createTime,
+        updateTime,isDelete
     </sql>
 </mapper>

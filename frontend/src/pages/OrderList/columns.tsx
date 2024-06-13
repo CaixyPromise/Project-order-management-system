@@ -1,7 +1,19 @@
 import type {ProColumns} from "@ant-design/pro-components";
-import {Space, Typography} from "antd";
+import {Space, Tag, Typography} from "antd";
 import React from "react";
 import {ColumnsParams} from "@/typings";
+import OrderActionButton from "@/pages/OrderList/components/OrderActionButton";
+
+const BooleanTag = ({text}: { text: boolean | undefined }) => {
+    if (text)
+    {
+        return <Tag color="green">是</Tag>
+    }
+    else
+    {
+        return <Tag color="red">否</Tag>
+    }
+}
 
 
 export const getOrderListColumn = ({
@@ -17,6 +29,8 @@ export const getOrderListColumn = ({
         title: "平台订单id",
         dataIndex: "orderId",
         valueType: "text",
+        width: 100,
+
     },
     {
         title: "订单描述名称",
@@ -50,8 +64,15 @@ export const getOrderListColumn = ({
         dataIndex: "orderCategoryName",
         valueType: "text",
     },
-
-
+    {
+        title:"是否包含附件",
+        dataIndex: "hasOrderAttachment",
+        valueType: "text",
+        render: (_, record) =>
+        {
+            return <BooleanTag text={record.hasOrderAttachment}/>
+        }
+    },
     {
         title: "订单状态",
         dataIndex: "orderStatus",
@@ -63,14 +84,7 @@ export const getOrderListColumn = ({
         valueType: "text",
         render: (_, record) =>
         {
-            if (record.isAssigned === true)
-            {
-                return <span color="green">是</span>
-            }
-            else
-            {
-                return <span color="red">否</span>
-            }
+            return <BooleanTag text={record.isAssigned}/>
         }
     },
     {
@@ -79,14 +93,7 @@ export const getOrderListColumn = ({
         valueType: "text",
         render: (_, record) =>
         {
-            if (record.isPaid === true)
-            {
-                return <span color="green">是</span>
-            }
-            else
-            {
-                return <span color="red">否</span>
-            }
+            return <BooleanTag text={record.isPaid}/>
         }
     },
     {
@@ -122,6 +129,8 @@ export const getOrderListColumn = ({
         valueType: 'option',
         render: (_, record) => (
             <Space size="middle">
+                <OrderActionButton />
+
                 <Typography.Link
                     onClick={() =>
                     {
@@ -129,8 +138,9 @@ export const getOrderListColumn = ({
                         setUpdateModalVisible(true);
                     }}
                 >
-                    修改
+                    查看详情
                 </Typography.Link>
+
                 <Typography.Link type="danger" onClick={() => handleDelete(record)}>
                     删除
                 </Typography.Link>

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {
     PageContainer,
     ProForm,
@@ -13,12 +13,14 @@ import {Card, message, Space} from "antd";
 import {ProFormSelect} from "@ant-design/pro-form/lib";
 import BraftEditor, {EditorState} from 'braft-editor';
 import 'braft-editor/dist/index.css';
-import UploadBox from "@/pages/OrderForm/components/UploadBox";
-import useAsyncHandler from "@/hooks/useAsyncHandler";
+import UploadBox, {UploadBoxHandle} from "@/pages/OrderForm/components/UploadBox";
+import useAsyncHandler, {AsyncHandlerFunc} from "@/hooks/useAsyncHandler";
 import EditableTags from "@/pages/OrderForm/components/EditableTags";
 import useStyles from "@/pages/OrderForm/style.style";
-import {fetchCategory, fetchLangType, postOrderInfo} from "@/pages/OrderForm/server";
+import {fetchCategory, fetchLangType, postOrderInfo, uploadAttachment} from "@/pages/OrderForm/server";
 import {OptionProps} from "@/typings";
+import {history} from "@umijs/max";
+
 
 
 const Index: React.FC = () =>
@@ -26,6 +28,7 @@ const Index: React.FC = () =>
     const { styles } = useStyles();
     const { id }: { id: string | undefined } = useParams<{ id?: string }>();
     const [ formRef ] = useForm();
+    const fileUploadRef = useRef<UploadBoxHandle>(null);
     type CategoryResponse = { [key: string]: API.OrderCategoryVO }
     type LangTypeResponse = { [key: string]: API.LanguageTypeVO }
 
@@ -36,12 +39,12 @@ const Index: React.FC = () =>
     const [ langTypeOption, setLangTypeOption ] = useState<OptionProps[]>([]);
     const [ orderTag, setOrderTag ] = useState<string[]>([ "1", "2" ]);
     const [ fileInfo, setFileInfo ] = useState<OrderFormType.FileInfo[]>([]);
-    const [ submitHandler, isPending ] = useAsyncHandler<string>()
+    const [ submitHandler, isPending ] = useAsyncHandler<API.OrderInfoAddResponse>()
 
     const fetchOption = async () =>
     {
-        const categoryOption = await categoryHandle(fetchCategory, () => message.error("获取分类信息失败"))
-        const langTypeOption = await langTypeHandle(fetchLangType, () => message.error("获取语言类型失败"))
+        const categoryOption = await categoryHandle(fetchCategory, [], () => message.error("获取分类信息失败"))
+        const langTypeOption = await langTypeHandle(fetchLangType, [],() => message.error("获取语言类型失败"))
         if (categoryOption && langTypeOption)
         {
             const tmpCategoryOption: OptionProps[] = [];
@@ -83,21 +86,22 @@ const Index: React.FC = () =>
             orderDesc: orderDescHtml, // 使用转换后的 HTML 字符串
             orderRemark: orderRemarkHtml // 使用转换后的 HTML 字符串
         };
-        const response = await submitHandler(() => postOrderInfo(dataToSubmit),
+        const response = await submitHandler(postOrderInfo,
+            [dataToSubmit],
             (error) => message.error(`提交异常: ${error}`)
         )
-        if (response)
+        // 如果提交成功，且需要上传附件
+        if (!response?.isFinish && response?.tokenMap)
         {
-            // todo: 拿到token，上传文件
-            message.success("提交成功");
+            await fileUploadRef?.current?.uploadFiles(response.tokenMap, uploadAttachment);
         }
-        else
-        {
-            message.error("提交失败");
+        else {
+            message.success("提交成功")
+            history.push("/orderList");
         }
     }
 
-    const handleFileUidChange = (uids: string[]) =>
+    const handleFileUidChange = (uids: OrderFormType.FileInfo[]) =>
     {
         // 将 uid 存储到 state 中
         setFileInfo(uids);
@@ -323,7 +327,7 @@ const Index: React.FC = () =>
                     </ProForm.Group>
 
                     <ProForm.Item label="订单附件">
-                        <UploadBox onFileUidChange={handleFileUidChange}/>
+                        <UploadBox onFileUidChange={handleFileUidChange} ref={fileUploadRef} />
                     </ProForm.Item>
 
                     <ProForm.Item

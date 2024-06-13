@@ -15,7 +15,8 @@ import com.caixy.adminSystem.model.dto.order.*;
 import com.caixy.adminSystem.model.entity.OrderInfo;
 
 import com.caixy.adminSystem.model.entity.User;
-import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
+import com.caixy.adminSystem.model.enums.OrderStatusEnum;
+import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
 import com.caixy.adminSystem.service.OrderInfoService;
 import com.caixy.adminSystem.service.UserService;
 import com.caixy.adminSystem.service.impl.OrderInfoServiceImpl;
@@ -81,13 +82,16 @@ public class OrderController
         log.info("验证成功: {}", post);
         User loginUser = userService.getLoginUser(request);
         post.setCreatorId(loginUser.getId());
+        boolean hasAttachment = !postAddRequest.getAttachmentList().isEmpty();
+        post.setHasOrderAttachment(hasAttachment ? 1 : 0);
         boolean result = orderInfoService.save(post);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         long newOrderInfoId = post.getId();
         OrderInfoAddResponse orderInfoAddResponse = new OrderInfoAddResponse();
-        if (!postAddRequest.getAttachmentList().isEmpty())
+        if (!hasAttachment)
         {
             orderInfoAddResponse.setIsFinish(false);
+
             orderInfoAddResponse.setTokenMap(orderInfoService.generateFileUploadToken(postAddRequest.getAttachmentList(), newOrderInfoId));
         }
         else {
@@ -141,12 +145,6 @@ public class OrderController
         }
         OrderInfo post = new OrderInfo();
         BeanUtils.copyProperties(postUpdateRequest, post);
-        List<String> tags = postUpdateRequest.getTags();
-        if (tags != null)
-        {
-            validTags(tags);
-            post.setOrderTags(JSONUtil.toJsonStr(tags));
-        }
         // 参数校验
         orderInfoService.validOrderInfo(post, false);
         long id = postUpdateRequest.getId();
@@ -158,13 +156,46 @@ public class OrderController
     }
 
     /**
+     * 更新（仅管理员）
+     *
+     * @param postUpdateRequest
+     * @return
+     */
+    @PostMapping("/update/status")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> updateOrderStatusInfo(@RequestBody OrderInfoUpdateRequest postUpdateRequest)
+    {
+        if (postUpdateRequest == null || postUpdateRequest.getId() <= 0)
+        {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        OrderInfo post = new OrderInfo();
+        BeanUtils.copyProperties(postUpdateRequest, post);
+        // 参数校验
+        OrderStatusEnum orderStatusEnum = OrderStatusEnum.getByCode(postUpdateRequest.getOrderStatus());
+        if (orderStatusEnum == null)
+        {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "订单状态不正确");
+        }
+
+        long id = postUpdateRequest.getId();
+        // 判断是否存在
+        OrderInfo oldOrderInfo = orderInfoService.getById(id);
+        ThrowUtils.throwIf(oldOrderInfo == null, ErrorCode.NOT_FOUND_ERROR);
+        boolean result = orderInfoService.updateById(post);
+        return ResultUtils.success(result);
+    }
+
+
+
+    /**
      * 根据 id 获取
      *
      * @param id
      * @return
      */
     @GetMapping("/get/vo")
-    public BaseResponse<OrderInfoVO> getOrderInfoVOById(long id, HttpServletRequest request)
+    public BaseResponse<OrderInfoPageVO> getOrderInfoVOById(long id, HttpServletRequest request)
     {
         if (id <= 0)
         {
@@ -188,8 +219,8 @@ public class OrderController
      */
     @PostMapping("/list/page/vo")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Page<OrderInfoVO>> listOrderInfoVOByPage(@RequestBody OrderInfoQueryRequest postQueryRequest,
-                                                       HttpServletRequest request)
+    public BaseResponse<Page<OrderInfoPageVO>> listOrderInfoVOByPage(@RequestBody OrderInfoQueryRequest postQueryRequest,
+                                                                     HttpServletRequest request)
     {
         long current = postQueryRequest.getCurrent();
         long size = postQueryRequest.getPageSize();
@@ -210,8 +241,8 @@ public class OrderController
      * @return
      */
     @PostMapping("/search/page/vo")
-    public BaseResponse<Page<OrderInfoVO>> searchOrderInfoVOByPage(@RequestBody OrderInfoQueryRequest postQueryRequest,
-                                                         HttpServletRequest request)
+    public BaseResponse<Page<OrderInfoPageVO>> searchOrderInfoVOByPage(@RequestBody OrderInfoQueryRequest postQueryRequest,
+                                                                       HttpServletRequest request)
     {
         long size = postQueryRequest.getPageSize();
         // 限制爬虫

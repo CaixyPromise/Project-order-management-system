@@ -100,7 +100,7 @@ const UserAdminPage: React.FC = () =>
                             sortOrder,
                             ...filter,
                         } as API.UserQueryRequest);
-                    }, error => {message.error(error.message)})
+                    }, [],error => {message.error(error.message)})
                     const { data, code } = response;
                     return {
                         success: code === 0,

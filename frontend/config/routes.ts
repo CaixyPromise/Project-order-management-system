@@ -5,7 +5,7 @@ export default [
     {
         path: '/addOrder',
         name: '添加订单',
-        icon: 'plus',
+        icon: 'Form',
         component: './OrderForm',  // 假设你的组件名为 OrderForm
         routes: [
             {

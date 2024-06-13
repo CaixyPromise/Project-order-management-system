@@ -23,10 +23,5 @@ public class UploadFileRequest implements Serializable
     @NotNull
     private String token;
 
-    /**
-     * 文件载荷信息
-     */
-    private UploadFileInfoDTO fileInfo;
-
     private static final long serialVersionUID = 1L;
 }

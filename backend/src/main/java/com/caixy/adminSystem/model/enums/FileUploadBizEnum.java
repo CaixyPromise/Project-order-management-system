@@ -31,7 +31,9 @@ public enum FileUploadBizEnum
             "attachment",
             FileTypeConstant.ORDER_ATTACHMENT,
             SizeUtils.of(50, SizeUtils.SizeType.MB),
-            new HashSet<>(Arrays.asList("jpeg", "jpg", "svg", "png", "webp", "pdf", "doc", "docx", "ppt", "txt"))
+            new HashSet<>(Arrays.asList("jpeg", "jpg", "svg", "png", "webp",
+                    "pdf", "doc", "docx", "ppt", "txt", "md",
+                    "zip", "rar"))
     )
 
 

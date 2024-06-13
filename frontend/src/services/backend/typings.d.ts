@@ -244,13 +244,6 @@ declare namespace API {
 
   type MapLongOrderCategoryVO_ = true;
 
-  type OrderAttachmentInfoDTO = {
-    fileName?: string;
-    fileSha256?: string;
-    fileUid?: string;
-    token?: string;
-  };
-
   type OrderCategoryAddRequest = {
     categoryDesc?: string;
     categoryName?: string;
@@ -289,7 +282,7 @@ declare namespace API {
   type OrderInfoAddRequest = {
     amount?: number;
     amountPaid?: number;
-    attachmentList?: OrderAttachmentInfoDTO[];
+    attachmentList?: UploadFileInfoDTO[];
     customerContact?: string;
     customerContactType?: number;
     customerEmail?: string;
@@ -346,6 +339,7 @@ declare namespace API {
     amountPaid?: number;
     createTime?: string;
     creatorName?: string;
+    hasOrderAttachment?: boolean;
     id?: number;
     isAssigned?: boolean;
     isPaid?: boolean;
@@ -536,12 +530,21 @@ declare namespace API {
     userId?: number;
   };
 
+  type UploadFileInfoDTO = {
+    fileName?: string;
+    fileSha256?: string;
+    fileUid?: string;
+    token?: string;
+  };
+
   type uploadFileToLocalUsingPOST1Params = {
     biz?: string;
+    token?: string;
   };
 
   type uploadFileUsingPOST1Params = {
     biz?: string;
+    token?: string;
   };
 
   type User = {

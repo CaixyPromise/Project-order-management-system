@@ -77,7 +77,7 @@ const Login: React.FC = () =>
             }
 
             return response.data;
-        }, onError);
+        }, [], onError);
 
         if (res)
         {
@@ -113,7 +113,7 @@ const Login: React.FC = () =>
             }
 
             return response.data;
-        }, onError);
+        }, [],onError);
 
         if (res)
         {

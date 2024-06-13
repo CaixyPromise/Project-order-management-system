@@ -1,7 +1,7 @@
 package com.caixy.adminSystem.model.vo.category;
 
 import cn.hutool.json.JSONUtil;
-import com.caixy.adminSystem.model.entity.OrderCategory;
+import com.caixy.adminSystem.model.entity.OrderFileInfo;
 import lombok.Data;
 import com.caixy.adminSystem.model.vo.user.UserVO;
 import org.springframework.beans.BeanUtils;
@@ -11,13 +11,13 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * 订单分类视图
+ * 订单文件附件视图
  *
 
 
  */
 @Data
-public class OrderCategoryVO implements Serializable {
+public class OrderFileInfoVO implements Serializable {
 
     /**
      * id
@@ -62,30 +62,30 @@ public class OrderCategoryVO implements Serializable {
     /**
      * 封装类转对象
      *
-     * @param orderCategoryVO
+     * @param orderFileInfoVO
      * @return
      */
-    public static OrderCategory voToObj(OrderCategoryVO orderCategoryVO) {
-        if (orderCategoryVO == null) {
+    public static OrderFileInfo voToObj(OrderFileInfoVO orderFileInfoVO) {
+        if (orderFileInfoVO == null) {
             return null;
         }
-        OrderCategory orderCategory = new OrderCategory();
-        BeanUtils.copyProperties(orderCategoryVO, orderCategory);
-        return orderCategory;
+        OrderFileInfo orderFileInfo = new OrderFileInfo();
+        BeanUtils.copyProperties(orderFileInfoVO, orderFileInfo);
+        return orderFileInfo;
     }
 
     /**
      * 对象转封装类
      *
-     * @param orderCategory
+     * @param orderFileInfo
      * @return
      */
-    public static OrderCategoryVO objToVo(OrderCategory orderCategory) {
-        if (orderCategory == null) {
+    public static OrderFileInfoVO objToVo(OrderFileInfo orderFileInfo) {
+        if (orderFileInfo == null) {
             return null;
         }
-        OrderCategoryVO orderCategoryVO = new OrderCategoryVO();
-        BeanUtils.copyProperties(orderCategory, orderCategoryVO);
-        return orderCategoryVO;
+        OrderFileInfoVO orderFileInfoVO = new OrderFileInfoVO();
+        BeanUtils.copyProperties(orderFileInfo, orderFileInfoVO);
+        return orderFileInfoVO;
     }
 }

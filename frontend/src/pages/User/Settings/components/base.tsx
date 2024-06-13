@@ -31,7 +31,7 @@ const BaseView: React.FC = () =>
             }
             message.success("上传成功");
             return data as string
-        }, error =>
+        }, [],error =>
         {
             message.error(error.message);
         })

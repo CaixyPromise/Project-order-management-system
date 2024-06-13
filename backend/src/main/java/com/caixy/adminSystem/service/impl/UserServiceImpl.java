@@ -7,12 +7,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.caixy.adminSystem.annotation.FileUploadActionTarget;
 import com.caixy.adminSystem.common.ErrorCode;
 import com.caixy.adminSystem.constant.CommonConstant;
-import com.caixy.adminSystem.constant.FileTypeConstant;
 import com.caixy.adminSystem.constant.UserConstant;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.exception.ThrowUtils;
 import com.caixy.adminSystem.mapper.UserMapper;
 import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
+import com.caixy.adminSystem.model.dto.file.UploadFileRequest;
 import com.caixy.adminSystem.model.dto.user.UserLoginRequest;
 import com.caixy.adminSystem.model.dto.user.UserModifyPasswordRequest;
 import com.caixy.adminSystem.model.dto.user.UserQueryRequest;
@@ -32,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -467,7 +466,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @since 2024/6/7 下午4:31
      */
     @Override
-    public Boolean doAfterUploadAction(UploadFileConfig uploadFileConfig, String savePath)
+    public Boolean doAfterUploadAction(UploadFileConfig uploadFileConfig, String savePath, UploadFileRequest uploadFileRequest)
     {
         User user = this.getById(uploadFileConfig.getUserId());
         if (user == null)

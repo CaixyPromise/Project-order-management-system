@@ -6,13 +6,13 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 创建订单分类请求
+ * 创建订单文件附件请求
  *
 
 
  */
 @Data
-public class OrderCategoryAddRequest implements Serializable {
+public class OrderFileInfoAddRequest implements Serializable {
 
     /**
      * 标题

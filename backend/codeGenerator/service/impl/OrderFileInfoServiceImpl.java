@@ -7,14 +7,14 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.caixy.adminSystem.common.ErrorCode;
 import com.caixy.adminSystem.constant.CommonConstant;
 import com.caixy.adminSystem.exception.ThrowUtils;
-import com.caixy.adminSystem.mapper.OrderCategoryMapper;
-import com.caixy.adminSystem.model.dto.category.OrderCategoryQueryRequest;
-import com.caixy.adminSystem.model.entity.OrderCategory;
+import com.caixy.adminSystem.mapper.OrderFileInfoMapper;
+import com.caixy.adminSystem.model.dto.category.OrderFileInfoQueryRequest;
+import com.caixy.adminSystem.model.entity.OrderFileInfo;
 
 import com.caixy.adminSystem.model.entity.User;
-import com.caixy.adminSystem.model.vo.category.OrderCategoryVO;
+import com.caixy.adminSystem.model.vo.category.OrderFileInfoVO;
 
-import com.caixy.adminSystem.service.OrderCategoryService;
+import com.caixy.adminSystem.service.OrderFileInfoService;
 import com.caixy.adminSystem.service.UserService;
 import com.caixy.adminSystem.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -31,14 +31,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 订单分类服务实现
+ * 订单文件附件服务实现
  *
 
 
  */
 @Service
 @Slf4j
-public class OrderCategoryServiceImpl extends ServiceImpl<OrderCategoryMapper, OrderCategory> implements OrderCategoryService {
+public class OrderFileInfoServiceImpl extends ServiceImpl<OrderFileInfoMapper, OrderFileInfo> implements OrderFileInfoService {
 
     @Resource
     private UserService userService;
@@ -46,12 +46,12 @@ public class OrderCategoryServiceImpl extends ServiceImpl<OrderCategoryMapper, O
     /**
      * 校验数据
      *
-     * @param orderCategory
+     * @param orderFileInfo
      * @param add      对创建的数据进行校验
      */
     @Override
-    public void validOrderCategory(OrderCategory orderCategory, boolean add) {
-        ThrowUtils.throwIf(orderCategory == null, ErrorCode.PARAMS_ERROR);
+    public void validOrderFileInfo(OrderFileInfo orderFileInfo, boolean add) {
+        ThrowUtils.throwIf(orderFileInfo == null, ErrorCode.PARAMS_ERROR);
 
         // 修改数据时，有参数则校验
         // todo 补充校验规则
@@ -60,25 +60,25 @@ public class OrderCategoryServiceImpl extends ServiceImpl<OrderCategoryMapper, O
     /**
      * 获取查询条件
      *
-     * @param orderCategoryQueryRequest
+     * @param orderFileInfoQueryRequest
      * @return
      */
     @Override
-    public QueryWrapper<OrderCategory> getQueryWrapper(OrderCategoryQueryRequest orderCategoryQueryRequest) {
-        QueryWrapper<OrderCategory> queryWrapper = new QueryWrapper<>();
-        if (orderCategoryQueryRequest == null) {
+    public QueryWrapper<OrderFileInfo> getQueryWrapper(OrderFileInfoQueryRequest orderFileInfoQueryRequest) {
+        QueryWrapper<OrderFileInfo> queryWrapper = new QueryWrapper<>();
+        if (orderFileInfoQueryRequest == null) {
             return queryWrapper;
         }
         // todo 从对象中取值
-        Long id = orderCategoryQueryRequest.getId();
-        Long notId = orderCategoryQueryRequest.getNotId();
-        String title = orderCategoryQueryRequest.getTitle();
-        String content = orderCategoryQueryRequest.getContent();
-        String searchText = orderCategoryQueryRequest.getSearchText();
-        String sortField = orderCategoryQueryRequest.getSortField();
-        String sortOrder = orderCategoryQueryRequest.getSortOrder();
-        List<String> tagList = orderCategoryQueryRequest.getTags();
-        Long userId = orderCategoryQueryRequest.getUserId();
+        Long id = orderFileInfoQueryRequest.getId();
+        Long notId = orderFileInfoQueryRequest.getNotId();
+        String title = orderFileInfoQueryRequest.getTitle();
+        String content = orderFileInfoQueryRequest.getContent();
+        String searchText = orderFileInfoQueryRequest.getSearchText();
+        String sortField = orderFileInfoQueryRequest.getSortField();
+        String sortOrder = orderFileInfoQueryRequest.getSortOrder();
+        List<String> tagList = orderFileInfoQueryRequest.getTags();
+        Long userId = orderFileInfoQueryRequest.getUserId();
         // todo 补充需要的查询条件
         // 从多字段中搜索
         if (StringUtils.isNotBlank(searchText)) {
@@ -106,28 +106,28 @@ public class OrderCategoryServiceImpl extends ServiceImpl<OrderCategoryMapper, O
     }
 
     /**
-     * 获取订单分类封装
+     * 获取订单文件附件封装
      *
-     * @param orderCategory
+     * @param orderFileInfo
      * @param request
      * @return
      */
     @Override
-    public OrderCategoryVO getOrderCategoryVO(OrderCategory orderCategory, HttpServletRequest request) {
-    // todo: 补充获取订单分类封装逻辑
+    public OrderFileInfoVO getOrderFileInfoVO(OrderFileInfo orderFileInfo, HttpServletRequest request) {
+    // todo: 补充获取订单文件附件封装逻辑
         return null;
     }
 
     /**
-     * 分页获取订单分类封装
+     * 分页获取订单文件附件封装
      *
-     * @param orderCategoryPage
+     * @param orderFileInfoPage
      * @param request
      * @return
      */
     @Override
-    public Page<OrderCategoryVO> getOrderCategoryVOPage(Page<OrderCategory> orderCategoryPage, HttpServletRequest request) {
-        // todo: 补充分页获取订单分类封装逻辑
+    public Page<OrderFileInfoVO> getOrderFileInfoVOPage(Page<OrderFileInfo> orderFileInfoPage, HttpServletRequest request) {
+        // todo: 补充分页获取订单文件附件封装逻辑
         return null;
     }
 

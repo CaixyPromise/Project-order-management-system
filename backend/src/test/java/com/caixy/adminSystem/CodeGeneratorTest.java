@@ -26,19 +26,6 @@ import java.util.stream.Collectors;
  **/
 public class CodeGeneratorTest
 {
-    @Test
-    void testString()
-    {
-        String packageName = "com.caixy.adminSystem";
-        String projectPath = System.getProperty("user.dir");
-
-        String outputRootPath = String.format("%s/src/main/java/%s", projectPath,
-                packageName.replaceAll("\\.", Matcher.quoteReplacement(File.separator)));
-        System.out.println(
-                outputRootPath
-        );
-    }
-
     /**
      * 用法：修改生成参数和生成路径，注释掉不需要的生成逻辑，然后运行即可
      *
@@ -51,9 +38,9 @@ public class CodeGeneratorTest
         // 指定生成参数
         String packageName = "com.caixy.adminSystem";
         String modelPackageName = "category";   // 实体类软件包名称
-        String modelDesc = "订单分类";
-        String lowerModelName = "orderCategory";
-        String modelName = "OrderCategory";
+        String modelDesc = "订单文件附件";
+        String lowerModelName = "orderFileInfo";
+        String modelName = "OrderFileInfo";
         String outputPathName = "codeGenerator";
 
         // 封装生成参数

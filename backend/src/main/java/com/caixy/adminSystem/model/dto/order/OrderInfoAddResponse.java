@@ -24,7 +24,7 @@ public class OrderInfoAddResponse implements Serializable
     /**
      * 对应文件uid的token映射
      */
-    Map<String, UploadFileInfoDTO> tokenMap;
+    Map<String, String> tokenMap;
 
     private static final long serialVersionUID = 1L;
 }

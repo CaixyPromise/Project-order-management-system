@@ -6,13 +6,11 @@ import {PageContainer, ProTable} from '@ant-design/pro-components';
 import '@umijs/max';
 import {Button, message} from 'antd';
 import React, {useMemo, useRef, useState} from 'react';
-import {deleteUserUsingPost1, listUserByPageUsingPost1} from "@/services/backend/userController";
-import {getUserTableColumn} from "@/pages/Admin/User/columns";
+import {deleteUserUsingPost1} from "@/services/backend/userController";
 import useAsyncHandler from "@/hooks/useAsyncHandler";
-import {listLanguageTypeByPageUsingPost1} from "@/services/backend/languageTypeController";
-import {getLangeTableColumn} from "@/pages/Admin/Lang/columns";
 import {getOrderListColumn} from "@/pages/OrderList/columns";
 import {listOrderInfoVoByPageUsingPost1} from "@/services/backend/orderController";
+import {history} from "@umijs/max";
 
 /**
  * 用户管理页面
@@ -83,7 +81,7 @@ const UserAdminPage: React.FC = () =>
                         key="primary"
                         onClick={() =>
                         {
-                            setCreateModalVisible(true);
+                            history.push("/addOrder/");
                         }}
                     >
                         <PlusOutlined/> 新建
@@ -102,7 +100,7 @@ const UserAdminPage: React.FC = () =>
                             sortOrder,
                             ...filter,
                         } as API.UserQueryRequest);
-                    }, error => {message.error(error.message)})
+                    },[],  error => {message.error(error.message)})
                     const { data, code } = response;
                     return {
                         success: code === 0,

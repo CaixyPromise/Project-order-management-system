@@ -18,7 +18,7 @@ public interface FileUploadActionService
      * @version 1.0
      * @since 2024/6/10 下午11:51
      */
-    Boolean doAfterUploadAction(UploadFileConfig uploadFileConfig, String savePath);
+    Boolean doAfterUploadAction(UploadFileConfig uploadFileConfig, String savePath, UploadFileRequest uploadFileRequest);
 
     /**
      * 解密token

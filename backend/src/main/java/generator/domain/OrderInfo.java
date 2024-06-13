@@ -33,6 +33,11 @@ public class OrderInfo implements Serializable {
     private String orderId;
 
     /**
+     * 订单名称描述
+     */
+    private String orderTitle;
+
+    /**
      * 订单金额
      */
     private BigDecimal amount;
@@ -108,9 +113,9 @@ public class OrderInfo implements Serializable {
     private String orderDesc;
 
     /**
-     * 订单附件
+     * 是否包含订单附件
      */
-    private String orderAttachment;
+    private Integer hasOrderAttachment;
 
     /**
      * 订单备注

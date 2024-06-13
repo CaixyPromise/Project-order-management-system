@@ -24,7 +24,7 @@ const UserAdminPage: React.FC = () =>
     const actionRef = useRef<ActionType>();
     // 当前用户点击的数据
     const [ currentRow, setCurrentRow ] = useState<API.User>({});
-    const [ queryHandler, isLoading] = useAsyncHandler<{
+    const [ queryHandler, isLoading ] = useAsyncHandler<{
         code?: number;
         data?: API.PageUser_;
         message?: string;
@@ -95,19 +95,23 @@ const UserAdminPage: React.FC = () =>
                             sortOrder,
                             ...filter,
                         } as API.UserQueryRequest);
-                    }, error => {message.error(error.message)})
+                    }, [], error =>
+                    {
+                        message.error(error.message)
+                    })
                     const { data, code } = response;
                     return {
                         success: code === 0,
                         data: data?.records || [],
                         total: Number(data?.total) || 0,
-                    };;
+                    };
+                    ;
                 }}
-                columns={getUserTableColumn({ setCurrentRow , setUpdateModalVisible, handleDelete })}
+                columns={getUserTableColumn({ setCurrentRow, setUpdateModalVisible, handleDelete })}
             />
             <CreateModal
                 visible={createModalVisible}
-                columns={getUserTableColumn({ setCurrentRow , setUpdateModalVisible, handleDelete })}
+                columns={getUserTableColumn({ setCurrentRow, setUpdateModalVisible, handleDelete })}
                 onSubmit={() =>
                 {
                     setCreateModalVisible(false);
@@ -120,12 +124,12 @@ const UserAdminPage: React.FC = () =>
             />
             <UpdateModal
                 visible={updateModalVisible}
-                columns={getUserTableColumn({ setCurrentRow , setUpdateModalVisible, handleDelete })}
+                columns={getUserTableColumn({ setCurrentRow, setUpdateModalVisible, handleDelete })}
                 oldData={currentRow}
                 onSubmit={() =>
                 {
                     setUpdateModalVisible(false);
-                    setCurrentRow({  });
+                    setCurrentRow({});
                     actionRef.current?.reload();
                 }}
                 onCancel={() =>

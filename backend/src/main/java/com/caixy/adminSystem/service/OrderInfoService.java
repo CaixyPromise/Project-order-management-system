@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import com.caixy.adminSystem.model.dto.order.OrderInfoQueryRequest;
 import com.caixy.adminSystem.model.entity.OrderInfo;
-import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
+import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -51,7 +51,7 @@ public interface OrderInfoService extends IService<OrderInfo>
      * @param request
      * @return
      */
-    OrderInfoVO getOrderInfoVO(OrderInfo post, HttpServletRequest request);
+    OrderInfoPageVO getOrderInfoVO(OrderInfo post, HttpServletRequest request);
 
     /**
      * 分页获取帖子封装
@@ -60,8 +60,8 @@ public interface OrderInfoService extends IService<OrderInfo>
      * @param request
      * @return
      */
-    Page<OrderInfoVO> getOrderInfoVOPage(Page<OrderInfo> postPage, HttpServletRequest request);
+    Page<OrderInfoPageVO> getOrderInfoVOPage(Page<OrderInfo> postPage, HttpServletRequest request);
 
-    Map<String, UploadFileInfoDTO> generateFileUploadToken(List<UploadFileInfoDTO> fileInfoList,
-                                                           Long orderId);
+    Map<String, String> generateFileUploadToken(List<UploadFileInfoDTO> fileInfoList,
+                                                Long orderId);
 }
