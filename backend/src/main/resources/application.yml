@@ -122,3 +122,11 @@ storage:
   location: uploads
   forceCreated: true
   staticPath: /static
+
+rocketmq:
+  name-server: localhost:9876
+  producer:
+    group: upload_order_attachment
+  consumer:
+    group: upload_order_attachment
+    topic: order-attachment-topic

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.caixy.adminSystem.mapper.MessageInfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.caixy.adminSystem.model.entity.domain.MessageInfo">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="subject" column="subject" jdbcType="VARCHAR"/>
+            <result property="content" column="content" jdbcType="VARCHAR"/>
+            <result property="orderId" column="orderId" jdbcType="BIGINT"/>
+            <result property="fromUser" column="fromUser" jdbcType="BIGINT"/>
+            <result property="forUser" column="forUser" jdbcType="BIGINT"/>
+            <result property="level" column="level" jdbcType="INTEGER"/>
+            <result property="isHandled" column="isHandled" jdbcType="INTEGER"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,subject,content,
+        orderId,fromUser,forUser,
+        level,isHandled,createTime
+    </sql>
+</mapper>

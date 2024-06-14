@@ -11,15 +11,18 @@ import com.caixy.adminSystem.constant.UserConstant;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.exception.ThrowUtils;
 
+import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import com.caixy.adminSystem.model.dto.order.*;
 import com.caixy.adminSystem.model.entity.OrderInfo;
 
 import com.caixy.adminSystem.model.entity.User;
 import com.caixy.adminSystem.model.enums.OrderStatusEnum;
+import com.caixy.adminSystem.model.enums.RocketDelayQueueEnum;
 import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
 import com.caixy.adminSystem.service.OrderInfoService;
 import com.caixy.adminSystem.service.UserService;
 import com.caixy.adminSystem.service.impl.OrderInfoServiceImpl;
+import com.caixy.adminSystem.utils.RocketMqUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -48,8 +51,9 @@ public class OrderController
     private final static Integer MAX_TAGS_SIZE = 10;
     // 最大标签字数
     private final static Integer MAX_TAG_TEXT_SIZE = 8;
-    @Autowired
-    private OrderInfoServiceImpl orderInfoServiceImpl;
+
+    @Resource
+    private RocketMqUtils rocketMqUtils;
 
     // region 增删改查
 
@@ -82,8 +86,9 @@ public class OrderController
         log.info("验证成功: {}", post);
         User loginUser = userService.getLoginUser(request);
         post.setCreatorId(loginUser.getId());
-        boolean hasAttachment = !postAddRequest.getAttachmentList().isEmpty();
-        post.setHasOrderAttachment(hasAttachment ? 1 : 0);
+        List<UploadFileInfoDTO> attachmentList = postAddRequest.getAttachmentList();
+        boolean hasAttachment = !attachmentList.isEmpty();
+        post.setOrderAttachmentNum(attachmentList.size());
         boolean result = orderInfoService.save(post);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         long newOrderInfoId = post.getId();
@@ -91,8 +96,13 @@ public class OrderController
         if (!hasAttachment)
         {
             orderInfoAddResponse.setIsFinish(false);
-
-            orderInfoAddResponse.setTokenMap(orderInfoService.generateFileUploadToken(postAddRequest.getAttachmentList(), newOrderInfoId));
+            orderInfoAddResponse.setTokenMap(orderInfoService.generateFileUploadToken(attachmentList, newOrderInfoId));
+            // 发送检查文件是否上传完成与数量齐全的延迟消息
+            OrderFileUploadMqDTO orderFileUploadMqDTO = new OrderFileUploadMqDTO();
+            orderFileUploadMqDTO.setFileCount(attachmentList.size());
+            orderFileUploadMqDTO.setOrderId(newOrderInfoId);
+            orderFileUploadMqDTO.setUserId(loginUser.getId());
+            rocketMqUtils.sendDelayMessage(RocketDelayQueueEnum.ORDER_ATTACHMENT, orderFileUploadMqDTO);
         }
         else {
             orderInfoAddResponse.setIsFinish(true);

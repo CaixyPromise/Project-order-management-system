@@ -113,7 +113,7 @@ public class OrderInfo implements Serializable
     /**
      * 是否包含订单附件
      */
-    private Integer hasOrderAttachment;
+    private Integer orderAttachmentNum;
 
     /**
      * 订单备注
@@ -154,6 +154,11 @@ public class OrderInfo implements Serializable
      * 更新时间
      */
     private Date updateTime;
+
+    /**
+     * 是否删除
+     */
+    private Integer isValid;
 
     /**
      * 是否删除

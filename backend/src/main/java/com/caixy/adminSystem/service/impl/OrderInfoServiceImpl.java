@@ -23,6 +23,7 @@ import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
 import com.caixy.adminSystem.service.*;
 import com.caixy.adminSystem.utils.RedisUtils;
 import com.caixy.adminSystem.utils.RegexUtils;
+import com.caixy.adminSystem.utils.RocketMqUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -54,7 +55,6 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     // token过期时间: 10分钟
     private static final Long TOKEN_EXPIRE_TIME = RedisConstant.UPLOAD_FILE_KEY.getExpire();
 
-
     @Resource
     private LanguageTypeService languageTypeService;
 
@@ -67,6 +67,9 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     private RedisUtils redisUtils;
     @Resource
     private OrderFileInfoService orderFileInfoService;
+
+
+
 
     @Override
     public void validOrderInfo(OrderInfo post, boolean add)
@@ -216,7 +219,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 
             orderInfoPageVO.setIsAssigned(integerToBool(item.getIsAssigned()));
             orderInfoPageVO.setIsPaid(integerToBool(item.getIsPaid()));
-            orderInfoPageVO.setHasOrderAttachment(integerToBool(item.getHasOrderAttachment()));
+            orderInfoPageVO.setHasOrderAttachment(integerToBool(item.getOrderAttachmentNum()));
             orderInfoPageVO.setOrderStatus(orderStatus == null ? "未知状态" : orderStatus.getDesc());
             orderInfoPageVO.setOrderSource(orderSource == null ? "未知来源" : orderSource.getDesc());
             orderInfoPageVO.setCreatorName(userNameByIds.get(item.getCreatorId()) == null ? "未知用户" :
@@ -266,6 +269,14 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
             tokenMap.put(fileInfo.getFileUid(), token);
         }
         return tokenMap;
+    }
+
+    @Override
+    public Long countUploadOrderAttachment(Long orderId)
+    {
+        QueryWrapper<OrderFileInfo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("orderId", orderId);
+        return orderFileInfoService.count(queryWrapper);
     }
 
     public Map<String, Object> getTokenPayload(String token)
@@ -351,6 +362,15 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         // 删除redis中的缓存数据
         redisUtils.delete(RedisConstant.UPLOAD_FILE_KEY, orderId, uuid);
         return true;
+    }
+
+    @Override
+    public void setOrderValid(Long orderId, boolean validCode)
+    {
+        OrderInfo orderInfo = new OrderInfo();
+        orderInfo.setId(orderId);
+        orderInfo.setIsValid(validCode ? 1 : 0);
+        this.updateById(orderInfo);
     }
 }
 

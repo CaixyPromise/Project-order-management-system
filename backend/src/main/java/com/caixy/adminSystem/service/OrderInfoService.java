@@ -64,4 +64,8 @@ public interface OrderInfoService extends IService<OrderInfo>
 
     Map<String, String> generateFileUploadToken(List<UploadFileInfoDTO> fileInfoList,
                                                 Long orderId);
+
+    Long countUploadOrderAttachment(Long orderId);
+
+    void setOrderValid(Long orderId, boolean validCode);
 }
