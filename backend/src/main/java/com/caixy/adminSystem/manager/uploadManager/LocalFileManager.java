@@ -31,7 +31,7 @@ public class LocalFileManager
         UploadFileConfig.FileInfo fileInfo = fileConfig.getFileInfo();
         // 文件目录：根据业务、用户来划分保存文件位置
         String filePath = fileInfo.getFilePath();
-        String filename = fileInfo.getFilename();
+        String filename = fileInfo.getFileInnerName();
         FileUploadBizEnum fileUploadBizEnum = fileConfig.getFileUploadBizEnum();
         Long userId = fileConfig.getUserId();
         // 创建文件目录

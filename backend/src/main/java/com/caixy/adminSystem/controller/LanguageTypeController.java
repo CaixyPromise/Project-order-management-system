@@ -9,6 +9,7 @@ import com.caixy.adminSystem.common.ResultUtils;
 import com.caixy.adminSystem.constant.UserConstant;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.exception.ThrowUtils;
+import com.caixy.adminSystem.model.common.OptionVO;
 import com.caixy.adminSystem.model.dto.lang.LanguageTypeAddRequest;
 import com.caixy.adminSystem.model.dto.lang.LanguageTypeQueryRequest;
 import com.caixy.adminSystem.model.dto.lang.LanguageTypeUpdateRequest;
@@ -17,6 +18,7 @@ import com.caixy.adminSystem.model.entity.User;
 import com.caixy.adminSystem.model.vo.lang.LanguageTypeVO;
 import com.caixy.adminSystem.service.LanguageTypeService;
 import com.caixy.adminSystem.service.UserService;
+import com.caixy.adminSystem.utils.LockUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +27,9 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 语言类型接口
@@ -40,6 +45,8 @@ public class LanguageTypeController
 
     @Resource
     private UserService userService;
+
+    private final Lock dataLock = new ReentrantLock();
 
     // region 增删改查
 
@@ -63,9 +70,14 @@ public class LanguageTypeController
         // todo 填充默认值
         User loginUser = userService.getLoginUser(request);
         languageType.setCreatorId(loginUser.getId());
+
+        languageTypeService.clearCache();
         // 写入数据库
-        boolean result = languageTypeService.save(languageType);
+        Boolean result = LockUtil.executeWithLock(dataLock, 3, TimeUnit.SECONDS, () ->
+                languageTypeService.save(languageType));
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        languageTypeService.clearCache();
+
         // 返回新写入的数据 id
         long newLanguageTypeId = languageType.getId();
         return ResultUtils.success(newLanguageTypeId);
@@ -94,8 +106,13 @@ public class LanguageTypeController
         // 仅本人或管理员可删除
         checkIsSelfOrAdmin(oldLanguageType, user);
         // 操作数据库
-        boolean result = languageTypeService.removeById(id);
+        languageTypeService.clearCache();
+
+        boolean result = LockUtil.executeWithLock(dataLock, 3, TimeUnit.SECONDS,
+                () -> languageTypeService.removeById(id));
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        languageTypeService.clearCache();
+
         return ResultUtils.success(true);
     }
 
@@ -124,7 +141,10 @@ public class LanguageTypeController
         ThrowUtils.throwIf(oldLanguageType == null, ErrorCode.NOT_FOUND_ERROR);
 
         // 操作数据库
-        boolean result = languageTypeService.updateById(languageType);
+        languageTypeService.clearCache();
+        boolean result = LockUtil.executeWithLock(dataLock, 3, TimeUnit.SECONDS, () -> languageTypeService.updateById(languageType));
+        languageTypeService.clearCache();
+
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
     }
@@ -156,7 +176,7 @@ public class LanguageTypeController
         // 查询数据库
         List<LanguageType> languageTypeList = languageTypeService.list();
         // 获取封装类
-        return ResultUtils.success(languageTypeService.getLangtYpeVoMap(languageTypeList));
+        return ResultUtils.success(languageTypeService.getLangTypeVoMap(languageTypeList));
     }
 
     /**
@@ -177,6 +197,13 @@ public class LanguageTypeController
 
         return ResultUtils.success(languageTypeService.getLanguageTypeVOPage(languageTypePage, null));
     }
+
+    @GetMapping("/list/option")
+    public BaseResponse<List<OptionVO<Long>>> getLanguageTypeOptionList()
+    {
+        return LockUtil.executeWithLock(dataLock, 3, TimeUnit.SECONDS, () -> ResultUtils.success(languageTypeService.getLangOptionList()));
+    }
+
 
     // endregion
 

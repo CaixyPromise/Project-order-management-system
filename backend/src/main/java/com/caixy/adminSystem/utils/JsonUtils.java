@@ -2,8 +2,11 @@ package com.caixy.adminSystem.utils;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import org.apache.poi.ss.formula.functions.T;
 
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +31,12 @@ public class JsonUtils
             .setDateFormat("yyyy-MM-dd HH:mm:ss")
             .setLongSerializationPolicy(LongSerializationPolicy.STRING)
             .serializeNulls().create();
+
+
+    public static <T> T byteArrayToJson(byte [] bytes, Charset charsets, Class<T> objectType)
+    {
+        return gson.fromJson(new String(bytes, charsets), objectType);
+    }
 
 
     /**

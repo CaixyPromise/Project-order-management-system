@@ -10,23 +10,21 @@ import com.caixy.adminSystem.common.ResultUtils;
 import com.caixy.adminSystem.constant.UserConstant;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.exception.ThrowUtils;
-
 import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import com.caixy.adminSystem.model.dto.order.*;
 import com.caixy.adminSystem.model.entity.OrderInfo;
-
 import com.caixy.adminSystem.model.entity.User;
-import com.caixy.adminSystem.model.enums.OrderStatusEnum;
-import com.caixy.adminSystem.model.enums.RocketDelayQueueEnum;
+import com.caixy.adminSystem.model.enums.RabbitMQQueueEnum;
 import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
+import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
+import com.caixy.adminSystem.mq.producer.OrderAttachmentProducer;
 import com.caixy.adminSystem.service.OrderInfoService;
 import com.caixy.adminSystem.service.UserService;
-import com.caixy.adminSystem.service.impl.OrderInfoServiceImpl;
-import com.caixy.adminSystem.utils.RocketMqUtils;
+import com.caixy.adminSystem.utils.RabbitMQUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -53,7 +51,7 @@ public class OrderController
     private final static Integer MAX_TAG_TEXT_SIZE = 8;
 
     @Resource
-    private RocketMqUtils rocketMqUtils;
+    private OrderAttachmentProducer orderAttachmentProducer;
 
     // region 增删改查
 
@@ -65,6 +63,7 @@ public class OrderController
      * @return
      */
     @PostMapping("/add")
+    @Transactional(rollbackFor = Exception.class)
     public BaseResponse<OrderInfoAddResponse> addOrderInfo(@RequestBody OrderInfoAddRequest postAddRequest,
                                                            HttpServletRequest request)
     {
@@ -93,7 +92,7 @@ public class OrderController
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         long newOrderInfoId = post.getId();
         OrderInfoAddResponse orderInfoAddResponse = new OrderInfoAddResponse();
-        if (!hasAttachment)
+        if (hasAttachment)
         {
             orderInfoAddResponse.setIsFinish(false);
             orderInfoAddResponse.setTokenMap(orderInfoService.generateFileUploadToken(attachmentList, newOrderInfoId));
@@ -102,9 +101,11 @@ public class OrderController
             orderFileUploadMqDTO.setFileCount(attachmentList.size());
             orderFileUploadMqDTO.setOrderId(newOrderInfoId);
             orderFileUploadMqDTO.setUserId(loginUser.getId());
-            rocketMqUtils.sendDelayMessage(RocketDelayQueueEnum.ORDER_ATTACHMENT, orderFileUploadMqDTO);
+            orderAttachmentProducer.sendMessage(RabbitMQQueueEnum.ORDER_ATTACHMENT, orderFileUploadMqDTO);
+            log.info("发送延迟消息: {}", orderFileUploadMqDTO);
         }
-        else {
+        else
+        {
             orderInfoAddResponse.setIsFinish(true);
         }
 
@@ -119,6 +120,7 @@ public class OrderController
      * @return
      */
     @PostMapping("/delete")
+
     public BaseResponse<Boolean> deleteOrderInfo(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request)
     {
         if (deleteRequest == null || deleteRequest.getId() <= 0)
@@ -135,8 +137,7 @@ public class OrderController
         {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
-        boolean b = orderInfoService.removeById(id);
-        return ResultUtils.success(b);
+        return ResultUtils.success(orderInfoService.deleteOrderInfo(oldOrderInfo));
     }
 
     /**
@@ -166,46 +167,14 @@ public class OrderController
     }
 
     /**
-     * 更新（仅管理员）
-     *
-     * @param postUpdateRequest
-     * @return
-     */
-    @PostMapping("/update/status")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> updateOrderStatusInfo(@RequestBody OrderInfoUpdateRequest postUpdateRequest)
-    {
-        if (postUpdateRequest == null || postUpdateRequest.getId() <= 0)
-        {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        OrderInfo post = new OrderInfo();
-        BeanUtils.copyProperties(postUpdateRequest, post);
-        // 参数校验
-        OrderStatusEnum orderStatusEnum = OrderStatusEnum.getByCode(postUpdateRequest.getOrderStatus());
-        if (orderStatusEnum == null)
-        {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "订单状态不正确");
-        }
-
-        long id = postUpdateRequest.getId();
-        // 判断是否存在
-        OrderInfo oldOrderInfo = orderInfoService.getById(id);
-        ThrowUtils.throwIf(oldOrderInfo == null, ErrorCode.NOT_FOUND_ERROR);
-        boolean result = orderInfoService.updateById(post);
-        return ResultUtils.success(result);
-    }
-
-
-
-    /**
      * 根据 id 获取
      *
      * @param id
      * @return
      */
     @GetMapping("/get/vo")
-    public BaseResponse<OrderInfoPageVO> getOrderInfoVOById(long id, HttpServletRequest request)
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<OrderInfoVO> getOrderInfoVOById(@RequestParam("id") Long id, HttpServletRequest request)
     {
         if (id <= 0)
         {
@@ -218,7 +187,6 @@ public class OrderController
         }
         return ResultUtils.success(orderInfoService.getOrderInfoVO(post, request));
     }
-
 
     /**
      * 分页获取列表（封装类）

@@ -9,6 +9,7 @@ import com.caixy.adminSystem.common.ResultUtils;
 import com.caixy.adminSystem.constant.UserConstant;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.exception.ThrowUtils;
+import com.caixy.adminSystem.model.common.OptionVO;
 import com.caixy.adminSystem.model.dto.category.OrderCategoryAddRequest;
 import com.caixy.adminSystem.model.dto.category.OrderCategoryQueryRequest;
 import com.caixy.adminSystem.model.dto.category.OrderCategoryUpdateRequest;
@@ -177,7 +178,12 @@ public class OrderCategoryController
                 orderCategoryService.getQueryWrapper(orderCategoryQueryRequest));
         return ResultUtils.success(orderCategoryService.getOrderCategoryVOPage(categoryPage, null));
     }
-    
+
+    @GetMapping("/list/option")
+    public BaseResponse<List<OptionVO<Long>>> getCategoryOptionList()
+    {
+        return ResultUtils.success(orderCategoryService.getCategoryOptionList());
+    }
 
     // endregion
 
