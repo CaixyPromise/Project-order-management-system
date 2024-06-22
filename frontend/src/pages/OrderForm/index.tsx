@@ -39,7 +39,7 @@ const Index: React.FC = () =>
     const [ langTypeOption, setLangTypeOption ] = useState<OptionProps[]>([]);
     const [ orderTag, setOrderTag ] = useState<string[]>([ "1", "2" ]);
     const [ fileInfo, setFileInfo ] = useState<OrderFormType.FileInfo[]>([]);
-    const [ submitHandler, isPending ] = useAsyncHandler<API.OrderInfoAddResponse>()
+    const [ submitHandler ] = useAsyncHandler<API.OrderInfoAddResponse>()
 
     const fetchOption = async () =>
     {
@@ -47,17 +47,16 @@ const Index: React.FC = () =>
         const langTypeOption = await langTypeHandle(fetchLangType, [],() => message.error("获取语言类型失败"))
         if (categoryOption && langTypeOption)
         {
-            const tmpCategoryOption: OptionProps[] = [];
+            const tmpCategoryOption: OptionProps<string>[] = [];
             Object.entries(categoryOption).forEach(([ key, value ]) =>
             {
-                tmpCategoryOption.push({ value: key, label: value.categoryName } as OptionProps)
+                tmpCategoryOption.push({ value: key, label: value.categoryName } as OptionProps<string>)
             })
-            const tmpLangTypeOption: OptionProps[] = [];
+            const tmpLangTypeOption: OptionProps<string>[] = [];
             Object.entries(langTypeOption).forEach(([ key, value ]) =>
             {
-                tmpLangTypeOption.push({ value: key, label: value.languageName } as OptionProps)
+                tmpLangTypeOption.push({ value: key, label: value.languageName } as OptionProps<string>)
             })
-            console.log(tmpCategoryOption);
             setCategoryOption(tmpCategoryOption);
             setLangTypeOption(tmpLangTypeOption);
         }
@@ -77,7 +76,6 @@ const Index: React.FC = () =>
         // 将 BraftEditor 的内容转换为 HTML 字符串
         const orderDescHtml = values.orderDesc ? values.orderDesc.toHTML() : '';
         const orderRemarkHtml = values.orderRemark ? values.orderRemark.toHTML() : '';
-
         // 构造提交的数据
         const dataToSubmit: API.OrderInfoAddRequest = {
             ...values,
@@ -95,7 +93,7 @@ const Index: React.FC = () =>
         {
             await fileUploadRef?.current?.uploadFiles(response.tokenMap, uploadAttachment);
         }
-        else {
+        else if (response !== null) {
             message.success("提交成功")
             history.push("/orderList");
         }
@@ -122,7 +120,7 @@ const Index: React.FC = () =>
         "customerContact": "2",
         "customerEmail": "1944630344@qq.com",
         "orderStartDate": "2024-06-09",
-        "orderDeadline": "2024-06-18",
+        "orderDeadline": "2024-06-28",
         "orderCompletionTime": "2024-06-09",
         "orderCommissionRate": 60,
         "orderAssignToWxId": "4",
@@ -174,8 +172,6 @@ const Index: React.FC = () =>
                     <ProForm.Item
                         label="订单标签"
                         name="orderTags"
-                        getValueFromEvent={(value) => console.log("orderTags", value)}
-
                     >
                         <EditableTags setTags={setOrderTag} tags={orderTag}/>
                     </ProForm.Item>

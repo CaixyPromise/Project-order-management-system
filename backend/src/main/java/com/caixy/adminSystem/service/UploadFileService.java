@@ -1,8 +1,9 @@
 package com.caixy.adminSystem.service;
 
 import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
+import com.caixy.adminSystem.model.enums.FileUploadBizEnum;
 
-import java.io.File;
+import java.io.IOException;
 
 /**
  * @name: com.caixy.adminSystem.service.UploadFileService
@@ -12,27 +13,17 @@ import java.io.File;
  **/
 public interface UploadFileService
 {
-    /**
-     * 上传文件到COS
-     *
-     * @author CAIXYPROMISE
-     * @version 1.0
-     * @since 2024/5/21 下午10:32
-     */
-    String saveFileToCos(UploadFileConfig uploadFileConfig);
 
-    /**
-     * 本地存储文件
-     *
-     * @author CAIXYPROMISE
-     * @version 1.0
-     * @since 2024/5/21 下午10:32
-     */
-    String saveFileToLocal(UploadFileConfig uploadFileConfig);
 
-    void deleteFileOnCos(String filepath);
+//    void deleteFileOnCos(String filepath);
+//
+//    void deleteFileOnLocal(String filePath);
 
-    void deleteFileOnLocal(String filePath);
+//    void deleteFileOnLocal(File file);
 
-    void deleteFileOnLocal(File file);
+    void deleteFile(FileUploadBizEnum fileUploadBizEnum, String filePath);
+
+    void deleteFile(FileUploadBizEnum fileUploadBizEnum, Long userId, String filename);
+
+    String saveFile(UploadFileConfig uploadFileConfig) throws IOException;
 }

@@ -1,6 +1,6 @@
 package com.caixy.adminSystem.mapper;
 
-import com.caixy.adminSystem.model.entity.domain.MessageInfo;
+import com.caixy.adminSystem.model.entity.MessageInfo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

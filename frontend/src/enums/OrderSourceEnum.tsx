@@ -8,16 +8,20 @@ class OrderSourceEnum
     static readonly QQ_GROUP = new OrderSourceEnum(4, "QQ群");
     static readonly QQ_FRIEND = new OrderSourceEnum(5, "QQ好友");
 
-    private constructor(private readonly code: number, private readonly desc: string)
+    private constructor(private readonly code: number, private readonly text: string)
     {
         OrderSourceEnum.allValues.push(this);
     }
 
-    static getByCode(code: number): OrderSourceEnum | null
+    static getByCode(value: number | undefined): OrderSourceEnum | null
     {
+        if (value === null)
+        {
+            return null
+        }
         for (let source of OrderSourceEnum.allValues)
         {
-            if (source.code === code)
+            if (source.code === value)
             {
                 return source;
             }
@@ -30,14 +34,14 @@ class OrderSourceEnum
         return this.code;
     }
 
-    getDescription(): string
+    getText(): string
     {
-        return this.desc;
+        return this.text;
     }
 
     toString(): string
     {
-        return `${this.desc} (${this.code})`;
+        return `${this.text} (${this.code})`;
     }
 }
 

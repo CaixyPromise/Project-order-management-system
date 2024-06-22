@@ -55,6 +55,14 @@ export async function getLanguageTypeVoByIdUsingGet1(
   });
 }
 
+/** getLanguageTypeOptionList GET /api/languageType/list/option */
+export async function getLanguageTypeOptionListUsingGet1(options?: { [key: string]: any }) {
+  return request<API.BaseResponseListOptionVOLong_>('/api/languageType/list/option', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
 /** listLanguageTypeByPage POST /api/languageType/list/page */
 export async function listLanguageTypeByPageUsingPost1(
   body: API.LanguageTypeQueryRequest,

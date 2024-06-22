@@ -45,6 +45,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseListOptionVOLong_ = {
+    code?: number;
+    data?: OptionVOLong_[];
+    message?: string;
+  };
+
   type BaseResponseLoginUserVO_ = {
     code?: number;
     data?: LoginUserVO;
@@ -99,9 +105,9 @@ declare namespace API {
     message?: string;
   };
 
-  type BaseResponsePageOrderInfoVO_ = {
+  type BaseResponsePageOrderInfoPageVO_ = {
     code?: number;
-    data?: PageOrderInfoVO_;
+    data?: PageOrderInfoPageVO_;
     message?: string;
   };
 
@@ -180,7 +186,7 @@ declare namespace API {
 
   type getOrderInfoVOByIdUsingGET1Params = {
     /** id */
-    id?: number;
+    id: number;
   };
 
   type getPostVOByIdUsingGET1Params = {
@@ -244,6 +250,11 @@ declare namespace API {
 
   type MapLongOrderCategoryVO_ = true;
 
+  type OptionVOLong_ = {
+    label?: string;
+    value?: number;
+  };
+
   type OrderCategoryAddRequest = {
     categoryDesc?: string;
     categoryName?: string;
@@ -279,6 +290,17 @@ declare namespace API {
     vos?: Record<string, any>;
   };
 
+  type OrderFileVO = {
+    createTime?: string;
+    creatorName?: string;
+    fileName?: string;
+    fileSha256?: string;
+    fileSize?: number;
+    id?: string;
+    orderId?: number;
+    updateTime?: string;
+  };
+
   type OrderInfoAddRequest = {
     amount?: number;
     amountPaid?: number;
@@ -311,6 +333,25 @@ declare namespace API {
     tokenMap?: Record<string, any>;
   };
 
+  type OrderInfoPageVO = {
+    amount?: number;
+    amountPaid?: number;
+    createTime?: string;
+    creatorName?: string;
+    hasOrderAttachment?: boolean;
+    id?: string;
+    isAssigned?: boolean;
+    isPaid?: boolean;
+    langName?: string;
+    orderCategoryName?: string;
+    orderDeadline?: string;
+    orderId?: string;
+    orderSource?: string;
+    orderStatus?: string;
+    orderTitle?: string;
+    updateTime?: string;
+  };
+
   type OrderInfoQueryRequest = {
     content?: string;
     current?: number;
@@ -328,28 +369,60 @@ declare namespace API {
   };
 
   type OrderInfoUpdateRequest = {
-    content?: string;
+    amount?: number;
+    amountPaid?: number;
+    creatorId?: number;
+    customerContact?: string;
+    customerContactType?: number;
+    customerEmail?: string;
     id?: number;
-    tags?: string[];
-    title?: string;
+    isAssigned?: number;
+    isPaid?: number;
+    orderAssignToWxId?: string;
+    orderCategoryId?: number;
+    orderCommissionRate?: number;
+    orderDeadline?: string;
+    orderDesc?: string;
+    orderId?: string;
+    orderLangId?: number;
+    orderRemark?: string;
+    orderSource?: number;
+    orderStatus?: number;
+    orderTags?: string;
+    orderTitle?: string;
+    paymentMethod?: number;
   };
 
   type OrderInfoVO = {
     amount?: number;
     amountPaid?: number;
+    categoryName?: string;
     createTime?: string;
     creatorName?: string;
-    hasOrderAttachment?: boolean;
+    customerContact?: string;
+    customerContactType?: number;
+    customerEmail?: string;
     id?: number;
-    isAssigned?: boolean;
-    isPaid?: boolean;
+    isAssigned?: number;
+    isPaid?: number;
+    isValid?: number;
     langName?: string;
-    orderCategoryName?: string;
+    orderAssignToWxId?: string;
+    orderAttachmentList?: OrderFileVO[];
+    orderAttachmentNum?: number;
+    orderCommissionRate?: number;
+    orderCompletionTime?: string;
     orderDeadline?: string;
+    orderDesc?: string;
+    orderEndDate?: string;
     orderId?: string;
-    orderSource?: string;
-    orderStatus?: string;
+    orderRemark?: string;
+    orderSource?: number;
+    orderStartDate?: string;
+    orderStatus?: number;
+    orderTags?: string;
     orderTitle?: string;
+    paymentMethod?: number;
     updateTime?: string;
   };
 
@@ -384,14 +457,14 @@ declare namespace API {
     total?: number;
   };
 
-  type PageOrderInfoVO_ = {
+  type PageOrderInfoPageVO_ = {
     countId?: string;
     current?: number;
     maxLimit?: number;
     optimizeCountSql?: boolean;
     orders?: OrderItem[];
     pages?: number;
-    records?: OrderInfoVO[];
+    records?: OrderInfoPageVO[];
     searchCount?: boolean;
     size?: number;
     total?: number;
@@ -534,11 +607,6 @@ declare namespace API {
     fileName?: string;
     fileSha256?: string;
     fileUid?: string;
-    token?: string;
-  };
-
-  type uploadFileToLocalUsingPOST1Params = {
-    biz?: string;
     token?: string;
   };
 

@@ -74,10 +74,10 @@ public class SpringContextUtils implements ApplicationContextAware
      * @param <KeyType>           注解值的类型
      * @return 注解值和服务的映射
      */
-    public static <ServiceType, AnnotationType extends Annotation, KeyType> Map<KeyType, ServiceType> getServiceFromAnnotation(
+    public static <ServiceType, AnnotationType extends Annotation, KeyType> HashMap<KeyType, ServiceType> getServiceFromAnnotation(
             List<ServiceType> serviceTypeList, Class<AnnotationType> annotationTypeClass)
     {
-        Map<KeyType, ServiceType> serviceMap = new HashMap<>();
+        HashMap<KeyType, ServiceType> serviceMap = new HashMap<>();
 
         for (ServiceType service : serviceTypeList)
         {
@@ -96,7 +96,7 @@ public class SpringContextUtils implements ApplicationContextAware
                     Method valueMethod = annotationTypeClass.getMethod("value");
                     @SuppressWarnings("unchecked") KeyType key = (KeyType) valueMethod.invoke(annotation);
                     serviceMap.put(key, service);
-                    System.out.printf("成功-初始化文件上传处理类：%s -> %s%n", key, targetClass.getName());
+                    System.out.printf("成功-初始化策略注解处理类：%s -> %s%n", key, targetClass.getName());
                 }
                 catch (ReflectiveOperationException e)
                 {

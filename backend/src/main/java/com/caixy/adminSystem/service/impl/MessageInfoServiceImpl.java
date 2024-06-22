@@ -3,7 +3,7 @@ package com.caixy.adminSystem.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.caixy.adminSystem.constant.CommonConstant;
 import com.caixy.adminSystem.mapper.MessageInfoMapper;
-import com.caixy.adminSystem.model.entity.domain.MessageInfo;
+import com.caixy.adminSystem.model.entity.MessageInfo;
 import com.caixy.adminSystem.model.enums.BackendMessageLevelEnum;
 import com.caixy.adminSystem.service.MessageInfoService;
 import org.springframework.stereotype.Service;

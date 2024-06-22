@@ -22,9 +22,19 @@ public class OrderFileInfo implements Serializable
     private Long id;
 
     /**
+     * 文件真实名称
+     */
+    private String fileRealName;
+
+    /**
      * 文件名
      */
     private String fileName;
+
+    /**
+     * 文件扩展名
+     */
+    private String fileSuffix;
 
     /**
      * 文件大小（单位：字节）

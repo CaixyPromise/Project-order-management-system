@@ -8,7 +8,7 @@ import {UploadOutlined} from "@ant-design/icons";
 import {useUserData} from "@/pages/User/Settings/context";
 import {RcFile} from "antd/lib/upload";
 import useAsyncHandler from "@/hooks/useAsyncHandler";
-import {uploadFileToLocalUsingPost1} from "@/services/backend/fileController";
+import {uploadFileUsingPost1} from "@/services/backend/fileController";
 import {UploadType} from "@/constants/uploadType";
 import {STATIC_URL} from "@/constants";
 
@@ -24,7 +24,7 @@ const BaseView: React.FC = () =>
     {
         const response = await uploadFileHandler(async () =>
         {
-            const { data, code } = await uploadFileToLocalUsingPost1({ biz: UploadType.USER_AVATAR }, {}, file)
+            const { data, code } = await uploadFileUsingPost1({ biz: UploadType.USER_AVATAR }, {}, file)
             if (code !== 0)
             {
                 return Promise.reject();

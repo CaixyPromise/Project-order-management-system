@@ -1,10 +1,14 @@
 package com.caixy.adminSystem.model.dto.file;
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import com.caixy.adminSystem.model.enums.FileUploadBizEnum;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.UUID;
 
 /**
  * 上传文件配置内部信息
@@ -16,11 +20,35 @@ import org.springframework.web.multipart.MultipartFile;
 @Data
 public class UploadFileConfig
 {
+
+    /**
+     * 上传人Id
+     */
     private Long userId;
+
+    /**
+     * 文件传输对象
+     */
     private MultipartFile multipartFile;
+
+    /**
+     * 文件业务类型
+     */
     private FileUploadBizEnum fileUploadBizEnum;
+
+    /**
+     * 文件描述信息
+     */
     private FileInfo fileInfo;
+
+    /**
+     * 文件MD5值
+     */
     private String sha256;
+
+    /**
+     * 文件大小限制，单位：字节
+     */
     private Long fileSize;
 
     @Data
@@ -31,14 +59,32 @@ public class UploadFileConfig
          * 文件唯一标识
          */
         private String uuid;
+
         /**
-         * 文件名
+         * 文件内部名称
          */
-        private String filename;
+        private String fileInnerName;
+
         /**
-         * 文件保存路径
+         * 文件真实名称
+         */
+        private String fileRealName;
+
+        /**
+         * 文件扩展名称
+         */
+        private String fileSuffix;
+
+        /**
+         * 文件保存路径+名字
+         */
+        private String fileAbsolutePathAndName;
+
+        /**
+         * 文件保存文件夹路径
          */
         private String filePath;
+
         /**
          * 文件可访问路径
          */
@@ -46,32 +92,32 @@ public class UploadFileConfig
     }
 
     /**
-     * 获取文件保存路径(本地或COS)
+     * 转换并生成文件信息
      *
-     * @author CAIXYPROMISE
-     * @version 1.0
-     * @since 2024/5/21 下午10:03
+     * @return 构建的 FileInfo 对象
      */
-    public FileInfo convertFileInfo(boolean isLocal)
+    public FileInfo convertFileInfo()
     {
-        // 文件目录：根据业务、用户来划分
-        String uuid = RandomStringUtils.randomAlphanumeric(8);
-        String filename = uuid + "-" + multipartFile.getOriginalFilename();
-        FileInfo.FileInfoBuilder fileInfoBuilder = FileInfo.builder()
+        String uuid = UUID.randomUUID().toString();
+        String originalFilename = multipartFile.getOriginalFilename();
+        String filename = uuid + "-" + DigestUtil.md5Hex(originalFilename + RandomStringUtils.randomAlphanumeric(5));
+
+        // 获取文件扩展名称
+        String fileSuffix = FileUtil.getSuffix(originalFilename);
+
+        // 使用 FileUploadBizEnum 枚举类中的方法生成路径和URL
+        String fileAbsoluteName = fileUploadBizEnum.buildFileAbsoluteName(userId, filename);
+        String fileURL = fileUploadBizEnum.buildFileURL(userId, filename);
+        String filePath = fileUploadBizEnum.buildFilePath(userId);
+
+        return FileInfo.builder()
                 .uuid(uuid)
-                .filename(filename);
-        if (isLocal)
-        {
-            fileInfoBuilder.filePath(String.format("/%s/%s", fileUploadBizEnum.getValue(), userId));
-            // 设置访问路径，是routePath+userId+filename
-            fileInfoBuilder.fileURL(String.format("/%s/%s/%s", fileUploadBizEnum.getRoutePath(), userId, filename));
-        }
-        else
-        {
-            String savePath = String.format("/%s/%s/%s", fileUploadBizEnum.getValue(), userId, filename);
-            fileInfoBuilder.filePath(savePath);
-            fileInfoBuilder.fileURL(savePath);
-        }
-        return fileInfoBuilder.build();
+                .fileRealName(originalFilename)
+                .fileInnerName(filename)
+                .fileAbsolutePathAndName(fileAbsoluteName)
+                .filePath(filePath)
+                .fileURL(fileURL)
+                .fileSuffix(fileSuffix)
+                .build();
     }
 }

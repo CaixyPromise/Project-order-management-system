@@ -11,6 +11,8 @@ import useAsyncHandler from "@/hooks/useAsyncHandler";
 import {getOrderListColumn} from "@/pages/OrderList/columns";
 import {listOrderInfoVoByPageUsingPost1} from "@/services/backend/orderController";
 import {history} from "@umijs/max";
+import OrderDetailsModal from "@/pages/OrderList/components/OrderDetailsModal";
+import {deleteOrder} from "@/pages/OrderList/server";
 
 /**
  * 用户管理页面
@@ -30,21 +32,21 @@ const UserAdminPage: React.FC = () =>
         code?: number;
         data?: API.PageUser_;
         message?: string;
-    }>()
+    }>();
+    const [ editableKeys, setEditableKeys ] = useState<API.OrderInfoPageVO[]>([]);
+    const [ detailsModalVisible, setDetailsModalVisible ] = useState<boolean>(false);
     /**
      * 删除节点
      *
      * @param row
      */
-    const handleDelete = async (row: API.User) =>
+    const handleDelete = async (row: API.OrderInfoPageVO) =>
     {
         const hide = message.loading('正在删除');
         if (!row) return true;
         try
         {
-            await deleteUserUsingPost1({
-                id: row.id as any,
-            });
+            await deleteOrder(row?.id as string);
             hide();
             message.success('删除成功');
             actionRef?.current?.reload();
@@ -57,31 +59,42 @@ const UserAdminPage: React.FC = () =>
             return false;
         }
     };
-    const column = useMemo(() => getOrderListColumn({ setCurrentRow , setUpdateModalVisible, handleDelete }), []);
+    const column = useMemo(() => getOrderListColumn({
+        setCurrentRow ,
+        setDetailsModalVisible,
+        handleDelete,
+        editableKeys,
+        setEditableKeys
+    }), []);
 
-
-
-
-    /**
-     * 表格列配置
-     */
 
     return (
         <PageContainer>
-            <ProTable<API.User>
+            <ProTable<API.OrderInfoPageVO>
                 headerTitle={'查询表格'}
                 actionRef={actionRef}
-                rowKey="key"
+                rowKey="id"
+                editable={{
+                    type: 'single', // 指定为单行编辑
+                    editableKeys,
+                    onSave: async (rowKey, data, row) =>
+                    {
+                        console.log(data)
+                    },
+                    onChange: setEditableKeys,
+                    actionRender: (row, config, defaultDom) => [defaultDom.save, defaultDom.cancel],
+                }}
                 search={{
                     labelWidth: 120,
                 }}
+                rowSelection={{}}
                 toolBarRender={() => [
                     <Button
                         type="primary"
                         key="primary"
                         onClick={() =>
                         {
-                            history.push("/addOrder/");
+                            history.push("/addOrder");
                         }}
                     >
                         <PlusOutlined/> 新建
@@ -138,6 +151,7 @@ const UserAdminPage: React.FC = () =>
                     setUpdateModalVisible(false);
                 }}
             />
+            <OrderDetailsModal currentRow={currentRow} open={detailsModalVisible} setOpen={setDetailsModalVisible} />
         </PageContainer>
     );
 };

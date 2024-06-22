@@ -1,7 +1,7 @@
 package com.caixy.adminSystem.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.caixy.adminSystem.model.entity.domain.MessageInfo;
+import com.caixy.adminSystem.model.entity.MessageInfo;
 import com.caixy.adminSystem.model.enums.BackendMessageLevelEnum;
 
 /**

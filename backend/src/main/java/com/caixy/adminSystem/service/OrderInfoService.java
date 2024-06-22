@@ -8,6 +8,8 @@ import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import com.caixy.adminSystem.model.dto.order.OrderInfoQueryRequest;
 import com.caixy.adminSystem.model.entity.OrderInfo;
 import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
+import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -51,7 +53,7 @@ public interface OrderInfoService extends IService<OrderInfo>
      * @param request
      * @return
      */
-    OrderInfoPageVO getOrderInfoVO(OrderInfo post, HttpServletRequest request);
+    OrderInfoVO getOrderInfoVO(OrderInfo post, HttpServletRequest request);
 
     /**
      * 分页获取帖子封装
@@ -66,6 +68,9 @@ public interface OrderInfoService extends IService<OrderInfo>
                                                 Long orderId);
 
     Long countUploadOrderAttachment(Long orderId);
+
+    @Transactional(rollbackFor = Exception.class)
+    Boolean deleteOrderInfo(OrderInfo orderInfo);
 
     void setOrderValid(Long orderId, boolean validCode);
 }

@@ -3,6 +3,7 @@ package com.caixy.adminSystem.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.caixy.adminSystem.model.common.OptionVO;
 import com.caixy.adminSystem.model.dto.category.OrderCategoryQueryRequest;
 import com.caixy.adminSystem.model.entity.OrderCategory;
 import com.caixy.adminSystem.model.vo.category.OrderCategoryVO;
@@ -61,4 +62,8 @@ public interface OrderCategoryService extends IService<OrderCategory> {
     Page<OrderCategoryVO> getOrderCategoryVOPage(Page<OrderCategory> orderCategoryPage, HttpServletRequest request);
 
     Map<Long, String> getCategoryNameByIds(Set<Long> categoryIds);
+
+    List<OptionVO<Long>> convertCategoryOptionListAndCache(List<OrderCategory> orderCategoryList);
+
+    List<OptionVO<Long>> getCategoryOptionList();
 }

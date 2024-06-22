@@ -55,6 +55,14 @@ export async function getOrderCategoryVoByIdUsingGet1(
   });
 }
 
+/** getCategoryOptionList GET /api/orderCategory/list/option */
+export async function getCategoryOptionListUsingGet1(options?: { [key: string]: any }) {
+  return request<API.BaseResponseListOptionVOLong_>('/api/orderCategory/list/option', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
 /** listOrderCategoryByPage POST /api/orderCategory/list/page */
 export async function listOrderCategoryByPageUsingPost1(
   body: API.OrderCategoryQueryRequest,

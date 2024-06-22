@@ -1,50 +1,23 @@
-import {updateUserUsingPost1} from '@/services/backend/userController';
-import {ProColumns, ProTable} from '@ant-design/pro-components';
-import '@umijs/max';
-import {message, Modal} from 'antd';
+import {ProForm} from '@ant-design/pro-components';
+import {Modal} from 'antd';
 import React from 'react';
-import {updateLanguageTypeUsingPost1} from "@/services/backend/languageTypeController";
 
 interface Props
 {
-    oldData?: API.User;
+    oldData?: API.OrderInfoVO;
     visible: boolean;
-    columns: ProColumns<API.User>[];
     onSubmit: (values: API.UserAddRequest) => void;
     onCancel: () => void;
 }
-
-/**
- * 更新节点
- *
- * @param fields
- */
-const handleUpdate = async (fields: API.LanguageTypeUpdateRequest) =>
-{
-    const hide = message.loading('正在更新');
-    try
-    {
-        await updateLanguageTypeUsingPost1(fields);
-        hide();
-        message.success('更新成功');
-        return true;
-    }
-    catch (error: any)
-    {
-        hide();
-        message.error('更新失败，' + error.message);
-        return false;
-    }
-};
 
 /**
  * 更新弹窗
  * @param props
  * @constructor
  */
-const UpdateModal: React.FC<Props> = (props) =>
+const UpdateStatusModal: React.FC<Props> = (props) =>
 {
-    const { oldData, visible, columns, onSubmit, onCancel } = props;
+    const { oldData, visible,  onSubmit, onCancel } = props;
 
     if (!oldData)
     {
@@ -54,7 +27,7 @@ const UpdateModal: React.FC<Props> = (props) =>
     return (
         <Modal
             destroyOnClose
-            title={'更新'}
+            title={'更新-状态信息'}
             open={visible}
             footer={null}
             onCancel={() =>
@@ -62,25 +35,10 @@ const UpdateModal: React.FC<Props> = (props) =>
                 onCancel?.();
             }}
         >
-            <ProTable
-                type="form"
-                columns={columns}
-                form={{
-                    initialValues: oldData,
-                }}
-                onSubmit={async (values: API.UserAddRequest) =>
-                {
-                    const success = await handleUpdate({
-                        ...values,
-                        id: oldData.id as any,
-                    });
-                    if (success)
-                    {
-                        onSubmit?.(values);
-                    }
-                }}
-            />
+            <ProForm>
+
+            </ProForm>
         </Modal>
     );
 };
-export default UpdateModal;
+export default UpdateStatusModal;

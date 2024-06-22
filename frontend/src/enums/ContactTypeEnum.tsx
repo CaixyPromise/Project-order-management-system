@@ -20,8 +20,12 @@ class ContactTypeEnum
         return ContactTypeEnum.allValues.map(type => type.value);
     }
 
-    static getEnumByValue(value: number): ContactTypeEnum | null
+    static getEnumByValue(value: number | undefined): ContactTypeEnum | null
     {
+        if (value === null)
+        {
+            return null
+        }
         for (let type of ContactTypeEnum.allValues)
         {
             if (type.value === value)

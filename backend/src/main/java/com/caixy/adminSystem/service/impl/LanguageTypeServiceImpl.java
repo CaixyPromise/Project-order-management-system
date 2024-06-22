@@ -1,6 +1,7 @@
 package com.caixy.adminSystem.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -9,16 +10,20 @@ import com.caixy.adminSystem.constant.CommonConstant;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.exception.ThrowUtils;
 import com.caixy.adminSystem.mapper.LanguageTypeMapper;
+import com.caixy.adminSystem.model.common.OptionVO;
 import com.caixy.adminSystem.model.dto.lang.LanguageTypeQueryRequest;
 import com.caixy.adminSystem.model.entity.LanguageType;
+import com.caixy.adminSystem.model.enums.RedisConstant;
 import com.caixy.adminSystem.model.vo.lang.LanguageTypeVO;
 import com.caixy.adminSystem.service.LanguageTypeService;
 import com.caixy.adminSystem.service.UserService;
+import com.caixy.adminSystem.utils.RedisUtils;
 import com.caixy.adminSystem.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -39,6 +44,9 @@ public class LanguageTypeServiceImpl extends ServiceImpl<LanguageTypeMapper, Lan
 
     @Resource
     private UserService userService;
+    @Autowired
+    private RedisUtils redisUtils;
+
     /**
      * 检查语言是否存在
      *
@@ -64,7 +72,7 @@ public class LanguageTypeServiceImpl extends ServiceImpl<LanguageTypeMapper, Lan
     {
         ThrowUtils.throwIf(languageType == null, ErrorCode.PARAMS_ERROR);
         String name = languageType.getLanguageName();
-        if (StringUtils.isBlank(name) || name.length() > MAX_LANG_NAME )
+        if (StringUtils.isBlank(name) || name.length() > MAX_LANG_NAME)
         {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "语言长度不能大于: " + MAX_LANG_NAME);
         }
@@ -82,7 +90,7 @@ public class LanguageTypeServiceImpl extends ServiceImpl<LanguageTypeMapper, Lan
      * @since 2024/6/7 下午4:17
      */
     @Override
-    public Map<Long, LanguageTypeVO> getLangtYpeVoMap(List<LanguageType> languageTypeList)
+    public Map<Long, LanguageTypeVO> getLangTypeVoMap(List<LanguageType> languageTypeList)
     {
         return LanguageTypeVO.listToIdVoMap(languageTypeList);
     }
@@ -197,4 +205,33 @@ public class LanguageTypeServiceImpl extends ServiceImpl<LanguageTypeMapper, Lan
         return languageTypes.stream().collect(Collectors.toMap(LanguageType::getId, LanguageType::getLanguageName));
     }
 
+    @Override
+    public List<OptionVO<Long>> convertLangOptionListAndCache(List<LanguageType> languageTypeList)
+    {
+        List<OptionVO<Long>> optionVOList =
+                languageTypeList.stream().map(item -> new OptionVO<>(item.getId(), item.getLanguageName())).collect(Collectors.toList());
+        redisUtils.setString(RedisConstant.LANGUAGE_TYPE, JSONUtil.toJsonStr(optionVOList), "type");
+        return optionVOList;
+    }
+
+    @Override
+    public List<OptionVO<Long>> getLangOptionList()
+    {
+        List<OptionVO<Long>> getCache = redisUtils.getJson(RedisConstant.LANGUAGE_TYPE, "type");
+        if (getCache != null)
+        {
+            return getCache;
+        }
+        else
+        {
+            List<LanguageType> languageTypeList = list();
+            return convertLangOptionListAndCache(languageTypeList);
+        }
+    }
+
+    @Override
+    public void clearCache()
+    {
+        redisUtils.delete(RedisConstant.LANGUAGE_TYPE, "type");
+    }
 }

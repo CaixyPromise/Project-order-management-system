@@ -1,3 +1,5 @@
+import {OptionProps} from "@/typings";
+
 class OrderStatusEnum
 {
     private static allValues: OrderStatusEnum[] = [];
@@ -8,13 +10,29 @@ class OrderStatusEnum
     static readonly FINISHED = new OrderStatusEnum(5, "已完成");
     static readonly PART_SETTLED = new OrderStatusEnum(6, "部分结算");
 
-    private constructor(private readonly code: number, private readonly desc: string)
+    private constructor(private readonly code: number, private readonly text: string)
     {
         OrderStatusEnum.allValues.push(this)
     }
 
-    static getByCode(code: number): OrderStatusEnum | null
+    static getAllOptions(): OptionProps<number>[]
     {
+        return OrderStatusEnum.allValues.map(item =>
+        {
+            return {
+                value: item.code,
+                label: item.text
+            }
+        })
+    }
+
+
+    static getEnumByValue(code: number | undefined): OrderStatusEnum | null
+    {
+        if (code === undefined)
+        {
+            return null;
+        }
         for (let prop of OrderStatusEnum.allValues)
         {
             if (prop.code === code)
@@ -25,9 +43,19 @@ class OrderStatusEnum
         return null;
     }
 
+    getCode(): number
+    {
+        return this.code;
+    }
+
+    getText(): string
+    {
+        return this.text;
+    }
+
     toString(): string
     {
-        return `${this.desc} (${this.code})`;
+        return `${this.text} (${this.code})`;
     }
 }
 

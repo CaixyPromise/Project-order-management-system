@@ -12,7 +12,6 @@ const UserSexLined: React.FC<UserSexProps> = ({ sex }) =>
     const sexInfo = UserSexEnum[sex];
     if (!sexInfo)
     {
-        console.log("无效的 sex 值: ", sex);
         return null;
     }
 

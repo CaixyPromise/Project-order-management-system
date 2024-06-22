@@ -1,5 +1,6 @@
 package com.caixy.adminSystem.model.vo.order;
 
+import com.caixy.adminSystem.model.vo.file.OrderFileVO;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -29,7 +30,7 @@ public class OrderInfoVO implements Serializable
     private String creatorName;
 
     /**
-     * 订单平台id
+     * 订单号
      */
     private String orderId;
 
@@ -49,38 +50,79 @@ public class OrderInfoVO implements Serializable
     private BigDecimal amountPaid;
 
     /**
+     * 订单联系方式类型
+     */
+    private Integer customerContactType;
+
+    /**
+     * 订单联系方式
+     */
+    private String customerContact;
+
+    /**
+     * 顾客邮箱
+     */
+    private String customerEmail;
+
+    /**
      * 是否是对外分配
      */
-    private Boolean isAssigned;
+    private Integer isAssigned;
 
     /**
      * 是否支付
      */
-    private Boolean isPaid;
+    private Integer isPaid;
 
     /**
-     * 是否包含附件
+     * 支付方式
      */
-    private Boolean hasOrderAttachment;
-
+    private Integer paymentMethod;
 
     /**
      * 订单来源
      */
-    private String orderSource;
-
+    private Integer orderSource;
 
     /**
-     * 订单分类名称
+     * 订单分配人微信Id
      */
-    private String orderCategoryName;
+    private String orderAssignToWxId;
 
+    /**
+     * 订单佣金比例
+     */
+    private Integer orderCommissionRate;
+
+    /**
+     * 订单分类
+     */
+    private String categoryName;
+
+    /**
+     * 订单标签
+     */
+    private String orderTags;
 
     /**
      * 订单编程语言ID
      */
     private String langName;
 
+    /**
+     * 订单描述
+     */
+    private String orderDesc;
+
+    /**
+     * 是否包含订单附件
+     */
+    private Integer orderAttachmentNum;
+
+    /**
+     * 订单备注
+     */
+    private String orderRemark;
 
     /**
      * 交付截止日期
@@ -88,9 +130,24 @@ public class OrderInfoVO implements Serializable
     private Date orderDeadline;
 
     /**
+     * 订单完成时间
+     */
+    private Date orderCompletionTime;
+
+    /**
+     * 订单开始日期
+     */
+    private Date orderStartDate;
+
+    /**
+     * 订单结束日期
+     */
+    private Date orderEndDate;
+
+    /**
      * 订单状态
      */
-    private String orderStatus;
+    private Integer orderStatus;
 
     /**
      * 创建时间
@@ -103,34 +160,14 @@ public class OrderInfoVO implements Serializable
     private Date updateTime;
 
     /**
+     * 是否删除
+     */
+    private Integer isValid;
+
+    /**
      * 订单附件列表
      */
-    private List<OrderAttachmentList> orderAttachmentList;
+    private List<OrderFileVO> orderAttachmentList;
 
-    @Data
-    public static class OrderAttachmentList implements Serializable
-    {
-        /**
-         * 文件名
-         */
-        private String fileName;
-
-        /**
-         * 文件大小（单位：字节）
-         */
-        private Long fileSize;
-
-        /**
-         * 创建人名称
-         */
-        private String creatorName;
-
-        /**
-         * 下载链接
-         */
-        private String downloadUrl;
-
-        private static final long serialVersionUID = 1L;
-    }
     private static final long serialVersionUID = 1L;
 }

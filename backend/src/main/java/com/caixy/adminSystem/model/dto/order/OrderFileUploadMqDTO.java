@@ -14,8 +14,18 @@ import java.io.Serializable;
 @Data
 public class OrderFileUploadMqDTO implements Serializable
 {
+    /**
+     * 订单id
+     */
     private Long orderId;
+    /**
+     * 期待文件数量
+     */
     private Integer fileCount;
+    /**
+     * 用户id
+     */
     private Long userId;
+
     private static final long SerialVersionUID = 1L;
 }

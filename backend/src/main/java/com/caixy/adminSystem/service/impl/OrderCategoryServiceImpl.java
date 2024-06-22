@@ -1,6 +1,7 @@
 package com.caixy.adminSystem.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -9,16 +10,20 @@ import com.caixy.adminSystem.constant.CommonConstant;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.exception.ThrowUtils;
 import com.caixy.adminSystem.mapper.OrderCategoryMapper;
+import com.caixy.adminSystem.model.common.OptionVO;
 import com.caixy.adminSystem.model.dto.category.OrderCategoryQueryRequest;
 import com.caixy.adminSystem.model.entity.OrderCategory;
+import com.caixy.adminSystem.model.enums.RedisConstant;
 import com.caixy.adminSystem.model.vo.category.OrderCategoryVO;
 import com.caixy.adminSystem.service.OrderCategoryService;
 import com.caixy.adminSystem.service.UserService;
+import com.caixy.adminSystem.utils.RedisUtils;
 import com.caixy.adminSystem.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -41,6 +46,8 @@ public class OrderCategoryServiceImpl extends ServiceImpl<OrderCategoryMapper, O
 
     @Resource
     private UserService userService;
+    @Autowired
+    private RedisUtils redisUtils;
 
     /**
      * 校验数据
@@ -191,7 +198,8 @@ public class OrderCategoryServiceImpl extends ServiceImpl<OrderCategoryMapper, O
     {
         // 获取数据信息
         List<OrderCategory> orderCategoryList = orderCategoryPage.getRecords();
-        Page<OrderCategoryVO> orderCategoryVOPage = new Page<>(orderCategoryPage.getCurrent(), orderCategoryPage.getSize());
+        Page<OrderCategoryVO> orderCategoryVOPage =
+                new Page<>(orderCategoryPage.getCurrent(), orderCategoryPage.getSize());
         Set<Long> creatorIds = orderCategoryList.stream().map(OrderCategory::getCreatorId).collect(Collectors.toSet());
         Map<Long, String> userNameByIds = userService.getUserNameByIds(creatorIds);
         // 获取封装类
@@ -216,10 +224,33 @@ public class OrderCategoryServiceImpl extends ServiceImpl<OrderCategoryMapper, O
     }
 
     @Override
-    public Map<Long, String>getCategoryNameByIds(Set<Long> categoryIds)
+    public Map<Long, String> getCategoryNameByIds(Set<Long> categoryIds)
     {
         List<OrderCategory> orderCategories = listByIds(categoryIds);
         return orderCategories.stream().collect(Collectors.toMap(OrderCategory::getId, OrderCategory::getCategoryName));
     }
 
+    @Override
+    public List<OptionVO<Long>> convertCategoryOptionListAndCache(List<OrderCategory> orderCategoryList)
+    {
+        List<OptionVO<Long>> optionVOList =
+                orderCategoryList.stream().map(item -> new OptionVO<>(item.getId(), item.getCategoryName())).collect(Collectors.toList());
+        redisUtils.setString(RedisConstant.ORDER_CATEGORY, JSON.toJSONString(optionVOList), "category");
+        return optionVOList;
+    }
+
+    @Override
+    public List<OptionVO<Long>> getCategoryOptionList()
+    {
+        List<OptionVO<Long>> getCache = redisUtils.getJson(RedisConstant.ORDER_CATEGORY, "category");
+        if (getCache != null)
+        {
+            return getCache;
+        }
+        else
+        {
+            List<OrderCategory> orderCategoryList = list();
+            return convertCategoryOptionListAndCache(orderCategoryList);
+        }
+    }
 }

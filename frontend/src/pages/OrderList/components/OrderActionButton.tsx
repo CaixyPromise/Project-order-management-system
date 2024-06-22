@@ -15,21 +15,18 @@ const OrderActions: React.FC = () =>
     const handleEditOrderStatus = () =>
     {
         setPopoverVisible(false);
-        // 添加修改订单状态的逻辑
-        console.log("修改订单状态");
+        // todo: 添加修改订单状态的逻辑
     };
 
     const handleEditOrderInfo = () =>
     {
         setPopoverVisible(false);
-        // 添加修改订单信息的逻辑
-        console.log("修改订单信息");
+        // todo: 添加修改订单信息的逻辑
     };
 
     const handleAddOrderFile = () => {
         setPopoverVisible(false);
-        // 添加上传文件的逻辑
-        console.log("上传文件");
+        // todo: 添加上传文件的逻辑
     }
 
 
@@ -55,7 +52,7 @@ const OrderActions: React.FC = () =>
             open={popoverVisible}
             onOpenChange={handleVisibleChange}
         >
-            <Link>修改</Link>
+            <Link>状态流转</Link>
         </Popover>
     );
 };

@@ -1,6 +1,8 @@
 package com.caixy.adminSystem.manager;
 
 import javax.annotation.Resource;
+
+import com.caixy.adminSystem.manager.uploadManager.CosManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 

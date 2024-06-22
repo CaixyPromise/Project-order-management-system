@@ -1,24 +1,29 @@
 package com.caixy.adminSystem.model.dto.order;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
 
 /**
  * 更新请求
- *
- 
  */
 @Data
-public class OrderInfoUpdateRequest implements Serializable {
+public class OrderInfoUpdateRequest implements Serializable
+{
 
     /**
      * id
      */
     private Long id;
+
+    /**
+     * 创建用户id
+     */
+    private Long creatorId;
 
     /**
      * 订单号
@@ -106,11 +111,6 @@ public class OrderInfoUpdateRequest implements Serializable {
     private String orderDesc;
 
     /**
-     * 是否包含订单附件
-     */
-    private Integer hasOrderAttachment;
-
-    /**
      * 订单备注
      */
     private String orderRemark;
@@ -120,25 +120,13 @@ public class OrderInfoUpdateRequest implements Serializable {
      */
     private Date orderDeadline;
 
-    /**
-     * 订单完成时间
-     */
-    private Date orderCompletionTime;
-
-    /**
-     * 订单开始日期
-     */
-    private Date orderStartDate;
-
-    /**
-     * 订单结束日期
-     */
-    private Date orderEndDate;
 
     /**
      * 订单状态
      */
     private Integer orderStatus;
+
+
 
     private static final long serialVersionUID = 1L;
 }
