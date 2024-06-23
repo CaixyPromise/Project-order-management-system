@@ -83,3 +83,5 @@ interface OptionProps<T>
     value: T;
     label: string;
 }
+
+type OptionArray<T> = OptionProps<T>[];

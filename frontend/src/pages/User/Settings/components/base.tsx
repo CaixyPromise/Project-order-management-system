@@ -9,7 +9,7 @@ import {useUserData} from "@/pages/User/Settings/context";
 import {RcFile} from "antd/lib/upload";
 import useAsyncHandler from "@/hooks/useAsyncHandler";
 import {uploadFileUsingPost1} from "@/services/backend/fileController";
-import {UploadType} from "@/constants/uploadType";
+import {UploadType} from "@/constants/UploadType";
 import {STATIC_URL} from "@/constants";
 
 const BaseView: React.FC = () =>

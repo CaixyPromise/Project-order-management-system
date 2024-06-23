@@ -6,7 +6,6 @@ import {PageContainer, ProTable} from '@ant-design/pro-components';
 import '@umijs/max';
 import {Button, message} from 'antd';
 import React, {useMemo, useRef, useState} from 'react';
-import {deleteUserUsingPost1} from "@/services/backend/userController";
 import useAsyncHandler from "@/hooks/useAsyncHandler";
 import {getOrderListColumn} from "@/pages/OrderList/columns";
 import {listOrderInfoVoByPageUsingPost1} from "@/services/backend/orderController";
@@ -28,12 +27,12 @@ const UserAdminPage: React.FC = () =>
     const actionRef = useRef<ActionType>();
     // 当前用户点击的数据
     const [ currentRow, setCurrentRow ] = useState<API.User>({});
-    const [ queryHandler, isLoading] = useAsyncHandler<{
+    const [ queryHandler] = useAsyncHandler<{
         code?: number;
-        data?: API.PageUser_;
+        data?: API.PageOrderInfoPageVO_;
         message?: string;
     }>();
-    const [ editableKeys, setEditableKeys ] = useState<API.OrderInfoPageVO[]>([]);
+    // 定义 editableKeys 为 React.Key[] 类型
     const [ detailsModalVisible, setDetailsModalVisible ] = useState<boolean>(false);
     /**
      * 删除节点
@@ -46,6 +45,7 @@ const UserAdminPage: React.FC = () =>
         if (!row) return true;
         try
         {
+            // @ts-ignore
             await deleteOrder(row?.id as string);
             hide();
             message.success('删除成功');
@@ -59,13 +59,15 @@ const UserAdminPage: React.FC = () =>
             return false;
         }
     };
+
+
+// 修改列配置，特别是 editable 相关的部分
     const column = useMemo(() => getOrderListColumn({
-        setCurrentRow ,
+        setCurrentRow,
         setDetailsModalVisible,
         handleDelete,
-        editableKeys,
-        setEditableKeys
-    }), []);
+        setUpdateModalVisible
+    }), []); // 添加 editableKeys 作为依赖项，确保在其变化时重新计算
 
 
     return (
@@ -74,16 +76,6 @@ const UserAdminPage: React.FC = () =>
                 headerTitle={'查询表格'}
                 actionRef={actionRef}
                 rowKey="id"
-                editable={{
-                    type: 'single', // 指定为单行编辑
-                    editableKeys,
-                    onSave: async (rowKey, data, row) =>
-                    {
-                        console.log(data)
-                    },
-                    onChange: setEditableKeys,
-                    actionRender: (row, config, defaultDom) => [defaultDom.save, defaultDom.cancel],
-                }}
                 search={{
                     labelWidth: 120,
                 }}
@@ -114,6 +106,7 @@ const UserAdminPage: React.FC = () =>
                             ...filter,
                         } as API.UserQueryRequest);
                     },[],  error => {message.error(error.message)})
+                    // @ts-ignore
                     const { data, code } = response;
                     return {
                         success: code === 0,

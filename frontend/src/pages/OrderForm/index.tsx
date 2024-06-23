@@ -14,18 +14,24 @@ import {ProFormSelect} from "@ant-design/pro-form/lib";
 import BraftEditor, {EditorState} from 'braft-editor';
 import 'braft-editor/dist/index.css';
 import UploadBox, {UploadBoxHandle} from "@/pages/OrderForm/components/UploadBox";
-import useAsyncHandler, {AsyncHandlerFunc} from "@/hooks/useAsyncHandler";
+import useAsyncHandler from "@/hooks/useAsyncHandler";
 import EditableTags from "@/pages/OrderForm/components/EditableTags";
 import useStyles from "@/pages/OrderForm/style.style";
 import {fetchCategory, fetchLangType, postOrderInfo, uploadAttachment} from "@/pages/OrderForm/server";
-import {OptionProps} from "@/typings";
+import {OptionArray, OptionProps} from "@/typings";
 import {history} from "@umijs/max";
-
+import {
+    customerContactTypeOptions, isAssignedOption,
+    isPaidOptions, orderSourceOptions,
+    paymentMethodOptions,
+    statusOptions
+} from "@/constants/OrderOptionConstants";
 
 
 const Index: React.FC = () =>
 {
     const { styles } = useStyles();
+    // @ts-ignore
     const { id }: { id: string | undefined } = useParams<{ id?: string }>();
     const [ formRef ] = useForm();
     const fileUploadRef = useRef<UploadBoxHandle>(null);
@@ -35,8 +41,8 @@ const Index: React.FC = () =>
 
     const [ categoryHandle, isCategoryLoading ] = useAsyncHandler<CategoryResponse>();
     const [ langTypeHandle, isLangTypeLoading ] = useAsyncHandler<LangTypeResponse>();
-    const [ categoryOption, setCategoryOption ] = useState<OptionProps[]>([]);
-    const [ langTypeOption, setLangTypeOption ] = useState<OptionProps[]>([]);
+    const [ categoryOption, setCategoryOption ] = useState<OptionArray<string>>([]);
+    const [ langTypeOption, setLangTypeOption ] = useState<OptionArray<string>>([]);
     const [ orderTag, setOrderTag ] = useState<string[]>([ "1", "2" ]);
     const [ fileInfo, setFileInfo ] = useState<OrderFormType.FileInfo[]>([]);
     const [ submitHandler ] = useAsyncHandler<API.OrderInfoAddResponse>()
@@ -156,13 +162,7 @@ const Index: React.FC = () =>
                             name="orderSource"
                             label="顾客来源"
                             initialValue={1}
-                            options={[
-                                { value: 1, label: '闲鱼' },
-                                { value: 2, label: '微信群' },
-                                { value: 3, label: '微信好友' },
-                                { value: 4, label: 'QQ群' },
-                                { value: 5, label: 'QQ好友' },
-                            ]}
+                            options={orderSourceOptions}
                         />
                         <ProFormText width={"lg"} name="orderId" label="订单号" placeholder="请输入订单号"
                                      rules={[ { required: true } ]}/>
@@ -201,10 +201,7 @@ const Index: React.FC = () =>
                             width="md"
                             name="isAssigned"
                             label="是否对外分配"
-                            options={[
-                                { value: 1, label: '是' },
-                                { value: 0, label: '否' }
-                            ]}
+                            options={isAssignedOption}
                             rules={[ { required: true } ]}
                         />
                         <ProFormSelect
@@ -212,10 +209,7 @@ const Index: React.FC = () =>
                             name="isPaid"
                             label="已支付全款"
                             initialValue={0}
-                            options={[
-                                { value: 1, label: '是' },
-                                { value: 0, label: '否' }
-                            ]}
+                            options={isPaidOptions}
                             rules={[ { required: true } ]}
                         />
 
@@ -225,14 +219,7 @@ const Index: React.FC = () =>
                             label="订单状态"
                             required
                             initialValue={1}
-                            options={[
-                                { value: 1, label: '待分配' },
-                                { value: 2, label: '已支付-正在进行' },
-                                { value: 3, label: '已退款' },
-                                { value: 4, label: '已取消' },
-                                { value: 5, label: '已完成' },
-                                { value: 6, label: '部分结算' }
-                            ]}
+                            options={statusOptions}
                         />
 
                         <ProFormSelect
@@ -241,13 +228,7 @@ const Index: React.FC = () =>
                             label="支付方式"
                             required
                             initialValue={1}
-                            options={[
-                                { value: 1, label: '支付宝支付' },
-                                { value: 2, label: '微信支付' },
-                                { value: 3, label: '银联支付' },
-                                { value: 4, label: '现金支付' },
-                                { value: 5, label: '刷卡支付' },
-                            ]}
+                            options={paymentMethodOptions}
                         />
                     </ProForm.Group>
 
@@ -256,15 +237,7 @@ const Index: React.FC = () =>
                             width="md"
                             name="customerContactType"
                             label="顾客联系方式类型"
-                            options={[
-                                { value: 0, label: '闲鱼' },
-                                { value: 1, label: '邮箱' },
-                                { value: 2, label: '微信' },
-                                { value: 3, label: 'QQ' },
-                                { value: 4, label: '钉钉' },
-                                { value: 5, label: '企业微信' },
-                                { value: 6, label: '手机' }
-                            ]}
+                            options={customerContactTypeOptions}
                             rules={[ { required: true } ]}
                         />
                         <ProFormText width="md" name="customerContact" label="顾客联系方式"

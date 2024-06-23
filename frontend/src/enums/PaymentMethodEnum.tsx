@@ -1,3 +1,5 @@
+import {OptionArray} from "@/typings";
+
 class PaymentMethodEnum
 {
     private static allValues: PaymentMethodEnum[] = [];
@@ -11,6 +13,17 @@ class PaymentMethodEnum
     private constructor(private readonly code: number, private readonly text: string)
     {
         PaymentMethodEnum.allValues.push(this);
+    }
+
+    static getAllOptions(): OptionArray<number>
+    {
+        return PaymentMethodEnum.allValues.map(item =>
+        {
+            return {
+                value: item.code,
+                label: item.text
+            }
+        })
     }
 
     static getByCode(value: number | undefined): PaymentMethodEnum | null

@@ -1,4 +1,4 @@
-import {OptionProps} from "@/typings";
+import {OptionArray, OptionProps} from "@/typings";
 
 class OrderStatusEnum
 {
@@ -15,7 +15,7 @@ class OrderStatusEnum
         OrderStatusEnum.allValues.push(this)
     }
 
-    static getAllOptions(): OptionProps<number>[]
+    static getAllOptions(): OptionArray<number>
     {
         return OrderStatusEnum.allValues.map(item =>
         {

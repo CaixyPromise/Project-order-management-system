@@ -1,3 +1,5 @@
+import {OptionArray} from "@/typings";
+
 class OrderSourceEnum
 {
     private static allValues: OrderSourceEnum[] = [];
@@ -11,6 +13,17 @@ class OrderSourceEnum
     private constructor(private readonly code: number, private readonly text: string)
     {
         OrderSourceEnum.allValues.push(this);
+    }
+
+    static getAllOptions(): OptionArray<number>
+    {
+        return OrderSourceEnum.allValues.map(item =>
+        {
+            return {
+                value: item.code,
+                label: item.text
+            }
+        })
     }
 
     static getByCode(value: number | undefined): OrderSourceEnum | null

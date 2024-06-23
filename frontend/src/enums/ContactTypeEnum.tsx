@@ -1,3 +1,5 @@
+import {OptionArray} from "@/typings";
+
 class ContactTypeEnum
 {
     private static allValues: ContactTypeEnum[] = [];
@@ -10,14 +12,26 @@ class ContactTypeEnum
     static readonly WORK_WEIXIN = new ContactTypeEnum(5, "企业微信");
     static readonly PHONE = new ContactTypeEnum(6, "手机");
 
-    private constructor(private readonly value: number, private readonly text: string)
+    private constructor(private readonly code: number, private readonly text: string)
     {
         ContactTypeEnum.allValues.push(this);
     }
 
+    static getAllOptions(): OptionArray<number>
+    {
+        return ContactTypeEnum.allValues.map(item =>
+        {
+            return {
+                value: item.code,
+                label: item.text
+            }
+        })
+    }
+
+
     static getValues(): number[]
     {
-        return ContactTypeEnum.allValues.map(type => type.value);
+        return ContactTypeEnum.allValues.map(type => type.code);
     }
 
     static getEnumByValue(value: number | undefined): ContactTypeEnum | null
@@ -28,7 +42,7 @@ class ContactTypeEnum
         }
         for (let type of ContactTypeEnum.allValues)
         {
-            if (type.value === value)
+            if (type.code === value)
             {
                 return type;
             }
@@ -38,7 +52,7 @@ class ContactTypeEnum
 
     getValue(): number
     {
-        return this.value;
+        return this.code;
     }
 
     getText(): string
@@ -48,7 +62,7 @@ class ContactTypeEnum
 
     toString(): string
     {
-        return `${this.text} (${this.value})`;
+        return `${this.text} (${this.code})`;
     }
 }
 

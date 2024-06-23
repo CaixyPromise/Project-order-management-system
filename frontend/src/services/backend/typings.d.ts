@@ -339,7 +339,7 @@ declare namespace API {
     createTime?: string;
     creatorName?: string;
     hasOrderAttachment?: boolean;
-    id?: string;
+    id?: number;
     isAssigned?: boolean;
     isPaid?: boolean;
     langName?: string;

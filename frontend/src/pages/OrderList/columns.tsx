@@ -1,7 +1,7 @@
 import type {ProColumns} from "@ant-design/pro-components";
-import {message, Space, Tag, Typography} from "antd";
+import {Space, Tag, Typography} from "antd";
 import React from "react";
-import {ColumnsParams} from "@/typings";
+import {ColumnsParams, OptionArray} from "@/typings";
 import OrderActionButton from "@/pages/OrderList/components/OrderActionButton";
 import {OrderStatusEnum} from "@/enums/OrderStatusEnum";
 
@@ -19,11 +19,9 @@ const BooleanTag = ({ text }: { text: boolean | undefined }) =>
 
 
 export const getOrderListColumn = ({
-    setCurrentRow, setDetailsModalVisible, handleDelete, setEditableKeys, editableKeys
+    setCurrentRow, setDetailsModalVisible, handleDelete
 }: ColumnsParams<API.OrderInfoPageVO> & {
     setDetailsModalVisible: (visible: boolean) => void
-    editableKeys: API.OrderInfoPageVO,
-    setEditableKeys: (keys: React.Key[]) => void
 }): ProColumns<API.OrderInfoPageVO>[] => ([
     {
         title: 'id',
@@ -39,7 +37,6 @@ export const getOrderListColumn = ({
         valueType: "text",
         width: 100,
         editable: false
-
     },
     {
         title: "订单描述名称",
@@ -163,8 +160,9 @@ export const getOrderListColumn = ({
                     查看详情
                 </Typography.Link>
 
-                <Typography.Link onClick={() => {
-                    setEditableKeys([record.id]); // 只允许一个编辑
+                <Typography.Link onClick={() =>
+                {
+
                 }}>
                     编辑
                 </Typography.Link>

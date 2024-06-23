@@ -1,7 +1,7 @@
 import {getOrderCategoryVosUsingGet1} from "@/services/backend/orderCategoryController";
 import {addOrderInfoUsingPost1} from "@/services/backend/orderController";
 import {RcFile} from "antd/lib/upload";
-import {UploadType} from "@/constants/uploadType";
+import {UploadType} from "@/constants/UploadType";
 import {getLangTypeVoSUsingGet1} from "@/services/backend/languageTypeController";
 import {uploadFileUsingPost1} from "@/services/backend/fileController";
 
