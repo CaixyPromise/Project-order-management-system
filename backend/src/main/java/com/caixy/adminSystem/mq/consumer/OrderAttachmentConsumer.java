@@ -3,6 +3,7 @@ package com.caixy.adminSystem.mq.consumer;
 import com.caixy.adminSystem.constant.RabbitConstant;
 import com.caixy.adminSystem.model.dto.order.OrderFileUploadMqDTO;
 import com.caixy.adminSystem.model.enums.BackendMessageLevelEnum;
+import com.caixy.adminSystem.model.enums.RabbitMQQueueEnum;
 import com.caixy.adminSystem.mq.consumer.core.GenericRabbitMQConsumer;
 import com.caixy.adminSystem.service.MessageInfoService;
 import com.caixy.adminSystem.service.OrderInfoService;
@@ -45,29 +46,45 @@ public class OrderAttachmentConsumer extends GenericRabbitMQConsumer<OrderFileUp
 
         if (!hasUpload)
         {
-            orderInfoService.setOrderValid(orderId, false);
-            messageInfoService.sendSystemMessage(
-                    orderId,
-                    message.getUserId(),
-                    generateMessageTemplate(orderId, currentFileNums, count),
-                    BackendMessageLevelEnum.ERROR
-            );
             // 抛出异常表示处理失败
             log.info("订单-[{}]附件上传失败，当前上传{}个，期望上传{}个", orderId, currentFileNums, count);
+
+            Integer retryCount = getRetryCount(rawMessage);
+            // 只有第一次重试才会设置为false
+            if (retryCount.equals(0))
+            {
+                orderInfoService.setOrderValid(orderId, false);
+                messageInfoService.sendSystemMessage(
+                        "订单附件上传超时",
+                        orderId,
+                        message.getUserId(),
+                        generateMessageTemplate(orderId, currentFileNums, count),
+                        BackendMessageLevelEnum.ERROR);
+                // 拒绝消息，进入队列重新消费，重试5次
+                rejectAndRetryOrDiscard(channel, rawMessage, message, RabbitMQQueueEnum.ORDER_ATTACHMENT, 5);
+            }
+            else
+            {
+                // 重试5次后，进入死信队列
+                discardMessage(channel, rawMessage.getMessageProperties().getDeliveryTag());
+            }
         }
         else
         {
             // 确认消息
             confirmMessage(channel, rawMessage.getMessageProperties().getDeliveryTag());
             log.info("订单-[{}]附件上传成功", orderId);
+
         }
     }
 
     @Override
+    @RabbitListener(queues = RabbitConstant.ORDER_ATTACHMENT_DEAD_LETTER_NAME, ackMode = "MANUAL")
     public void handleDeadLetterMessage(OrderFileUploadMqDTO message, Channel channel, Message rawMessage) throws Exception
     {
         // 处理死信队列消息的逻辑
         System.out.println("处理死信队列消息：" + message);
+        discardMessage(channel, rawMessage.getMessageProperties().getDeliveryTag());
     }
 
     private String generateMessageTemplate(Long orderId, Long current, Integer expect)

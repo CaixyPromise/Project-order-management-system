@@ -1,5 +1,6 @@
 package com.caixy.adminSystem.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Configuration;
  * @since 2024-06-18 21:33
  **/
 @Configuration
+@Slf4j
 public class RabbitMQConfig
 {
     @Value("${spring.rabbitmq.host}")
@@ -71,12 +73,13 @@ public class RabbitMQConfig
 
         // 设置返回回调，用于处理消息没有路由到队列的情况
         rabbitTemplate.setReturnsCallback(returned -> {
-            System.out.println("Message returned: " + returned.getMessage());
-            System.out.println("Exchange: " + returned.getExchange());
-            System.out.println("RoutingKey: " + returned.getRoutingKey());
-            System.out.println("ReplyText: " + returned.getReplyText());
+            log.info("Message returned: {}", returned.getMessage());
+            log.info("Exchange: {}", returned.getExchange());
+            log.info("RoutingKey: {}", returned.getRoutingKey());
+            log.info("ReplyText: {}", returned.getReplyText());
         });
 
         return rabbitTemplate;
     }
+
 }
