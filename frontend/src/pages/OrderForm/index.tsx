@@ -21,11 +21,15 @@ import {fetchCategory, fetchLangType, postOrderInfo, uploadAttachment} from "@/p
 import {OptionArray, OptionProps} from "@/typings";
 import {history} from "@umijs/max";
 import {
-    customerContactTypeOptions, isAssignedOption,
-    isPaidOptions, orderSourceOptions,
+    customerContactTypeOptions,
+    isAssignedOption,
+    isPaidOptions,
+    orderSourceOptions,
     paymentMethodOptions,
     statusOptions
 } from "@/constants/OrderOptionConstants";
+import {queryOrderVO} from "@/pages/OrderList/server";
+import JsonUtils from "@/utils/JsonUtils";
 
 
 const Index: React.FC = () =>
@@ -38,7 +42,6 @@ const Index: React.FC = () =>
     type CategoryResponse = { [key: string]: API.OrderCategoryVO }
     type LangTypeResponse = { [key: string]: API.LanguageTypeVO }
 
-
     const [ categoryHandle, isCategoryLoading ] = useAsyncHandler<CategoryResponse>();
     const [ langTypeHandle, isLangTypeLoading ] = useAsyncHandler<LangTypeResponse>();
     const [ categoryOption, setCategoryOption ] = useState<OptionArray<string>>([]);
@@ -46,11 +49,12 @@ const Index: React.FC = () =>
     const [ orderTag, setOrderTag ] = useState<string[]>([ "1", "2" ]);
     const [ fileInfo, setFileInfo ] = useState<OrderFormType.FileInfo[]>([]);
     const [ submitHandler ] = useAsyncHandler<API.OrderInfoAddResponse>()
+    const [ fetchOrderInfoHandler, fetchOrderLoading ] = useAsyncHandler<API.OrderInfoVO>({})
 
     const fetchOption = async () =>
     {
         const categoryOption = await categoryHandle(fetchCategory, [], () => message.error("获取分类信息失败"))
-        const langTypeOption = await langTypeHandle(fetchLangType, [],() => message.error("获取语言类型失败"))
+        const langTypeOption = await langTypeHandle(fetchLangType, [], () => message.error("获取语言类型失败"))
         if (categoryOption && langTypeOption)
         {
             const tmpCategoryOption: OptionProps<string>[] = [];
@@ -72,10 +76,29 @@ const Index: React.FC = () =>
         }
     }
 
+    const fetchOrderInfo = async () =>
+    {
+        const response = await fetchOrderInfoHandler(queryOrderVO, [ id ], () => message.error("获取订单信息失败"))
+        if (response)
+        {
+            formRef.setFieldsValue({
+                ...response,
+                orderDesc: BraftEditor.createEditorState(response.orderDesc),
+                orderRemark: BraftEditor.createEditorState(response.orderRemark),
+                orderTag: JsonUtils.fromJson(response?.orderTags)
+            })
+        }
+    }
+
+
     useEffect(() =>
     {
         fetchOption();
-    }, []);
+        if (id !== undefined)
+        {
+            fetchOrderInfo()
+        }
+    }, [ id ]);
 
     const submitOrder = async (values: any) =>
     {
@@ -91,7 +114,7 @@ const Index: React.FC = () =>
             orderRemark: orderRemarkHtml // 使用转换后的 HTML 字符串
         };
         const response = await submitHandler(postOrderInfo,
-            [dataToSubmit],
+            [ dataToSubmit ],
             (error) => message.error(`提交异常: ${error}`)
         )
         // 如果提交成功，且需要上传附件
@@ -99,7 +122,8 @@ const Index: React.FC = () =>
         {
             await fileUploadRef?.current?.uploadFiles(response.tokenMap, uploadAttachment);
         }
-        else if (response !== null) {
+        else if (response !== null)
+        {
             message.success("提交成功")
             history.push("/orderList");
         }
@@ -138,7 +162,7 @@ const Index: React.FC = () =>
 
     return <>
         <PageContainer title={(id === undefined ? "添加" : "更新") + "订单信息"}
-                       loading={isCategoryLoading && isLangTypeLoading}>
+                       loading={isCategoryLoading && isLangTypeLoading && fetchOrderLoading}>
             <ProForm
                 form={formRef}
                 style={{
@@ -296,7 +320,7 @@ const Index: React.FC = () =>
                     </ProForm.Group>
 
                     <ProForm.Item label="订单附件">
-                        <UploadBox onFileUidChange={handleFileUidChange} ref={fileUploadRef} />
+                        <UploadBox onFileUidChange={handleFileUidChange} ref={fileUploadRef}/>
                     </ProForm.Item>
 
                     <ProForm.Item

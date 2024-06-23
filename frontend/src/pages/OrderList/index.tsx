@@ -79,7 +79,6 @@ const UserAdminPage: React.FC = () =>
                 search={{
                     labelWidth: 120,
                 }}
-                rowSelection={{}}
                 toolBarRender={() => [
                     <Button
                         type="primary"
