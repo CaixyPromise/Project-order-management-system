@@ -26,3 +26,10 @@ export const deleteOrder = async (id: string) =>
     const { code } = await deleteOrderInfoUsingPost1({ id });
     return code === 0
 }
+
+
+export const postUpdate = async (values: API.OrderInfoUpdateRequest) =>
+{
+    const { data } = await updateOrderInfoUsingPost1(values);
+    return data as boolean;
+}
