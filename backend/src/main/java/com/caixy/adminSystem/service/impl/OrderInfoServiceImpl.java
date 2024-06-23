@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Consumer;
@@ -406,7 +407,8 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         {
             return orderFileInfoService.removeOrderFileInfo(orderInfo);
         }
-        else {
+        else
+        {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "删除订单失败");
         }
     }
@@ -506,7 +508,9 @@ class OrderValidator
         validationMap.forEach((field, validator) -> {
             try
             {
-                Object value = OrderInfo.class.getDeclaredField(field).get(post);
+                Field declaredField = OrderInfo.class.getDeclaredField(field);
+                declaredField.setAccessible(true);
+                Object value = declaredField.get(post);
                 if (value != null)
                 {
                     validator.accept(post);
@@ -514,10 +518,11 @@ class OrderValidator
             }
             catch (NoSuchFieldException | IllegalAccessException e)
             {
-                throw new RuntimeException("Field access error", e);
+                throw new RuntimeException("Field access error: " + field, e);
             }
         });
     }
+
 
     // 示例的验证函数
     private void validateEmail(OrderInfo post)
