@@ -8,7 +8,6 @@ class OrderStatusEnum
     static readonly REFUNDED = new OrderStatusEnum(3, "已退款");
     static readonly CANCELED = new OrderStatusEnum(4, "已取消");
     static readonly FINISHED = new OrderStatusEnum(5, "已完成");
-    static readonly PART_SETTLED = new OrderStatusEnum(6, "部分结算");
 
     private constructor(private readonly code: number, private readonly text: string)
     {

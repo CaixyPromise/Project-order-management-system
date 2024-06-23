@@ -19,10 +19,6 @@ public enum OrderStatusEnum
     REFUNDED(3, "已退款"),
     CANCELED(4, "已取消"),
     FINISHED(5, "已完成"),
-    /**
-     * 部分结算
-     */
-    PART_SETTLED(6, "部分结算"),
 
     ;
     private final Integer code;
