@@ -25,6 +25,11 @@ class OrderStatusEnum
         })
     }
 
+    static getAllValues(): OrderStatusEnum[]
+    {
+        return OrderStatusEnum.allValues;
+    }
+
 
     static getEnumByValue(code: number | undefined): OrderStatusEnum | null
     {

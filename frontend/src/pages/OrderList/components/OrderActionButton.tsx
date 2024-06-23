@@ -1,59 +1,68 @@
 import React, {useState} from 'react';
-import {Button, Popover, Space, Typography} from 'antd';
+import {Button, DatePicker, message, Modal, Radio, Typography} from 'antd';
+import moment from 'moment';
+import useAsyncHandler from "@/hooks/useAsyncHandler";
+import {OrderStatusEnum} from "@/enums/OrderStatusEnum";
+import {postUpdate} from "@/pages/OrderList/server";
 
-const { Link } = Typography;
-
-const OrderActions: React.FC = () =>
+const OrderActions: React.FC<{ record: API.OrderInfoPageVO }> = ({ record }) =>
 {
-    const [ popoverVisible, setPopoverVisible ] = useState(false);
+    const [ modalVisible, setModalVisible ] = useState(false);
+    const [ selectedStatus, setSelectedStatus ] = useState<OrderStatusEnum | null>(null);
+    const [ completionDate, setCompletionDate ] = useState<moment.Moment | null>(moment());
+    const [ updateStatusHandler, loading ] = useAsyncHandler<boolean>();
 
-    const handleVisibleChange = (visible: boolean) =>
+    const handleUpdateStatus = async () =>
     {
-        setPopoverVisible(visible);
-    };
-
-    const handleEditOrderStatus = () =>
-    {
-        setPopoverVisible(false);
-        // todo: 添加修改订单状态的逻辑
-    };
-
-    const handleEditOrderInfo = () =>
-    {
-        setPopoverVisible(false);
-        // todo: 添加修改订单信息的逻辑
-    };
-
-    const handleAddOrderFile = () => {
-        setPopoverVisible(false);
-        // todo: 添加上传文件的逻辑
+        if (!selectedStatus)
+        {
+            message.error('请选择一个状态');
+            return;
+        }
+        if (selectedStatus === OrderStatusEnum.FINISHED && !completionDate)
+        {
+            message.error('请填写完成时间');
+            return;
+        }
+        await updateStatusHandler(postUpdate, {
+            id: record.id,
+            orderStatus: selectedStatus.getCode(),
+            completionDate: completionDate?.toISOString()
+        });
+        setModalVisible(false);
+        setSelectedStatus(null);
+        setCompletionDate(null);
     }
 
-
-    const popoverContent = (
-        <Space direction="horizontal">
-            <Button type="primary" size="small" onClick={handleEditOrderStatus}>
-                修改订单状态
-            </Button>
-            <Button type="default" size="small" onClick={handleEditOrderInfo}>
-                修改订单信息
-            </Button>
-            <Button type="default" size="small" onClick={handleAddOrderFile}>
-                新增订单文件
-            </Button>
-        </Space>
-    );
-
     return (
-        <Popover
-            content={popoverContent}
-            title="选择操作"
-            trigger="click"
-            open={popoverVisible}
-            onOpenChange={handleVisibleChange}
-        >
-            <Link>状态流转</Link>
-        </Popover>
+        <>
+            <Typography.Link onClick={() => setModalVisible(true)}>状态流转</Typography.Link>
+            <Modal
+                title="更新订单状态"
+                open={modalVisible}
+                onOk={handleUpdateStatus}
+                onCancel={() => setModalVisible(false)}
+                confirmLoading={loading}
+                okButtonProps={{ disabled: selectedStatus === OrderStatusEnum.FINISHED && !completionDate }}
+            >
+                <Radio.Group
+                    onChange={e => setSelectedStatus(OrderStatusEnum.getEnumByValue(e.target.value))}
+                    value={selectedStatus?.getCode()}
+                >
+                    {OrderStatusEnum.getAllValues().map((status) => (
+                        <Radio key={status.getCode()} value={status.getCode()}>{status.getText()}</Radio>
+                    ))}
+                </Radio.Group>
+                {selectedStatus === OrderStatusEnum.FINISHED && (
+                    <DatePicker
+                        style={{ marginTop: 16 }}
+                        value={completionDate}
+                        onChange={setCompletionDate}
+                        showTime
+                    />
+                )}
+            </Modal>
+        </>
     );
 };
 

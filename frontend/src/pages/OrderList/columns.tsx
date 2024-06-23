@@ -4,6 +4,7 @@ import React from "react";
 import {ColumnsParams} from "@/typings";
 import OrderActionButton from "@/pages/OrderList/components/OrderActionButton";
 import {OrderStatusEnum} from "@/enums/OrderStatusEnum";
+import {history} from "@@/exports";
 
 const BooleanTag = ({ text }: { text: boolean | undefined }) =>
 {
@@ -148,7 +149,7 @@ export const getOrderListColumn = ({
         width: 200,
         render: (_, record) => (
             <Space size="middle">
-                <OrderActionButton/>
+                <OrderActionButton record={record}/>
 
                 <Typography.Link
                     onClick={() =>
@@ -162,7 +163,7 @@ export const getOrderListColumn = ({
 
                 <Typography.Link onClick={() =>
                 {
-
+                    history.push(`/addOrder/${record.id}`)
                 }}>
                     编辑
                 </Typography.Link>
