@@ -1,7 +1,7 @@
 import type {ProColumns} from "@ant-design/pro-components";
 import {Space, Tag, Typography} from "antd";
 import React from "react";
-import {ColumnsParams, OptionArray} from "@/typings";
+import {ColumnsParams} from "@/typings";
 import OrderActionButton from "@/pages/OrderList/components/OrderActionButton";
 import {OrderStatusEnum} from "@/enums/OrderStatusEnum";
 

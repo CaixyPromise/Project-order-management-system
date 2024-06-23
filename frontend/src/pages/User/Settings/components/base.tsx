@@ -1,5 +1,5 @@
 import {ProForm, ProFormText,} from '@ant-design/pro-components';
-import {Button, Image, message, Upload} from 'antd';
+import {Button, Image, message, Spin, Upload} from 'antd';
 import React, {useEffect} from 'react';
 import useStyles from './index.style';
 import {updateMyUserUsingPost1} from "@/services/backend/userController";
@@ -51,12 +51,15 @@ const BaseView: React.FC = () =>
             </div>
             <Upload showUploadList={false} accept={'.png,.jpg,.jpeg'}
                     action={uploadFile}
+                    disabled={uploading}
             >
                 <div className={styles.button_view}>
-                    <Button>
-                        <UploadOutlined/>
-                        更换头像
-                    </Button>
+                    <Spin spinning={uploading}>
+                        <Button>
+                            <UploadOutlined/>
+                            更换头像
+                        </Button>
+                    </Spin>
                 </div>
             </Upload>
         </>
@@ -66,7 +69,7 @@ const BaseView: React.FC = () =>
     {
         try
         {
-            const { data, code } = await updateMyUserUsingPost1(values as API.AboutMeVO)
+            const { code } = await updateMyUserUsingPost1(values as API.AboutMeVO)
             if (code === 0)
             {
                 // setUserData(values)

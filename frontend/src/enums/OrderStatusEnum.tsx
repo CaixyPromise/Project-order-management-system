@@ -1,4 +1,4 @@
-import {OptionArray, OptionProps} from "@/typings";
+import {OptionArray} from "@/typings";
 
 class OrderStatusEnum
 {
