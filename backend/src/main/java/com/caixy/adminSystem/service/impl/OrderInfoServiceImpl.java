@@ -494,6 +494,7 @@ class OrderValidator
         map.put("amountPaid", this::validateAmountPaid);
         map.put("orderLangId", this::validateOrderLangId);
         map.put("orderCategoryId", this::validateOrderCategoryId);
+        map.put("orderCompletionTime", this::validateOrderCompletionTime);
         return map;
     }
 
@@ -674,6 +675,16 @@ class OrderValidator
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "订单分类不合法");
         }
     }
+
+    private void validateOrderCompletionTime(OrderInfo post)
+    {
+        Date completionTime = post.getOrderCompletionTime();
+        if (Objects.equals(post.getOrderStatus(), OrderStatusEnum.FINISHED.getCode()) && completionTime == null || completionTime.before(new Date()))
+        {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "订单完成时间不合法");
+        }
+    }
+
 
     private static boolean integerToBool(Integer value)
     {
