@@ -7,7 +7,7 @@ export async function addOrderInfoUsingPost1(
   body: API.OrderInfoAddRequest,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOrderInfoAddResponse_>('/api/order/add', {
+  return request<API.BaseResponseOrderInfoUploadResponse_>('/api/order/add', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -82,7 +82,7 @@ export async function updateOrderInfoUsingPost1(
   body: API.OrderInfoUpdateRequest,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseBoolean_>('/api/order/update', {
+  return request<API.BaseResponseOrderInfoUploadResponse_>('/api/order/update', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

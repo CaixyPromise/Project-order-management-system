@@ -81,9 +81,9 @@ declare namespace API {
     message?: string;
   };
 
-  type BaseResponseOrderInfoAddResponse_ = {
+  type BaseResponseOrderInfoUploadResponse_ = {
     code?: number;
-    data?: OrderInfoAddResponse;
+    data?: OrderInfoUploadResponse;
     message?: string;
   };
 
@@ -328,11 +328,6 @@ declare namespace API {
     paymentMethod?: number;
   };
 
-  type OrderInfoAddResponse = {
-    isFinish?: boolean;
-    tokenMap?: Record<string, any>;
-  };
-
   type OrderInfoPageVO = {
     amount?: number;
     amountPaid?: number;
@@ -371,7 +366,7 @@ declare namespace API {
   type OrderInfoUpdateRequest = {
     amount?: number;
     amountPaid?: number;
-    creatorId?: number;
+    attachmentList?: UploadFileInfoDTO[];
     customerContact?: string;
     customerContactType?: number;
     customerEmail?: string;
@@ -381,16 +376,24 @@ declare namespace API {
     orderAssignToWxId?: string;
     orderCategoryId?: number;
     orderCommissionRate?: number;
+    orderCompletionTime?: string;
     orderDeadline?: string;
     orderDesc?: string;
+    orderEndDate?: string;
     orderId?: string;
     orderLangId?: number;
     orderRemark?: string;
     orderSource?: number;
+    orderStartDate?: string;
     orderStatus?: number;
-    orderTags?: string;
+    orderTag?: string[];
     orderTitle?: string;
     paymentMethod?: number;
+  };
+
+  type OrderInfoUploadResponse = {
+    isFinish?: boolean;
+    tokenMap?: Record<string, any>;
   };
 
   type OrderInfoVO = {
