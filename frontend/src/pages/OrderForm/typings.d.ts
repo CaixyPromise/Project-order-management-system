@@ -1,7 +1,9 @@
+import {OptionArray} from "@/typings";
+
 declare namespace OrderFormServer
 {
-    type CategoryResponse = { [key: string]: API.OrderCategoryVO }
-    type LangTypeResponse = { [key: string]: API.LanguageTypeVO }
+    type CategoryResponse = OptionArray<string>
+    type LangTypeResponse = OptionArray<string>
 }
 
 

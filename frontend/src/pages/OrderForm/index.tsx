@@ -18,7 +18,7 @@ import useAsyncHandler from "@/hooks/useAsyncHandler";
 import EditableTags from "@/pages/OrderForm/components/EditableTags";
 import useStyles from "@/pages/OrderForm/style.style";
 import {fetchCategory, fetchLangType, postOrderInfo, uploadAttachment} from "@/pages/OrderForm/server";
-import {OptionArray, OptionProps} from "@/typings";
+import {OptionArray} from "@/typings";
 import {history} from "@umijs/max";
 import {
     customerContactTypeOptions,
@@ -30,6 +30,7 @@ import {
 } from "@/constants/OrderOptionConstants";
 import {queryOrderVO} from "@/pages/OrderList/server";
 import JsonUtils from "@/utils/JsonUtils";
+import {OrderFormServer, OrderFormType} from "@/pages/OrderForm/typings";
 
 
 const Index: React.FC = () =>
@@ -37,19 +38,18 @@ const Index: React.FC = () =>
     const { styles } = useStyles();
     // @ts-ignore
     const { id }: { id: string | undefined } = useParams<{ id?: string }>();
+    const isUpdate: boolean = id !== undefined;
     const [ formRef ] = useForm();
     const fileUploadRef = useRef<UploadBoxHandle>(null);
-    type CategoryResponse = { [key: string]: API.OrderCategoryVO }
-    type LangTypeResponse = { [key: string]: API.LanguageTypeVO }
 
-    const [ categoryHandle, isCategoryLoading ] = useAsyncHandler<CategoryResponse>();
-    const [ langTypeHandle, isLangTypeLoading ] = useAsyncHandler<LangTypeResponse>();
+    const [ categoryHandle, isCategoryLoading ] = useAsyncHandler<OrderFormServer.CategoryResponse>();
+    const [ langTypeHandle, isLangTypeLoading ] = useAsyncHandler<OrderFormServer.LangTypeResponse>();
     const [ categoryOption, setCategoryOption ] = useState<OptionArray<string>>([]);
     const [ langTypeOption, setLangTypeOption ] = useState<OptionArray<string>>([]);
     const [ orderTag, setOrderTag ] = useState<string[]>([ "1", "2" ]);
     const [ fileInfo, setFileInfo ] = useState<OrderFormType.FileInfo[]>([]);
-    const [ submitHandler ] = useAsyncHandler<API.OrderInfoAddResponse>()
-    const [ fetchOrderInfoHandler, fetchOrderLoading ] = useAsyncHandler<API.OrderInfoVO>({})
+    const [ submitHandler ] = useAsyncHandler<API.OrderInfoUploadResponse>()
+    const [ fetchOrderInfoHandler, fetchOrderLoading ] = useAsyncHandler<API.OrderInfoVO>()
 
     const fetchOption = async () =>
     {
@@ -57,18 +57,9 @@ const Index: React.FC = () =>
         const langTypeOption = await langTypeHandle(fetchLangType, [], () => message.error("获取语言类型失败"))
         if (categoryOption && langTypeOption)
         {
-            const tmpCategoryOption: OptionProps<string>[] = [];
-            Object.entries(categoryOption).forEach(([ key, value ]) =>
-            {
-                tmpCategoryOption.push({ value: key, label: value.categoryName } as OptionProps<string>)
-            })
-            const tmpLangTypeOption: OptionProps<string>[] = [];
-            Object.entries(langTypeOption).forEach(([ key, value ]) =>
-            {
-                tmpLangTypeOption.push({ value: key, label: value.languageName } as OptionProps<string>)
-            })
-            setCategoryOption(tmpCategoryOption);
-            setLangTypeOption(tmpLangTypeOption);
+            console.log(categoryOption, langTypeOption)
+            setCategoryOption(categoryOption);
+            setLangTypeOption(langTypeOption);
         }
         else
         {
@@ -78,7 +69,7 @@ const Index: React.FC = () =>
 
     const fetchOrderInfo = async () =>
     {
-        const response = await fetchOrderInfoHandler(queryOrderVO, [ id ], () => message.error("获取订单信息失败"))
+        const response = await fetchOrderInfoHandler(queryOrderVO, [ id ], () => message.error("获取订单信息失败，返回订单列表"))
         if (response)
         {
             formRef.setFieldsValue({
@@ -88,13 +79,16 @@ const Index: React.FC = () =>
                 orderTag: JsonUtils.fromJson(response?.orderTags)
             })
         }
+        else {
+            history.push("/orderList")
+        }
     }
 
 
     useEffect(() =>
     {
         fetchOption();
-        if (id !== undefined)
+        if (isUpdate)
         {
             fetchOrderInfo()
         }
@@ -103,18 +97,20 @@ const Index: React.FC = () =>
     const submitOrder = async (values: any) =>
     {
         // 将 BraftEditor 的内容转换为 HTML 字符串
-        const orderDescHtml = values.orderDesc ? values.orderDesc.toHTML() : '';
-        const orderRemarkHtml = values.orderRemark ? values.orderRemark.toHTML() : '';
+        const orderDescHtml = values.orderDesc ? values.orderDesc?.toHTML() : '';
+        const orderRemarkHtml = values.orderRemark ? values.orderRemark?.toHTML() : '';
         // 构造提交的数据
-        const dataToSubmit: API.OrderInfoAddRequest = {
+        const dataToSubmit: API.OrderInfoAddRequest | API.OrderInfoUpdateRequest = {
             ...values,
             orderTag,
             attachmentList: fileInfo, // 包含文件 UID
             orderDesc: orderDescHtml, // 使用转换后的 HTML 字符串
-            orderRemark: orderRemarkHtml // 使用转换后的 HTML 字符串
+            orderRemark: orderRemarkHtml, // 使用转换后的 HTML 字符串
+            id: id
         };
+
         const response = await submitHandler(postOrderInfo,
-            [ dataToSubmit ],
+            [ dataToSubmit, isUpdate ],
             (error) => message.error(`提交异常: ${error}`)
         )
         // 如果提交成功，且需要上传附件
@@ -327,7 +323,7 @@ const Index: React.FC = () =>
                         required
                         name="orderDesc"
                         label="订单描述"
-                        getValueFromEvent={(value: EditorState) => value?.toHTML()}
+                        getValueFromEvent={(editorState: EditorState) => editorState}
                         // initialValue={BraftEditor.createEditorState(null)}
                     >
                         <BraftEditor
@@ -341,7 +337,7 @@ const Index: React.FC = () =>
                         required
                         name="orderRemark"
                         label="订单备注"
-                        getValueFromEvent={(value: EditorState) => value?.toHTML()}
+                        getValueFromEvent={(editorState: EditorState) => editorState}
                         // initialValue={BraftEditor.createEditorState(null)}
                     >
                         <BraftEditor
