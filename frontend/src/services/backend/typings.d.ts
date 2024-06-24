@@ -45,6 +45,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseListEventVOOrderInfoVO_ = {
+    code?: number;
+    data?: EventVOOrderInfoVO_[];
+    message?: string;
+  };
+
   type BaseResponseListOptionVOLong_ = {
     code?: number;
     data?: OptionVOLong_[];
@@ -174,6 +180,13 @@ declare namespace API {
     id?: number;
   };
 
+  type EventVOOrderInfoVO_ = {
+    content?: OrderInfoVO;
+    date?: string;
+    id?: number;
+    level?: string;
+  };
+
   type getLanguageTypeVOByIdUsingGET1Params = {
     /** id */
     id?: number;
@@ -182,6 +195,13 @@ declare namespace API {
   type getOrderCategoryVOByIdUsingGET1Params = {
     /** id */
     id?: number;
+  };
+
+  type getOrderEventListUsingGET1Params = {
+    /** startMonth */
+    startMonth?: number;
+    /** startYear */
+    startYear?: number;
   };
 
   type getOrderInfoVOByIdUsingGET1Params = {

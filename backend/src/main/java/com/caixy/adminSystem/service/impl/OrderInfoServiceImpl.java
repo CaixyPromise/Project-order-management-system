@@ -18,6 +18,7 @@ import com.caixy.adminSystem.model.dto.order.OrderInfoQueryRequest;
 import com.caixy.adminSystem.model.entity.*;
 import com.caixy.adminSystem.model.enums.*;
 import com.caixy.adminSystem.model.vo.file.OrderFileVO;
+import com.caixy.adminSystem.model.vo.order.EventVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
 import com.caixy.adminSystem.service.*;
@@ -26,6 +27,7 @@ import com.caixy.adminSystem.utils.RegexUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,10 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -66,10 +72,13 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 
     @Resource
     private UserService userService;
+
     @Resource
     private RedisUtils redisUtils;
+
     @Resource
     private OrderFileInfoService orderFileInfoService;
+
 
     private OrderValidator orderValidator;
 
@@ -91,94 +100,6 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         {
             orderValidator.validateNonNullFields(post);
         }
-//        // 1. 检查邮箱
-//        String email = post.getCustomerEmail();
-//        // 如果邮箱非空，校验邮箱
-//        if (email != null && !RegexUtils.isEmail(email))
-//        {
-//            throw new IllegalArgumentException("邮箱格式错误");
-//        }
-//        // 2. 校验枚举类型
-//        // 2.1 订单状态
-//        OrderStatusEnum orderStatusEnum = OrderStatusEnum.getByCode(post.getOrderStatus());
-//        ThrowUtils.throwIf(orderStatusEnum == null, ErrorCode.PARAMS_ERROR, "订单状态不正确");
-//        // 2.2 订单来源
-//        OrderSourceEnum orderSourceEnum = OrderSourceEnum.getByCode(post.getOrderSource());
-//        ThrowUtils.throwIf(orderSourceEnum == null, ErrorCode.PARAMS_ERROR, "订单来源不正确");
-//        // 2.3 支付方式
-//        PaymentMethodEnum paymentMethodEnum = PaymentMethodEnum.getByCode(post.getPaymentMethod());
-//        ThrowUtils.throwIf(paymentMethodEnum == null, ErrorCode.PARAMS_ERROR, "支付方式不正确");
-//        // 2.4 联系方式
-//        ContactTypeEnum contactTypeEnum = ContactTypeEnum.getEnumByValue(post.getCustomerContactType());
-//        ThrowUtils.throwIf(contactTypeEnum == null, ErrorCode.PARAMS_ERROR, "联系方式不正确");
-//        if (contactTypeEnum == ContactTypeEnum.EMAIL)
-//        {
-//            ThrowUtils.throwIf(!RegexUtils.isEmail(post.getCustomerContact()), ErrorCode.PARAMS_ERROR, "邮箱格式错误");
-//        }
-//        else if (contactTypeEnum == ContactTypeEnum.PHONE)
-//        {
-//            ThrowUtils.throwIf(!RegexUtils.isMobilePhone(post.getCustomerContact()), ErrorCode.PARAMS_ERROR, "手机号格式错误");
-//        }
-//        // 检查boolean类型
-//        Integer isAssigned = post.getIsAssigned();
-//        ThrowUtils.throwIf(!integerToBool(isAssigned), ErrorCode.PARAMS_ERROR);
-//        ThrowUtils.throwIf(!integerToBool(post.getIsPaid()), ErrorCode.PARAMS_ERROR);
-//        // 检查比例，如果是分配的需要进行校验比例
-//        if (isAssigned == 1)
-//        {
-//            Integer commissionRate = post.getOrderCommissionRate();
-//            ThrowUtils.throwIf(commissionRate == null || commissionRate < 0 || commissionRate > 100, ErrorCode.PARAMS_ERROR, "佣金比例不正确");
-//        }
-//
-//        // 校验描述
-//        String description = post.getOrderDesc();
-//        if (description != null && description.length() > MAX_DESC_SIZE)
-//        {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "订单描述过长，不得超过: " + MAX_DESC_SIZE + "个字符");
-//        }
-//        // 校验备注
-//        String remark = post.getOrderRemark();
-//        if (remark != null && remark.length() > MAX_DESC_SIZE)
-//        {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "订单备注过长，不得超过: " + MAX_DESC_SIZE + "个字符");
-//        }
-//        // 校验标题
-//        String title = post.getOrderTitle();
-//        if (title != null && title.length() > MAX_TITLE_SIZE)
-//        {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "订单标题过长，不得超过: " + MAX_TITLE_SIZE + "个字符");
-//        }
-//        // 校验时间
-//        // 截止时间
-//        Date deadlineTime = post.getOrderDeadline();
-//        ThrowUtils.throwIf(deadlineTime == null || deadlineTime.before(new Date()),
-//                ErrorCode.PARAMS_ERROR, "订单截止时间不能早于当前时间");
-//        // 校验价格
-//        BigDecimal amount = post.getAmount();
-//        if (amount.compareTo(BigDecimal.ZERO) < 0)
-//        {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "订单金额必须大于0");
-//        }
-//        // 校验已支付金额
-//        BigDecimal paidAmount = post.getAmountPaid();
-//        if (paidAmount.compareTo(BigDecimal.ZERO) < 0)
-//        {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "订单已支付金额必须大于0");
-//        }
-//        // 校验语言是否合法
-//        Long orderLang = post.getOrderLangId();
-//        Boolean isExistById = languageTypeService.checkLangIsExistById(orderLang);
-//        if (!isExistById)
-//        {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "订单语言不合法");
-//        }
-//        // 校验分类是否合法
-//        Long orderCategory = post.getOrderCategoryId();
-//        Boolean isExistByCategoryId = orderCategoryService.checkOrderCategoryExistById(orderCategory);
-//        if (!isExistByCategoryId)
-//        {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "订单分类不合法");
-//        }
     }
 
     @Override
@@ -336,6 +257,44 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         queryWrapper.eq("orderId", orderId);
         return orderFileInfoService.count(queryWrapper);
     }
+    @Cacheable(value = "events", key = "#userId + ':' + #year + ':' + #month")
+    @Override
+    public List<EventVO<OrderInfoVO>> getEvents(Integer year, Integer month, Long userId)
+    {
+        LocalDate startOfMonth = LocalDate.of(year, month, 1);
+        LocalDate endOfMonth = startOfMonth.with(TemporalAdjusters.lastDayOfMonth());
+
+        // 将 LocalDate 转换为 Date
+        Date startDate = Date.from(startOfMonth.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(endOfMonth.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
+
+        QueryWrapper<OrderInfo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.between("orderDeadline", startDate, endDate);
+        queryWrapper.eq("creatorId", userId);
+        List<OrderInfo> orderInfoList = this.list(queryWrapper);
+
+        return orderInfoList.isEmpty() ? Collections.emptyList() :
+               orderInfoList.stream()
+                       .map(this::convertEventOrderInfo)
+                       .collect(Collectors.toList());
+    }
+
+    public EventVO<OrderInfoVO> convertEventOrderInfo(OrderInfo item)
+    {
+        EventVO<OrderInfoVO> eventVO = new EventVO<>();
+        OrderInfoVO orderInfoVO = new OrderInfoVO();
+        BeanUtils.copyProperties(item, orderInfoVO);
+
+        LocalDate today = LocalDate.now();
+        LocalDate deadline = item.getOrderDeadline().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        long daysUntilDeadline = today.until(deadline, ChronoUnit.DAYS);
+
+        eventVO.setId(item.getId());
+        eventVO.setContent(orderInfoVO);
+        eventVO.setDate(Date.from(deadline.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        eventVO.setLevel(UrgencyLevelEnum.getUrgency(daysUntilDeadline).getLevel());
+        return eventVO;
+    }
 
     public Map<String, Object> getTokenPayload(String token)
     {
@@ -424,19 +383,19 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
             throw new FileUploadActionException(ErrorCode.PARAMS_ERROR, "Token 不存在");
         }
         String uploadFileSha256 = uploadFileConfig.getSha256();
+
         Map<String, Object> payload = getTokenPayload(token);
         String orderId = payload.get("orderId").toString();
         String uuid = payload.get("uuid").toString();
         Map<Object, Object> cacheData = redisUtils.getHashMap(RedisConstant.UPLOAD_FILE_KEY, orderId, uuid);
+        // 如果缓存里没有token信息
         if (cacheData == null || cacheData.isEmpty())
         {
             removeById(Long.parseLong(orderId));
-            throw new FileUploadActionException(ErrorCode.PARAMS_ERROR, "文件上传超时");
+            throw new FileUploadActionException(ErrorCode.PARAMS_ERROR, "文件上传超时或校验失败");
         }
         String cacheFileSha256 = cacheData.get("fileSha256").toString().replaceAll("\"", "");
         String cacheUuid = cacheData.get("uuid").toString().replaceAll("\"", "");
-        log.info("payload: {}", payload);
-        log.info("cacheData: {}", cacheData);
         if (!cacheFileSha256.equals(uploadFileSha256) ||
                 !uuid.equals(cacheUuid))
         {
@@ -456,6 +415,9 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         orderInfo.setIsValid(validCode ? 1 : 0);
         this.updateById(orderInfo);
     }
+
+
+
 }
 
 class OrderValidator

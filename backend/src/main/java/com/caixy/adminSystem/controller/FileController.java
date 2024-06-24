@@ -95,7 +95,6 @@ public class FileController
         catch (FileUploadActionException | IOException e)
         {
             log.error("{}: 文件上传失败，错误信息: {}", saveFileMethod.getDesc(), e.getMessage());
-
             // 如果 savePath 不为空，则意味着文件已经上传成功，需要删除它
             if (savePath != null)
             {

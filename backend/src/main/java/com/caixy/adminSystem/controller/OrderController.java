@@ -15,6 +15,7 @@ import com.caixy.adminSystem.model.dto.order.*;
 import com.caixy.adminSystem.model.entity.OrderInfo;
 import com.caixy.adminSystem.model.entity.User;
 import com.caixy.adminSystem.model.enums.RabbitMQQueueEnum;
+import com.caixy.adminSystem.model.vo.order.EventVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
 import com.caixy.adminSystem.mq.producer.OrderAttachmentProducer;
@@ -28,6 +29,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -225,6 +229,27 @@ public class OrderController
         return ResultUtils.success(orderInfoService.getOrderInfoVOPage(postPage, request));
     }
 
+    @GetMapping("/getEvent")
+    public BaseResponse<List<EventVO<OrderInfoVO>>> getOrderEventList(
+            @RequestParam(value = "startYear", required = false) Integer year,
+            @RequestParam(value = "startMonth", required = false) Integer month,
+            HttpServletRequest request
+    )
+    {
+        if (year != null && month != null)
+        {
+            ThrowUtils.throwIf(year < 2000 || year > 2099 || month < 1 || month > 12, ErrorCode.PARAMS_ERROR, "时间错误");
+        }
+        else
+        {
+            LocalDate now = LocalDate.now();
+            year = now.getYear();
+            month = now.getMonthValue();
+        }
+        User loginUser = userService.getLoginUser(request);
+
+        return ResultUtils.success(orderInfoService.getEvents(year, month, loginUser.getId()));
+    }
 
     private void validTags(List<String> tags)
     {
@@ -268,5 +293,4 @@ public class OrderController
         }
         return orderInfoUploadResponse;
     }
-
 }

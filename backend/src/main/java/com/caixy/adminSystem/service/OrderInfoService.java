@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import com.caixy.adminSystem.model.dto.order.OrderInfoQueryRequest;
 import com.caixy.adminSystem.model.entity.OrderInfo;
+import com.caixy.adminSystem.model.vo.order.EventVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,8 +70,11 @@ public interface OrderInfoService extends IService<OrderInfo>
 
     Long countUploadOrderAttachment(Long orderId);
 
+    List<EventVO<OrderInfoVO>> getEvents(Integer year, Integer month, Long userId);
+
     @Transactional(rollbackFor = Exception.class)
     Boolean deleteOrderInfo(OrderInfo orderInfo);
 
     void setOrderValid(Long orderId, boolean validCode);
+
 }

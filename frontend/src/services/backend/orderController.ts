@@ -47,6 +47,21 @@ export async function getOrderInfoVoByIdUsingGet1(
   });
 }
 
+/** getOrderEventList GET /api/order/getEvent */
+export async function getOrderEventListUsingGet1(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getOrderEventListUsingGET1Params,
+  options?: { [key: string]: any },
+) {
+  return request<API.BaseResponseListEventVOOrderInfoVO_>('/api/order/getEvent', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 /** listOrderInfoVOByPage POST /api/order/list/page/vo */
 export async function listOrderInfoVoByPageUsingPost1(
   body: API.OrderInfoQueryRequest,
