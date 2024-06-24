@@ -3,7 +3,6 @@ package com.caixy.adminSystem.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Component;
 
@@ -18,11 +17,11 @@ import org.springframework.stereotype.Component;
 public class RedisSerializerConfig
 {
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory)
+    {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
-
         // 使用自定义的 GsonRedisSerializer
         GsonRedisSerializer<Object> serializer = new GsonRedisSerializer<>(Object.class);
         template.setValueSerializer(serializer);

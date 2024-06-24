@@ -1,9 +1,12 @@
 package com.caixy.adminSystem.config;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.SerializationException;
 
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -16,32 +19,31 @@ import java.nio.charset.StandardCharsets;
 public class GsonRedisSerializer<T> implements RedisSerializer<T>
 {
     private final Gson gson;
-    private final Class<T> type;
+    private final Type type;
 
-    public GsonRedisSerializer(Class<T> type)
+    public GsonRedisSerializer(Type type)
     {
-        this.gson = new Gson();
         this.type = type;
+        this.gson = new GsonBuilder()
+                .registerTypeAdapter(Long.class, (JsonSerializer<Long>) (src, typeOfSrc, context) -> new JsonPrimitive(src.toString()))
+                .registerTypeAdapter(Long.TYPE, (JsonSerializer<Long>) (src, typeOfSrc, context) -> new JsonPrimitive(src.toString()))
+                .create();
     }
 
     @Override
-    public byte[] serialize(T t) throws SerializationException
+    public byte[] serialize(T t)
     {
-        if (t == null)
-        {
-            return new byte[0];
-        }
         return gson.toJson(t).getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
-    public T deserialize(byte[] bytes) throws SerializationException
+    public T deserialize(byte[] bytes)
     {
         if (bytes == null || bytes.length == 0)
         {
             return null;
         }
-        String json = new String(bytes, StandardCharsets.UTF_8);
-        return gson.fromJson(json, type);
+        return gson.fromJson(new String(bytes, StandardCharsets.UTF_8), type);
     }
 }
+

@@ -1,5 +1,7 @@
 package com.caixy.adminSystem.model.common;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -26,4 +28,10 @@ public class OptionVO<T> implements Serializable
     private String label;
 
     private static final long serialVersionUID = 1L;
+
+    @JsonSerialize(using = ToStringSerializer.class)
+    public T getValue()
+    {
+        return value;
+    }
 }

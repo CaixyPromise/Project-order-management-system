@@ -17,6 +17,7 @@ import com.caixy.adminSystem.model.enums.RedisConstant;
 import com.caixy.adminSystem.model.vo.lang.LanguageTypeVO;
 import com.caixy.adminSystem.service.LanguageTypeService;
 import com.caixy.adminSystem.service.UserService;
+import com.caixy.adminSystem.utils.JsonUtils;
 import com.caixy.adminSystem.utils.RedisUtils;
 import com.caixy.adminSystem.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -210,7 +211,7 @@ public class LanguageTypeServiceImpl extends ServiceImpl<LanguageTypeMapper, Lan
     {
         List<OptionVO<Long>> optionVOList =
                 languageTypeList.stream().map(item -> new OptionVO<>(item.getId(), item.getLanguageName())).collect(Collectors.toList());
-        redisUtils.setString(RedisConstant.LANGUAGE_TYPE, JSONUtil.toJsonStr(optionVOList), "type");
+        redisUtils.setString(RedisConstant.LANGUAGE_TYPE, JsonUtils.toJsonString(optionVOList), "type");
         return optionVOList;
     }
 
@@ -220,6 +221,7 @@ public class LanguageTypeServiceImpl extends ServiceImpl<LanguageTypeMapper, Lan
         List<OptionVO<Long>> getCache = redisUtils.getJson(RedisConstant.LANGUAGE_TYPE, "type");
         if (getCache != null)
         {
+            log.info("cache hit: {}", getCache);
             return getCache;
         }
         else

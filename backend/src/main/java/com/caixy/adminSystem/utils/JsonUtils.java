@@ -2,11 +2,9 @@ package com.caixy.adminSystem.utils;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import org.apache.poi.ss.formula.functions.T;
 
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +16,7 @@ import java.util.Map;
  * @author: CAIXYPROMISE
  * @since: 2023-12-29 19:49
  **/
+
 /**
  * Json操作类
  *
@@ -33,7 +32,7 @@ public class JsonUtils
             .serializeNulls().create();
 
 
-    public static <T> T byteArrayToJson(byte [] bytes, Charset charsets, Class<T> objectType)
+    public static <T> T byteArrayToJson(byte[] bytes, Charset charsets, Class<T> objectType)
     {
         return gson.fromJson(new String(bytes, charsets), objectType);
     }
@@ -83,14 +82,17 @@ public class JsonUtils
     /**
      * 将 JSON 字符串转换为对象列表
      *
-     * @param json    JSON 字符串
-     * @param <T>     对象类型
+     * @param json JSON 字符串
+     * @param <T>  对象类型
      * @return 对象列表
      */
     public static <T> List<T> jsonToList(String json)
     {
-        return jsonToObject(json, new TypeToken<List<T>>(){}.getType());
+        return jsonToObject(json, new TypeToken<List<T>>()
+        {
+        }.getType());
     }
+
 
     /**
      * Json转对象
@@ -111,9 +113,9 @@ public class JsonUtils
 
     /**
      * 尝试修复非Json格式的字符串成Json对象并返回String
+     *
      * @param incorrectJson 非json格式的字符串
      * @return Json对象字符串
-     *
      * @author CAIXYPROMISE
      * @version 1.0
      * @since 2024/4/26 下午6:55
@@ -121,9 +123,12 @@ public class JsonUtils
     public static String fixedJson(String incorrectJson)
     {
         JsonObject jsonObject = null;
-        try {
+        try
+        {
             jsonObject = gson.fromJson(incorrectJson, JsonObject.class);
-        } catch (JsonSyntaxException e) {
+        }
+        catch (JsonSyntaxException e)
+        {
             System.out.println("Error: " + e.getMessage());
         }
         return gson.toJson(jsonObject);

@@ -17,6 +17,7 @@ import com.caixy.adminSystem.model.enums.RedisConstant;
 import com.caixy.adminSystem.model.vo.category.OrderCategoryVO;
 import com.caixy.adminSystem.service.OrderCategoryService;
 import com.caixy.adminSystem.service.UserService;
+import com.caixy.adminSystem.utils.JsonUtils;
 import com.caixy.adminSystem.utils.RedisUtils;
 import com.caixy.adminSystem.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -235,7 +236,7 @@ public class OrderCategoryServiceImpl extends ServiceImpl<OrderCategoryMapper, O
     {
         List<OptionVO<Long>> optionVOList =
                 orderCategoryList.stream().map(item -> new OptionVO<>(item.getId(), item.getCategoryName())).collect(Collectors.toList());
-        redisUtils.setString(RedisConstant.ORDER_CATEGORY, JSON.toJSONString(optionVOList), "category");
+        redisUtils.setString(RedisConstant.ORDER_CATEGORY, JsonUtils.toJsonString(optionVOList), "category");
         return optionVOList;
     }
 
@@ -245,6 +246,7 @@ public class OrderCategoryServiceImpl extends ServiceImpl<OrderCategoryMapper, O
         List<OptionVO<Long>> getCache = redisUtils.getJson(RedisConstant.ORDER_CATEGORY, "category");
         if (getCache != null)
         {
+            log.info("cache hit: {}", getCache);
             return getCache;
         }
         else

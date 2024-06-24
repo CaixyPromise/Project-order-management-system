@@ -153,7 +153,7 @@ public class RedisUtils
         if (StringUtils.isNotBlank(cacheData))
         {
             // 把字符串转义全部清楚掉
-            return JsonUtils.jsonToList(cacheData.replaceAll("^\"|\"$", ""));
+            return JsonUtils.jsonToList(cacheData);
         }
         // 直接返回空指针，不返回空列表
         return null;
