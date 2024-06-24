@@ -20,7 +20,6 @@ import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
 import com.caixy.adminSystem.mq.producer.OrderAttachmentProducer;
 import com.caixy.adminSystem.service.OrderInfoService;
 import com.caixy.adminSystem.service.UserService;
-import com.caixy.adminSystem.utils.RabbitMQUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -64,8 +63,8 @@ public class OrderController
      */
     @PostMapping("/add")
     @Transactional(rollbackFor = Exception.class)
-    public BaseResponse<OrderInfoAddResponse> addOrderInfo(@RequestBody OrderInfoAddRequest postAddRequest,
-                                                           HttpServletRequest request)
+    public BaseResponse<OrderInfoUploadResponse> addOrderInfo(@RequestBody OrderInfoAddRequest postAddRequest,
+                                                              HttpServletRequest request)
     {
         if (postAddRequest == null)
         {
@@ -85,31 +84,13 @@ public class OrderController
         log.info("验证成功: {}", post);
         User loginUser = userService.getLoginUser(request);
         post.setCreatorId(loginUser.getId());
+        // 检查是否有附件
         List<UploadFileInfoDTO> attachmentList = postAddRequest.getAttachmentList();
         boolean hasAttachment = !attachmentList.isEmpty();
         post.setOrderAttachmentNum(attachmentList.size());
         boolean result = orderInfoService.save(post);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        long newOrderInfoId = post.getId();
-        OrderInfoAddResponse orderInfoAddResponse = new OrderInfoAddResponse();
-        if (hasAttachment)
-        {
-            orderInfoAddResponse.setIsFinish(false);
-            orderInfoAddResponse.setTokenMap(orderInfoService.generateFileUploadToken(attachmentList, newOrderInfoId));
-            // 发送检查文件是否上传完成与数量齐全的延迟消息
-            OrderFileUploadMqDTO orderFileUploadMqDTO = new OrderFileUploadMqDTO();
-            orderFileUploadMqDTO.setFileCount(attachmentList.size());
-            orderFileUploadMqDTO.setOrderId(newOrderInfoId);
-            orderFileUploadMqDTO.setUserId(loginUser.getId());
-            orderAttachmentProducer.sendMessage(RabbitMQQueueEnum.ORDER_ATTACHMENT, orderFileUploadMqDTO);
-            log.info("发送延迟消息: {}", orderFileUploadMqDTO);
-        }
-        else
-        {
-            orderInfoAddResponse.setIsFinish(true);
-        }
-
-        return ResultUtils.success(orderInfoAddResponse);
+        return ResultUtils.success(buildOrderInfoResponse(post, hasAttachment, attachmentList, loginUser));
     }
 
     /**
@@ -120,7 +101,7 @@ public class OrderController
      * @return
      */
     @PostMapping("/delete")
-
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> deleteOrderInfo(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request)
     {
         if (deleteRequest == null || deleteRequest.getId() <= 0)
@@ -148,22 +129,37 @@ public class OrderController
      */
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> updateOrderInfo(@RequestBody OrderInfoUpdateRequest postUpdateRequest)
+    public BaseResponse<OrderInfoUploadResponse> updateOrderInfo(@RequestBody OrderInfoUpdateRequest postUpdateRequest,
+                                                                 HttpServletRequest request)
     {
         if (postUpdateRequest == null || postUpdateRequest.getId() <= 0)
         {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        // 获取用户
+        User loginUser = userService.getLoginUser(request);
+
         OrderInfo post = new OrderInfo();
         BeanUtils.copyProperties(postUpdateRequest, post);
         // 参数校验
         orderInfoService.validOrderInfo(post, false);
         long id = postUpdateRequest.getId();
+
         // 判断是否存在
         OrderInfo oldOrderInfo = orderInfoService.getById(id);
         ThrowUtils.throwIf(oldOrderInfo == null, ErrorCode.NOT_FOUND_ERROR);
+        // 检查是否有附件
+        List<UploadFileInfoDTO> attachmentList = postUpdateRequest.getAttachmentList();
+        boolean hasAttachment = !attachmentList.isEmpty();
+        // 附加文件数量
+        if (hasAttachment)
+        {
+            int newOrderAttachmentNum = post.getOrderAttachmentNum() + attachmentList.size();
+            post.setOrderAttachmentNum(newOrderAttachmentNum);
+        }
         boolean result = orderInfoService.updateById(post);
-        return ResultUtils.success(result);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success(buildOrderInfoResponse(post, hasAttachment, attachmentList, loginUser));
     }
 
     /**
@@ -248,6 +244,29 @@ public class OrderController
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "标签文字过长过长，字符长度不能大于: " + MAX_TAG_TEXT_SIZE);
             }
         }
+    }
+
+    private OrderInfoUploadResponse buildOrderInfoResponse(OrderInfo post, Boolean hasAttachment, List<UploadFileInfoDTO> attachmentList, User loginUser)
+    {
+        long newOrderInfoId = post.getId();
+        OrderInfoUploadResponse orderInfoUploadResponse = new OrderInfoUploadResponse();
+        if (hasAttachment)
+        {
+            orderInfoUploadResponse.setIsFinish(false);
+            orderInfoUploadResponse.setTokenMap(orderInfoService.generateFileUploadToken(attachmentList, newOrderInfoId));
+            // 发送检查文件是否上传完成与数量齐全的延迟消息
+            OrderFileUploadMqDTO orderFileUploadMqDTO = new OrderFileUploadMqDTO();
+            orderFileUploadMqDTO.setFileCount(attachmentList.size());
+            orderFileUploadMqDTO.setOrderId(newOrderInfoId);
+            orderFileUploadMqDTO.setUserId(loginUser.getId());
+            orderAttachmentProducer.sendMessage(RabbitMQQueueEnum.ORDER_ATTACHMENT, orderFileUploadMqDTO);
+            log.info("发送延迟消息: {}", orderFileUploadMqDTO);
+        }
+        else
+        {
+            orderInfoUploadResponse.setIsFinish(true);
+        }
+        return orderInfoUploadResponse;
     }
 
 }

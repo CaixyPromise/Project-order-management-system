@@ -1,6 +1,5 @@
 package com.caixy.adminSystem.model.dto.order;
 
-import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -10,11 +9,11 @@ import java.util.Map;
  * 添加订单请求返回体
  *
  * @author CAIXYPROMISE
- * @name com.caixy.adminSystem.model.dto.order.OrderInfoAddResponse
+ * @name com.caixy.adminSystem.model.dto.order.OrderInfoUploadResponse
  * @since 2024-06-10 17:13
  **/
 @Data
-public class OrderInfoAddResponse implements Serializable
+public class OrderInfoUploadResponse implements Serializable
 {
     /**
      * 是否完成请求

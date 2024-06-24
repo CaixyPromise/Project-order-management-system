@@ -12,5 +12,5 @@ import com.caixy.adminSystem.model.enums.BackendMessageLevelEnum;
 public interface MessageInfoService extends IService<MessageInfo>
 {
 
-    void sendSystemMessage(Long orderId, Long forUser, String content, BackendMessageLevelEnum levelEnum);
+    void sendSystemMessage(String subject, Long orderId, Long forUser, String content, BackendMessageLevelEnum levelEnum);
 }

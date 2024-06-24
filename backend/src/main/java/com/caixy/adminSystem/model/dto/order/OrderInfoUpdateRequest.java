@@ -2,11 +2,13 @@ package com.caixy.adminSystem.model.dto.order;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 更新请求
@@ -14,24 +16,17 @@ import java.util.Date;
 @Data
 public class OrderInfoUpdateRequest implements Serializable
 {
-
     /**
      * id
      */
     private Long id;
-
     /**
-     * 创建用户id
-     */
-    private Long creatorId;
-
-    /**
-     * 订单号
+     * 订单平台id
      */
     private String orderId;
 
     /**
-     * 订单名称描述
+     * 订单描述标题
      */
     private String orderTitle;
 
@@ -98,10 +93,10 @@ public class OrderInfoUpdateRequest implements Serializable
     /**
      * 订单标签
      */
-    private String orderTags;
+    private List<String> orderTag;
 
     /**
-     * 订单编程语言ID
+     * 订单编程语言
      */
     private Long orderLangId;
 
@@ -109,6 +104,11 @@ public class OrderInfoUpdateRequest implements Serializable
      * 订单描述
      */
     private String orderDesc;
+
+    /**
+     * 订单附件
+     */
+    private List<UploadFileInfoDTO> attachmentList;
 
     /**
      * 订单备注
@@ -120,13 +120,25 @@ public class OrderInfoUpdateRequest implements Serializable
      */
     private Date orderDeadline;
 
+    /**
+     * 订单完成时间
+     */
+    private Date orderCompletionTime;
+
+    /**
+     * 订单开始日期
+     */
+    private Date orderStartDate;
+
+    /**
+     * 订单结束日期
+     */
+    private Date orderEndDate;
 
     /**
      * 订单状态
      */
     private Integer orderStatus;
-
-
 
     private static final long serialVersionUID = 1L;
 }

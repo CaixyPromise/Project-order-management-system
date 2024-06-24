@@ -27,9 +27,10 @@ public class MessageInfoServiceImpl extends ServiceImpl<MessageInfoMapper, Messa
      * @since 2024/6/14 下午9:27
      */
     @Override
-    public void sendSystemMessage(Long orderId, Long forUser, String content, BackendMessageLevelEnum levelEnum)
+    public void sendSystemMessage(String subject, Long orderId, Long forUser, String content, BackendMessageLevelEnum levelEnum)
     {
         MessageInfo messageInfo = new MessageInfo();
+        messageInfo.setSubject("系统消息");
         messageInfo.setContent(content);
         messageInfo.setLevel(levelEnum.getCode());
         messageInfo.setForUser(forUser);
