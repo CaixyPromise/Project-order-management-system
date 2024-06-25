@@ -30,8 +30,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -205,7 +203,7 @@ public class OrderController
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         Page<OrderInfo> postPage = orderInfoService.page(new Page<>(current, size));
-        return ResultUtils.success(orderInfoService.getOrderInfoVOPage(postPage, request));
+        return ResultUtils.success(orderInfoService.getOrderInfoPageVO(postPage, request));
     }
 
 
@@ -226,7 +224,7 @@ public class OrderController
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         Page<OrderInfo> postPage = orderInfoService.searchFromEs(postQueryRequest);
-        return ResultUtils.success(orderInfoService.getOrderInfoVOPage(postPage, request));
+        return ResultUtils.success(orderInfoService.getOrderInfoPageVO(postPage, request));
     }
 
     @GetMapping("/getEvent")

@@ -165,7 +165,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     }
 
     @Override
-    public Page<OrderInfoPageVO> getOrderInfoVOPage(Page<OrderInfo> postPage, HttpServletRequest request)
+    public Page<OrderInfoPageVO> getOrderInfoPageVO(Page<OrderInfo> postPage, HttpServletRequest request)
     {
         Page<OrderInfoPageVO> orderInfoVOPage = new Page<>(postPage.getCurrent(), postPage.getSize());
         List<OrderInfo> orderInfos = postPage.getRecords();
@@ -257,7 +257,6 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         queryWrapper.eq("orderId", orderId);
         return orderFileInfoService.count(queryWrapper);
     }
-    @Cacheable(value = "events", key = "#userId + ':' + #year + ':' + #month")
     @Override
     public List<EventVO<OrderInfoVO>> getEvents(Integer year, Integer month, Long userId)
     {

@@ -1,40 +1,38 @@
 import React, {useEffect, useState} from 'react';
-import {Badge, Calendar, Card, Col, List, message, Row, Select} from 'antd';
+import {Badge, Calendar, Card, Col, List, message, Row, Spin} from 'antd';
 import useAsyncHandler from "@/hooks/useAsyncHandler";
 import {queryTask} from "@/pages/OrderCalendar/server";
-import dayjs from "dayjs";
-
-const mockData = {
-    "2024-06-01": [
-        { "type": "error", "content": "System outage", "level": "High" },
-        { "type": "warning", "content": "Scheduled maintenance", "level": "Medium" }
-    ],
-    "2024-06-15": [
-        { "type": "success", "content": "New feature release", "level": "Low" }
-    ],
-    "2024-06-18": [
-        { "type": "error", "content": "Service disruption", "level": "High" },
-        { "type": "warning", "content": "Performance issues", "level": "Medium" }
-    ]
-};
+import dayjs, {Dayjs} from "dayjs";
+import EventList from './components/EventList';
+import EventDetails from "@/pages/OrderCalendar/components/EventDetails";
 
 const App = () =>
 {
     const [ year, setYear ] = useState(new Date().getFullYear());
     const [ month, setMonth ] = useState(new Date().getMonth() + 1);
-    const [ events, setEvents ] = useState<API.EventVOOrderInfoVO_[]>([]);
-    const [queryHandler, isLoading] = useAsyncHandler<API.EventVOOrderInfoVO_[]>()
+    const [ events, setEvents ] = useState<API.EventVOOrderInfoVO_>({});
+    const [ queryHandler, isLoading ] = useAsyncHandler<API.EventVOOrderInfoVO_[]>()
+    const [ selectedDateEvents, setSelectedDateEvents ] = useState<API.EventVOOrderInfoVO_[]>([]);
+    const [ modalVisible, setModalVisible ] = useState<boolean>(false);
 
-
-    const dateCellRender = (value: any) =>
+    const onSelect = (value: Dayjs) =>
     {
-        const dayEvents = events.filter(event => event.date.startsWith(value.format('YYYY-MM-DD')));
+        const dayEvents = events[value.format('YYYY-MM-DD')] || [];
+        setSelectedDateEvents(dayEvents);
+        setModalVisible(true);
+    };
+
+
+    const dateCellRender = (value: Dayjs) =>
+    {
+        // @ts-ignore
+        const dayEvents = events[value.format('YYYY-MM-DD')] || [];
         return (
             <List>
+                {/*// @ts-ignore*/}
                 {dayEvents.map((item, index) => (
                     <List.Item key={index}>
-                        {/*// @ts-ignore*/}
-                        <Badge status={item.level} text={item.content?.orderTitle}/>
+                        <Badge status={item.level} text={item.content.orderTitle}/>
                     </List.Item>
                 ))}
             </List>
@@ -45,55 +43,52 @@ const App = () =>
     {
         const fetchEvents = async () =>
         {
-            const result = await queryHandler(queryTask, [ year, month ], () => message.error("获取待办失败"))
-            setEvents(result);
+            // @ts-ignore
+            const result = await queryHandler(() => queryTask(year, month), [], () => message.error("获取待办失败"));
+            if (result)
+            {
+                const eventsMap: API.EventVOOrderInfoVO_ = result.reduce((acc: API.EventVOOrderInfoVO_, event) =>
+                {
+                    const eventDate: string = dayjs(event.date).format('YYYY-MM-DD');
+                    // @ts-ignore
+                    if (!acc[eventDate])
+                    {
+                        // @ts-ignore
+                        acc[eventDate] = [];
+                    }
+                    // @ts-ignore
+                    acc[eventDate].push(event);
+                    return acc;
+                }, {} as API.EventVOOrderInfoVO_);
+                setEvents(eventsMap);
+            }
         };
-
         fetchEvents();
     }, [ year, month ]);
 
-    const handleYearChange = (newYear: number) => {
-        setYear(newYear);
-    };
 
-    const handleMonthChange = (newMonth: number) => {
-        setMonth(newMonth);
+    const onPanelChange = (value: dayjs.Dayjs) =>
+    {
+        setYear(value.year());
+        setMonth(value.month() + 1);
     };
-
-    const CardTitle: React.FC<{ item: API.EventVOOrderInfoVO_ }> = ({ item }) => {
-        return (
-            <div>
-               时间： <Badge status={item.level} text={dayjs(item.content?.orderDeadline).format("YYYY-MM-DD")} /> 名称：{item.content?.orderTitle}
-            </div>
-        );
-    };
-
 
 
     return (
-        <Row gutter={16}>
-            <Col span={18}>
-                <Select defaultValue={year} style={{ width: 120 }} onChange={handleYearChange}>
-                    {Array.from({ length: 10 }, (_, i) => (
-                        <Option value={year - i} key={i}>{year - i}</Option>
-                    ))}
-                </Select>
-                <Select defaultValue={month} style={{ width: 120 }} onChange={handleMonthChange}>
-                    {Array.from({ length: 12 }, (_, i) => (
-                        <Option value={i + 1} key={i}>{i + 1}</Option>
-                    ))}
-                </Select>
-                <Calendar cellRender={dateCellRender} />
+        <Row gutter={16} style={{ display: 'flex', height: '87vh', overflow: 'hidden' }}>
+            <Col span={18} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <div style={{ flexGrow: 1, overflowY: 'auto' }}>
+                    <Calendar cellRender={dateCellRender} onPanelChange={onPanelChange} onSelect={onSelect}/>
+                </div>
             </Col>
-            <Col span={6}>
-                <Card title="Events Details">
-                    {events.map(event => (
-                        <Card key={event.id} type="inner" title={<CardTitle item={event} />}>
-                            <p>标题：{event.content?.orderTitle}</p>
-                        </Card>
-                    ))}
+            <Col span={6} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <Card title="待办订单" style={{ flexGrow: 1, overflowY: 'auto' }}>
+                    <Spin spinning={isLoading}>
+                        <EventList data={events}/>
+                    </Spin>
                 </Card>
             </Col>
+            <EventDetails dataSource={selectedDateEvents} open={modalVisible} setOpen={setModalVisible}/>
         </Row>
     );
 };

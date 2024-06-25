@@ -5,13 +5,14 @@ import type {ActionType} from '@ant-design/pro-components';
 import {PageContainer, ProTable} from '@ant-design/pro-components';
 import '@umijs/max';
 import {Button, message} from 'antd';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import useAsyncHandler from "@/hooks/useAsyncHandler";
 import {getOrderListColumn} from "@/pages/OrderList/columns";
 import {listOrderInfoVoByPageUsingPost1} from "@/services/backend/orderController";
 import {history} from "@umijs/max";
 import OrderDetailsModal from "@/pages/OrderList/components/OrderDetailsModal";
 import {deleteOrder} from "@/pages/OrderList/server";
+import {useParams} from "@@/exports";
 
 /**
  * 用户管理页面
@@ -20,13 +21,14 @@ import {deleteOrder} from "@/pages/OrderList/server";
  */
 const UserAdminPage: React.FC = () =>
 {
+    const {id} = useParams();
     // 是否显示新建窗口
     const [ createModalVisible, setCreateModalVisible ] = useState<boolean>(false);
     // 是否显示更新窗口
     const [ updateModalVisible, setUpdateModalVisible ] = useState<boolean>(false);
     const actionRef = useRef<ActionType>();
     // 当前用户点击的数据
-    const [ currentRow, setCurrentRow ] = useState<API.User>({});
+    const [ currentRow, setCurrentRow ] = useState<API.OrderInfoPageVO>({});
     const [ queryHandler] = useAsyncHandler<{
         code?: number;
         data?: API.PageOrderInfoPageVO_;
@@ -69,6 +71,15 @@ const UserAdminPage: React.FC = () =>
         setUpdateModalVisible
     }), []); // 添加 editableKeys 作为依赖项，确保在其变化时重新计算
 
+    useEffect(() => {
+        if (id !== undefined)
+        {
+            setCurrentRow({
+                id: id
+            } as unknown as API.OrderInfoPageVO)
+            setDetailsModalVisible(true)
+        }
+    }, [id])
 
     return (
         <PageContainer>

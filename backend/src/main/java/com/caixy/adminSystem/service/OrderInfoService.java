@@ -63,7 +63,7 @@ public interface OrderInfoService extends IService<OrderInfo>
      * @param request
      * @return
      */
-    Page<OrderInfoPageVO> getOrderInfoVOPage(Page<OrderInfo> postPage, HttpServletRequest request);
+    Page<OrderInfoPageVO> getOrderInfoPageVO(Page<OrderInfo> postPage, HttpServletRequest request);
 
     Map<String, String> generateFileUploadToken(List<UploadFileInfoDTO> fileInfoList,
                                                 Long orderId);

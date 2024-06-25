@@ -1,9 +1,16 @@
 export default [
     { path: '/user', layout: false, routes: [ { path: '/user/login', component: './User/Login' } ] },
     { path: '/welcome', icon: 'smile', component: './Welcome', name: "欢迎页" },
-    { path: '/orderList', icon: 'smile', component: './OrderList', name: "订单列表" },
+    {
+        path: "/orderList",
+        icon: "smile",
+        component: "./OrderList",
+        name: "订单列表",
+        routes: [
+            { path: "/orderList/:id", exact: true, component: './OrderList', name: "订单详情", hideInMenu: true }
+        ]
+    },
     { path: '/task', icon: 'smile', component: './OrderCalendar', name: "待办订单" },
-
     {
         path: '/addOrder',
         name: '添加订单',
