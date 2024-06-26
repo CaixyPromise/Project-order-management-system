@@ -3,14 +3,14 @@ export default [
     { path: '/welcome', icon: 'smile', component: './Welcome', name: "欢迎页" },
     {
         path: "/orderList",
-        icon: "smile",
+        icon: "AccountBook",
         component: "./OrderList",
         name: "订单列表",
         routes: [
             { path: "/orderList/:id", exact: true, component: './OrderList', name: "订单详情", hideInMenu: true }
         ]
     },
-    { path: '/task', icon: 'smile', component: './OrderCalendar', name: "待办订单" },
+    { path: '/task', icon: 'aim', component: './OrderCalendar', name: "待办订单" },
     {
         path: '/addOrder',
         name: '添加订单',

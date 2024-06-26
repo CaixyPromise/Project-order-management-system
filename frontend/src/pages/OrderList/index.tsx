@@ -82,7 +82,7 @@ const UserAdminPage: React.FC = () =>
     }, [id])
 
     return (
-        <PageContainer>
+        <PageContainer ghost={true}>
             <ProTable<API.OrderInfoPageVO>
                 headerTitle={'查询表格'}
                 actionRef={actionRef}

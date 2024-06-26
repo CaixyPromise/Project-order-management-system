@@ -5,6 +5,8 @@ import {ColumnsParams} from "@/typings";
 import OrderActionButton from "@/pages/OrderList/components/OrderActionButton";
 import {OrderStatusEnum} from "@/enums/OrderStatusEnum";
 import {history} from "@@/exports";
+import {fetchCategory, fetchLangType} from "@/pages/OrderForm/server";
+import {OrderSourceEnum} from "@/enums/OrderSourceEnum";
 
 const BooleanTag = ({ text }: { text: boolean | undefined }) =>
 {
@@ -30,6 +32,7 @@ export const getOrderListColumn = ({
         valueType: 'text',
         hideInForm: true,
         editable: false
+
 
     },
     {
@@ -57,22 +60,30 @@ export const getOrderListColumn = ({
         title: "总金额",
         dataIndex: "amount",
         valueType: "text",
+        hideInForm: true,
     },
     {
         title: "已支付金额",
         dataIndex: "amountPaid",
         valueType: "text",
+        hideInSearch: true,
     },
     {
         title: "订单编程语言",
         dataIndex: "langName",
         valueType: "text",
+        request: async () => {
+            return fetchLangType()
+        },
         editable: false,
     },
     {
         title: "订单分类名称",
         dataIndex: "orderCategoryName",
         valueType: "text",
+        request: async () => {
+            return fetchCategory()
+        },
         editable: false
     },
     {
@@ -83,7 +94,8 @@ export const getOrderListColumn = ({
         {
             return <BooleanTag text={record.hasOrderAttachment}/>
         },
-        editable: false
+        editable: false,
+        hideInSearch: true
     },
     {
         title: "订单状态",
@@ -96,7 +108,17 @@ export const getOrderListColumn = ({
     {
         title: "是否外包",
         dataIndex: "isAssigned",
-        valueType: "text",
+        valueType: "select",
+        valueEnum: {
+            1: {
+                text: "是",
+                status: "success"
+            },
+            0: {
+                text: "否",
+                status: "process"
+            }
+        },
         render: (_, record) =>
         {
             return <BooleanTag text={record.isAssigned}/>
@@ -105,24 +127,39 @@ export const getOrderListColumn = ({
     {
         title: "是否支付",
         dataIndex: "isPaid",
-        valueType: "text",
+        valueType: "select",
         render: (_, record) =>
         {
             return <BooleanTag text={record.isPaid}/>
-        }
+        },
+        valueEnum: {
+            1: {
+                text: "是",
+                status: "success"
+            },
+            0: {
+                text: "否",
+                status: "process"
+            }
+        },
     },
     {
         title: "订单来源",
         dataIndex: "orderSource",
-        valueType: "text",
-        editable: false
+        valueType: "select",
+        editable: false,
+        fieldProps: {
+            options: OrderSourceEnum.getAllOptions()
+        }
     },
 
     {
         title: "交付截止日期",
         dataIndex: "orderDeadline",
         valueType: "date",
-        editable: false
+        editable: false,
+        hideInSearch: true,
+
     },
     {
         title: '创建时间',
