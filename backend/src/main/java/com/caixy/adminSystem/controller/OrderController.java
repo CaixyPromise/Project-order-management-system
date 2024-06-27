@@ -183,7 +183,7 @@ public class OrderController
         {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
-        return ResultUtils.success(orderInfoService.getOrderInfoVO(post, request));
+        return ResultUtils.success(orderInfoService.getOrderInfoVO(post));
     }
 
     /**

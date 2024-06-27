@@ -5,7 +5,9 @@ import com.caixy.adminSystem.model.entity.OrderFileInfo;
 import com.caixy.adminSystem.model.entity.OrderInfo;
 import com.caixy.adminSystem.model.vo.file.OrderFileVO;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author CAIXYPROMISE
@@ -15,7 +17,9 @@ import java.util.List;
 public interface OrderFileInfoService extends IService<OrderFileInfo>
 {
 
-    List<OrderFileVO> getOrderFileInfoList(Long orderId);
+    Map<Long, List<OrderFileInfo>> getOrderFileInfoListByOrderIdList(Collection<Long> orderIdList);
+
+    List<OrderFileVO> getOrderFileInfoListByOrderId(Long orderId);
 
     Boolean removeOrderFileInfo(OrderInfo orderInfo);
 }

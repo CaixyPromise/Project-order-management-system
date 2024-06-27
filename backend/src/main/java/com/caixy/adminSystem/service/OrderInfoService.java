@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
+import com.caixy.adminSystem.model.dto.order.OrderInfoEsDTO;
 import com.caixy.adminSystem.model.dto.order.OrderInfoQueryRequest;
 import com.caixy.adminSystem.model.entity.OrderInfo;
 import com.caixy.adminSystem.model.vo.order.EventVO;
@@ -13,6 +14,7 @@ import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -51,10 +53,9 @@ public interface OrderInfoService extends IService<OrderInfo>
      * 获取帖子封装
      *
      * @param post
-     * @param request
      * @return
      */
-    OrderInfoVO getOrderInfoVO(OrderInfo post, HttpServletRequest request);
+    OrderInfoVO getOrderInfoVO(OrderInfo post);
 
     /**
      * 分页获取帖子封装
@@ -77,4 +78,7 @@ public interface OrderInfoService extends IService<OrderInfo>
 
     void setOrderValid(Long orderId, boolean validCode);
 
+    List<OrderInfo> listOrderInfoWithDeleteByUpdateDate(Date updateTime);
+
+    List<OrderInfoEsDTO> getOrderInfoEsDTOList(List<OrderInfo> orderInfos);
 }

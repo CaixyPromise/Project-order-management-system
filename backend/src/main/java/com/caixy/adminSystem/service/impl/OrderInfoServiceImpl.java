@@ -1,5 +1,6 @@
 package com.caixy.adminSystem.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTException;
 import cn.hutool.jwt.JWTUtil;
@@ -14,6 +15,7 @@ import com.caixy.adminSystem.mapper.OrderInfoMapper;
 import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
 import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import com.caixy.adminSystem.model.dto.file.UploadFileRequest;
+import com.caixy.adminSystem.model.dto.order.OrderInfoEsDTO;
 import com.caixy.adminSystem.model.dto.order.OrderInfoQueryRequest;
 import com.caixy.adminSystem.model.entity.*;
 import com.caixy.adminSystem.model.enums.*;
@@ -22,12 +24,15 @@ import com.caixy.adminSystem.model.vo.order.EventVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
 import com.caixy.adminSystem.service.*;
+import com.caixy.adminSystem.utils.CommonUtils;
 import com.caixy.adminSystem.utils.RedisUtils;
 import com.caixy.adminSystem.utils.RegexUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.BeanUtils;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,6 +84,8 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     @Resource
     private OrderFileInfoService orderFileInfoService;
 
+    @Resource
+    private ElasticsearchRestTemplate elasticsearchRestTemplate;
 
     private OrderValidator orderValidator;
 
@@ -114,8 +121,14 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         return null;
     }
 
+    private void addToQuery(BoolQueryBuilder boolQueryBuilder, String fieldName, Object value) {
+        if (value != null) {
+            boolQueryBuilder.must(QueryBuilders.matchQuery(fieldName, value));
+        }
+    }
+
     @Override
-    public OrderInfoVO getOrderInfoVO(OrderInfo post, HttpServletRequest request)
+    public OrderInfoVO getOrderInfoVO(OrderInfo post)
     {
         OrderInfoVO orderInfoVO = new OrderInfoVO();
         BeanUtils.copyProperties(post, orderInfoVO);
@@ -159,7 +172,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         }
 
         // 获取订单附件信息
-        List<OrderFileVO> orderFileInfoList = orderFileInfoService.getOrderFileInfoList(post.getId());
+        List<OrderFileVO> orderFileInfoList = orderFileInfoService.getOrderFileInfoListByOrderId(post.getId());
         orderInfoVO.setOrderAttachmentList(orderFileInfoList);
         return orderInfoVO;
     }
@@ -196,9 +209,9 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
             OrderStatusEnum orderStatus = OrderStatusEnum.getByCode(item.getOrderStatus());
             OrderSourceEnum orderSource = OrderSourceEnum.getByCode(item.getOrderSource());
 
-            orderInfoPageVO.setIsAssigned(integerToBool(item.getIsAssigned()));
-            orderInfoPageVO.setIsPaid(integerToBool(item.getIsPaid()));
-            orderInfoPageVO.setHasOrderAttachment(integerToBool(item.getOrderAttachmentNum()));
+            orderInfoPageVO.setIsAssigned(CommonUtils.integerToBool(item.getIsAssigned()));
+            orderInfoPageVO.setIsPaid(CommonUtils.integerToBool(item.getIsPaid()));
+            orderInfoPageVO.setHasOrderAttachment(CommonUtils.integerToBool(item.getOrderAttachmentNum()));
             orderInfoPageVO.setOrderStatus(orderStatus == null ? "未知状态" : orderStatus.getDesc());
             orderInfoPageVO.setOrderSource(orderSource == null ? "未知来源" : orderSource.getDesc());
             orderInfoPageVO.setCreatorName(userNameByIds.get(item.getCreatorId()) == null ? "未知用户" :
@@ -212,12 +225,6 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         orderInfoVOPage.setRecords(orderInfoPageVOList);
         orderInfoVOPage.setTotal(postPage.getTotal());
         return orderInfoVOPage;
-    }
-
-
-    private Boolean integerToBool(Integer value)
-    {
-        return value != null && value >= 0 && value <= 1;
     }
 
     @Override
@@ -415,7 +422,50 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         this.updateById(orderInfo);
     }
 
+    @Override
+    public List<OrderInfo> listOrderInfoWithDeleteByUpdateDate(Date updateTime)
+    {
+        return this.baseMapper.listOrderInfoWithDelete(updateTime);
+    }
 
+
+    /**
+     * 获取订单信息的ES数据
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @since 2024/6/26 下午9:28
+     */
+    @Override
+    public List<OrderInfoEsDTO> getOrderInfoEsDTOList(List<OrderInfo> orderInfos)
+    {
+        Set<Long> userIds = new HashSet<>();
+        Set<Long> langIds = new HashSet<>();
+        Set<Long> categoryIds = new HashSet<>();
+        Set<Long> fileIds = new HashSet<>();
+        orderInfos.forEach(item -> {
+            userIds.add(item.getCreatorId());
+            langIds.add(item.getOrderLangId());
+            categoryIds.add(item.getOrderCategoryId());
+            fileIds.add(item.getId());
+        });
+        if (CollUtil.isEmpty(userIds) || CollUtil.isEmpty(langIds) || CollUtil.isEmpty(categoryIds))
+        {
+            return Collections.emptyList();
+        }
+        Map<Long, String> userNameByIds = userService.getUserNameByIds(userIds);
+        Map<Long, String> langNameByIds = languageTypeService.getLangNameByIds(langIds);
+        Map<Long, String> categoryNameByIds = orderCategoryService.getCategoryNameByIds(categoryIds);
+        // 获取订单附件信息
+        Map<Long, List<OrderFileInfo>> orderFileInfoList =
+                orderFileInfoService.getOrderFileInfoListByOrderIdList(fileIds);
+
+        return orderInfos.stream().map(item -> OrderInfoEsDTO.objToDTO(item,
+                userNameByIds,
+                langNameByIds,
+                categoryNameByIds,
+                orderFileInfoList)).collect(Collectors.toList());
+    }
 
 }
 
@@ -549,7 +599,7 @@ class OrderValidator
     private void validateIsAssigned(OrderInfo post)
     {
         Integer isAssigned = post.getIsAssigned();
-        if (!integerToBool(isAssigned))
+        if (!CommonUtils.integerToBool(isAssigned))
         {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -646,9 +696,5 @@ class OrderValidator
         }
     }
 
-
-    private static boolean integerToBool(Integer value)
-    {
-        return value != null && (value == 0 || value == 1);
-    }
+    
 }

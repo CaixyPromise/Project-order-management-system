@@ -50,4 +50,11 @@
         orderEndDate,orderStatus,createTime,
         updateTime,isValid,isDelete
     </sql>
+
+
+    <select id="listOrderInfoWithDelete" resultType="com.caixy.adminSystem.model.entity.OrderInfo">
+        select *
+        from order_info
+        where updateTime >= #{minUpdateTime}
+    </select>
 </mapper>

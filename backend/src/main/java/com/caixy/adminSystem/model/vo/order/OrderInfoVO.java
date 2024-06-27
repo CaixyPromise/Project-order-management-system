@@ -77,7 +77,10 @@ public class OrderInfoVO implements Serializable
     /**
      * 支付方式
      */
-    private Integer paymentMethod;
+    private String paymentMethod;
+
+    private Integer paymentMethodCode;
+
 
     /**
      * 订单来源

@@ -5,61 +5,50 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * 查询请求
- *
- 
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class OrderInfoQueryRequest extends PageRequest implements Serializable {
-
+public class OrderInfoQueryRequest extends PageRequest implements Serializable
+{
     /**
-     * id
+     * 订单id
      */
-    private Long id;
-
+    private String orderId;
     /**
-     * id
+     * 创建人id
      */
-    private Long notId;
-
+    private String orderTitle;
     /**
-     * 搜索词
+     * 创建人名称
      */
-    private String searchText;
-
+    private String creatorName;
     /**
-     * 标题
+     * 语言名称
      */
-    private String title;
-
+    private String langName;
     /**
-     * 内容
+     * 分类名称
      */
-    private String content;
-
+    private String categoryName;
     /**
-     * 标签列表
+     * 订单状态
      */
-    private List<String> tags;
-
+    private String orderStatus;
     /**
-     * 至少有一个标签
+     * 是否分配
      */
-    private List<String> orTags;
-
+    private Boolean isAssigned;
     /**
-     * 创建用户 id
+     * 是否支付
      */
-    private Long userId;
-
+    private Boolean isPaid;
     /**
-     * 收藏用户 id
+     * 订单来源
      */
-    private Long favourUserId;
+    private String orderSource;
 
     private static final long serialVersionUID = 1L;
 }

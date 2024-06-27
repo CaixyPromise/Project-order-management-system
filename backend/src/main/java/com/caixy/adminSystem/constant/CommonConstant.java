@@ -21,5 +21,7 @@ public interface CommonConstant {
      * 系统消息身份Id
      */
     Long SYSTEM_ID_CODE = 0L;
-    
+
+    String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+
 }

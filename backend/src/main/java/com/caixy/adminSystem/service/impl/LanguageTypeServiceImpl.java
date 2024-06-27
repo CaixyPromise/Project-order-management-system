@@ -39,13 +39,13 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class LanguageTypeServiceImpl extends ServiceImpl<LanguageTypeMapper, LanguageType> implements LanguageTypeService
+    public class LanguageTypeServiceImpl extends ServiceImpl<LanguageTypeMapper, LanguageType> implements LanguageTypeService
 {
-    private final Integer MAX_LANG_NAME = 10;
+    private final static Integer MAX_LANG_NAME = 10;
 
     @Resource
     private UserService userService;
-    @Autowired
+    @Resource
     private RedisUtils redisUtils;
 
     /**

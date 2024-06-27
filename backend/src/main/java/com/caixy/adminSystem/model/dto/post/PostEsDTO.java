@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
 import com.caixy.adminSystem.model.entity.Post;
 import lombok.Data;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.annotation.Id;
@@ -17,13 +16,12 @@ import java.util.List;
 
 /**
  * 帖子 ES 包装类
- *
- 
  **/
 // todo 取消注释开启 ES（须先配置 ES）
 //@Document(indexName = "post")
 @Data
-public class PostEsDTO implements Serializable {
+public class PostEsDTO implements Serializable
+{
 
     private static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
@@ -88,14 +86,17 @@ public class PostEsDTO implements Serializable {
      * @param post
      * @return
      */
-    public static PostEsDTO objToDto(Post post) {
-        if (post == null) {
+    public static PostEsDTO objToDto(Post post)
+    {
+        if (post == null)
+        {
             return null;
         }
         PostEsDTO postEsDTO = new PostEsDTO();
         BeanUtils.copyProperties(post, postEsDTO);
         String tagsStr = post.getTags();
-        if (StringUtils.isNotBlank(tagsStr)) {
+        if (StringUtils.isNotBlank(tagsStr))
+        {
             postEsDTO.setTags(JSONUtil.toList(tagsStr, String.class));
         }
         return postEsDTO;
@@ -107,14 +108,17 @@ public class PostEsDTO implements Serializable {
      * @param postEsDTO
      * @return
      */
-    public static Post dtoToObj(PostEsDTO postEsDTO) {
-        if (postEsDTO == null) {
+    public static Post dtoToObj(PostEsDTO postEsDTO)
+    {
+        if (postEsDTO == null)
+        {
             return null;
         }
         Post post = new Post();
         BeanUtils.copyProperties(postEsDTO, post);
         List<String> tagList = postEsDTO.getTags();
-        if (CollUtil.isNotEmpty(tagList)) {
+        if (CollUtil.isNotEmpty(tagList))
+        {
             post.setTags(JSONUtil.toJsonStr(tagList));
         }
         return post;
