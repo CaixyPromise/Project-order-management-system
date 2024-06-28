@@ -6,11 +6,10 @@ import com.caixy.adminSystem.model.entity.OrderInfo;
 import com.caixy.adminSystem.model.enums.OrderSourceEnum;
 import com.caixy.adminSystem.model.enums.OrderStatusEnum;
 import com.caixy.adminSystem.model.enums.PaymentMethodEnum;
-import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
-import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
 import com.caixy.adminSystem.utils.CommonUtils;
 import com.caixy.adminSystem.utils.JsonUtils;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -26,10 +25,9 @@ import java.util.*;
  **/
 @Document(indexName = "order")
 @Data
+@NoArgsConstructor
 public class OrderInfoEsDTO implements Serializable
 {
-
-
     /**
      * id
      */
@@ -44,6 +42,7 @@ public class OrderInfoEsDTO implements Serializable
     /**
      * 创建人名称
      */
+    @Field(type = FieldType.Keyword)
     private String creatorName;
 
     /**
@@ -66,7 +65,7 @@ public class OrderInfoEsDTO implements Serializable
     /**
      * 已支付金额
      */
-    @Field(type = FieldType.Double)
+    @Field(type = FieldType.Double, index = false)
     private BigDecimal amountPaid;
 
     /**
@@ -75,61 +74,83 @@ public class OrderInfoEsDTO implements Serializable
     private Integer customerContactType;
 
     /**
+     * 订单联系方式类型文本
+     */
+    @Field(type = FieldType.Text, index = false)
+    private String customerContactTypeText;
+
+    /**
      * 订单联系方式
      */
+    @Field(type = FieldType.Keyword)
     private String customerContact;
 
     /**
      * 顾客邮箱
      */
+    @Field(type = FieldType.Keyword)
     private String customerEmail;
 
     /**
      * 是否是对外分配
      */
-    @Field(type = FieldType.Boolean)
-    private Boolean isAssigned;
+    @Field(type = FieldType.Boolean, index = false)
+    private Boolean isAssignedValue;
+
+    /**
+     * 是否是对外分配-状态值
+     */
+    private Integer isAssigned;
 
     /**
      * 是否支付
      */
-    @Field(type = FieldType.Boolean)
-    private Boolean isPaid;
+    @Field(type = FieldType.Boolean, index = false)
+    private Boolean isPaidValue;
+
+    /**
+     * 是否支付状态值
+     */
+    private Integer isPaid;
 
     /**
      * 支付方式
      */
-    private String paymentMethod;
+    @Field(type = FieldType.Text, index = false)
+    private String paymentMethodText;
 
     /**
      * 支付方式代码
      */
-    private Integer paymentMethodCode;
-
-
-    /**
-     * 订单来源
-     */
-    private String orderSource;
+    private Integer paymentMethod;
 
     /**
-     * 订单来源码
+     * 订单来源文本
      */
-    private Integer orderSourceCode;
+    @Field(type = FieldType.Text, index = false)
+    private String orderSourceText;
+
+    /**
+     * 订单来源枚举值
+     */
+    private Integer orderSource;
 
     /**
      * 订单分配人微信Id
      */
+    @Field(type = FieldType.Keyword)
     private String orderAssignToWxId;
 
     /**
      * 订单佣金比例
      */
+    @Field(type = FieldType.Integer, index = false)
     private Integer orderCommissionRate;
 
     /**
      * 订单分类
      */
+    @Field(type = FieldType.Text, index = false)
     private String categoryName;
 
     /**
@@ -141,11 +162,13 @@ public class OrderInfoEsDTO implements Serializable
     /**
      * 订单标签
      */
+    @Field(type = FieldType.Text, index = false)
     private List<String> orderTags;
 
     /**
      * 订单编程语言名称
      */
+    @Field(type = FieldType.Text, index = false)
     private String langName;
 
     /**
@@ -157,24 +180,60 @@ public class OrderInfoEsDTO implements Serializable
     /**
      * 订单描述
      */
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Text, index = false)
     private String orderDesc;
 
     /**
      * 是否包含订单附件
      */
+    @Field(type = FieldType.Integer, index = false)
     private Integer orderAttachmentNum;
 
     /**
      * 订单备注
      */
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Text, index = false)
     private String orderRemark;
 
+
+    /**
+     * 订单状态
+     */
+    @Field(type = FieldType.Text, index = false)
+    private String orderStatusText;
+
+    /**
+     * 订单状态状态码
+     */
+    private Integer orderStatus;
+
+    /**
+     * 是否有效
+     */
+    private Integer isValid;
+
+    /**
+     * 订单附件列表
+     */
+    @Field(type = FieldType.Nested, index = false)
+    private List<OrderFileInfo> orderAttachmentList;
+
+
+    /**
+     * 创建时间
+     */
+    @Field(index = false, store = true, type = FieldType.Date, format = {}, pattern = CommonConstant.DATE_TIME_PATTERN)
+    private Date createTime;
+
+    /**
+     * 更新时间
+     */
+    @Field(index = false, store = true, type = FieldType.Date, format = {}, pattern = CommonConstant.DATE_TIME_PATTERN)
+    private Date updateTime;
     /**
      * 交付截止日期
      */
-    @Field(index = false, store = true, type = FieldType.Date, format = {}, pattern = CommonConstant.DATE_TIME_PATTERN)
+    @Field(store = true, type = FieldType.Date, format = {}, pattern = CommonConstant.DATE_TIME_PATTERN)
     private Date orderDeadline;
 
     /**
@@ -196,58 +255,11 @@ public class OrderInfoEsDTO implements Serializable
     private Date orderEndDate;
 
     /**
-     * 订单状态
-     */
-    private String orderStatus;
-
-    /**
-     * 订单状态状态码
-     */
-    private Integer orderStatusCode;
-
-    /**
-     * 创建时间
-     */
-    @Field(index = false, store = true, type = FieldType.Date, format = {}, pattern = CommonConstant.DATE_TIME_PATTERN)
-    private Date createTime;
-
-    /**
-     * 更新时间
-     */
-    @Field(index = false, store = true, type = FieldType.Date, format = {}, pattern = CommonConstant.DATE_TIME_PATTERN)
-    private Date updateTime;
-
-    /**
-     * 是否删除
-     */
-    private Integer isValid;
-
-    /**
-     * 订单附件列表
-     */
-    private List<OrderFileInfo> orderAttachmentList;
-
-    /**
      * 是否删除
      */
     private Integer isDelete;
 
     private static final long serialVersionUID = 1L;
-
-    /**
-     * 转成PageVO
-     *
-     * @author CAIXYPROMISE
-     * @version 1.0
-     * @since 2024/6/26 下午8:59
-     */
-    public static OrderInfoPageVO ofPageVO(OrderInfoEsDTO dto)
-    {
-        OrderInfoPageVO vo = new OrderInfoPageVO();
-        BeanUtils.copyProperties(dto, vo);
-        vo.setHasOrderAttachment(CommonUtils.isPresent(dto.getOrderAttachmentNum(), 0) > 0);
-        return vo;
-    }
 
     public static OrderInfoEsDTO objToDTO(OrderInfo orderInfo,
                                           Map<Long, String> userNameByIds,
@@ -265,49 +277,31 @@ public class OrderInfoEsDTO implements Serializable
         OrderStatusEnum orderStatus = OrderStatusEnum.getByCode(orderInfo.getOrderStatus());
         OrderSourceEnum orderSource = OrderSourceEnum.getByCode(orderInfo.getOrderSource());
         PaymentMethodEnum paymentMethodEnum = PaymentMethodEnum.getByCode(orderInfo.getPaymentMethod());
-        orderInfoEsDTO.setIsAssigned(CommonUtils.integerToBool(orderInfo.getIsAssigned()));
-        orderInfoEsDTO.setIsPaid(CommonUtils.integerToBool(orderInfo.getIsPaid()));
+        orderInfoEsDTO.setIsAssignedValue(CommonUtils.integerToBool(orderInfo.getIsAssigned()));
+        orderInfoEsDTO.setIsPaidValue(CommonUtils.integerToBool(orderInfo.getIsPaid()));
         orderInfoEsDTO.setOrderTags(JsonUtils.jsonToList(orderInfo.getOrderTags()));
         // 设置源数据
-        orderInfoEsDTO.setOrderStatusCode(orderInfo.getOrderStatus());
-        orderInfoEsDTO.setOrderSourceCode(orderInfo.getOrderSource());
+        orderInfoEsDTO.setOrderStatus(orderInfo.getOrderStatus());
+        orderInfoEsDTO.setOrderSource(orderInfo.getOrderSource());
 
         orderInfoEsDTO.setOrderAttachmentList(Optional.ofNullable(fileInfoList).orElse(Collections.emptyList()));
-        orderInfoEsDTO.setOrderStatus(CommonUtils.isPresent(orderStatus, "未知状态", OrderStatusEnum::getDesc));
-        orderInfoEsDTO.setOrderSource(CommonUtils.isPresent(orderSource, "未知来源", OrderSourceEnum::getDesc));
-        orderInfoEsDTO.setPaymentMethod(CommonUtils.isPresent(paymentMethodEnum, "未知支付方式", PaymentMethodEnum::getDesc));
+        orderInfoEsDTO.setOrderStatusText(CommonUtils.isPresent(orderStatus, "未知状态", OrderStatusEnum::getDesc));
+        orderInfoEsDTO.setOrderSourceText(CommonUtils.isPresent(orderSource, "未知来源", OrderSourceEnum::getDesc));
+        orderInfoEsDTO.setPaymentMethodText(CommonUtils.isPresent(paymentMethodEnum, "未知支付方式", PaymentMethodEnum::getDesc));
         orderInfoEsDTO.setCreatorName(CommonUtils.isPresent(userName, "未知用户"));
         orderInfoEsDTO.setLangName(CommonUtils.isPresent(langName, "未知语言"));
         orderInfoEsDTO.setCategoryName(CommonUtils.isPresent(categoryName, "未知分类"));
         return orderInfoEsDTO;
     }
 
-    /**
-     * 转成InfoVO
-     *
-     * @author CAIXYPROMISE
-     * @version 1.0
-     * @since 2024/6/26 下午8:58
-     */
-    public static OrderInfoVO ofVO(OrderInfoEsDTO dto)
-    {
-        OrderInfoVO vo = new OrderInfoVO();
-        BeanUtils.copyProperties(dto, vo);
-        vo.setOrderStatus(dto.getOrderStatusCode());
-        vo.setOrderSource(dto.getOrderSourceCode());
-        vo.setPaymentMethod(dto.getPaymentMethod());
-        vo.setPaymentMethodCode(dto.getPaymentMethodCode());
-        vo.setOrderTags(JsonUtils.toJsonString(dto.getOrderTags()));
-        return vo;
-    }
 
-    public static OrderInfoEsDTO from(OrderInfo orderInfo)
+    public static OrderInfoEsDTO of(OrderInfo orderInfo)
     {
         OrderInfoEsDTO dto = new OrderInfoEsDTO();
         BeanUtils.copyProperties(orderInfo, dto);
-        dto.setOrderStatusCode(orderInfo.getOrderStatus());
-        dto.setOrderSourceCode(orderInfo.getOrderSource());
-        dto.setPaymentMethodCode(orderInfo.getPaymentMethod());
+        dto.setOrderStatus(orderInfo.getOrderStatus());
+        dto.setOrderSource(orderInfo.getOrderSource());
+        dto.setPaymentMethod(orderInfo.getPaymentMethod());
         return dto;
     }
 

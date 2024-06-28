@@ -10,6 +10,7 @@ import com.caixy.adminSystem.common.ResultUtils;
 import com.caixy.adminSystem.constant.UserConstant;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.exception.ThrowUtils;
+import com.caixy.adminSystem.model.common.EsPage;
 import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import com.caixy.adminSystem.model.dto.order.*;
 import com.caixy.adminSystem.model.entity.OrderInfo;
@@ -165,7 +166,7 @@ public class OrderController
     }
 
     /**
-     * 根据 id 获取
+     * 根据 id 获取：系统内的订单id，不是平台订单id
      *
      * @param id
      * @return
@@ -174,16 +175,8 @@ public class OrderController
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<OrderInfoVO> getOrderInfoVOById(@RequestParam("id") Long id, HttpServletRequest request)
     {
-        if (id <= 0)
-        {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        OrderInfo post = orderInfoService.getById(id);
-        if (post == null)
-        {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
-        }
-        return ResultUtils.success(orderInfoService.getOrderInfoVO(post));
+
+        return ResultUtils.success(orderInfoService.getOrderInfoVO(id));
     }
 
     /**
@@ -195,37 +188,41 @@ public class OrderController
      */
     @PostMapping("/list/page/vo")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Page<OrderInfoPageVO>> listOrderInfoVOByPage(@RequestBody OrderInfoQueryRequest postQueryRequest,
-                                                                     HttpServletRequest request)
+    public BaseResponse<EsPage<OrderInfoPageVO>> listOrderInfoVOByPage(@RequestBody OrderInfoQueryRequest postQueryRequest,
+                                                                       HttpServletRequest request)
     {
-        long current = postQueryRequest.getCurrent();
         long size = postQueryRequest.getPageSize();
+        long current = postQueryRequest.getCurrent();
+        if (current <= 0) // 如果当前页小于等于0，则设置为1
+        {
+            postQueryRequest.setCurrent(1);
+        }
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<OrderInfo> postPage = orderInfoService.page(new Page<>(current, size));
-        return ResultUtils.success(orderInfoService.getOrderInfoPageVO(postPage, request));
+        EsPage<OrderInfoPageVO> postPage = orderInfoService.searchFromEs(postQueryRequest);
+        return ResultUtils.success(postPage);
     }
 
 
     // endregion
 
-    /**
-     * 分页搜索（从 ES 查询，封装类）
-     *
-     * @param postQueryRequest
-     * @param request
-     * @return
-     */
-    @PostMapping("/search/page/vo")
-    public BaseResponse<Page<OrderInfoPageVO>> searchOrderInfoVOByPage(@RequestBody OrderInfoQueryRequest postQueryRequest,
-                                                                       HttpServletRequest request)
-    {
-        long size = postQueryRequest.getPageSize();
-        // 限制爬虫
-        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<OrderInfo> postPage = orderInfoService.searchFromEs(postQueryRequest);
-        return ResultUtils.success(orderInfoService.getOrderInfoPageVO(postPage, request));
-    }
+//    /**
+//     * 分页搜索（从 ES 查询，封装类）
+//     *
+//     * @param postQueryRequest
+//     * @param request
+//     * @return
+//     */
+//    @PostMapping("/search/page/vo")
+//    public BaseResponse<Page<OrderInfoPageVO>> searchOrderInfoVOByPage(@RequestBody OrderInfoQueryRequest postQueryRequest,
+//                                                                       HttpServletRequest request)
+//    {
+//        long size = postQueryRequest.getPageSize();
+//        // 限制爬虫
+//        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+//        Page<OrderInfoPageVO> postPage = orderInfoService.searchFromEs(postQueryRequest);
+//        return ResultUtils.success(postPage);
+//    }
 
     @GetMapping("/getEvent")
     public BaseResponse<List<EventVO<OrderInfoVO>>> getOrderEventList(

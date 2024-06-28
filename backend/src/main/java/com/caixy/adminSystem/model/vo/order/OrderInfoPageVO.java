@@ -1,6 +1,10 @@
 package com.caixy.adminSystem.model.vo.order;
 
+import com.caixy.adminSystem.model.dto.order.OrderInfoEsDTO;
+import com.caixy.adminSystem.model.enums.OrderStatusEnum;
+import com.caixy.adminSystem.utils.CommonUtils;
 import lombok.Data;
+import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -58,6 +62,21 @@ public class OrderInfoPageVO implements Serializable
     private Boolean isPaid;
 
     /**
+     * 订单联系方式
+     */
+    private String customerContact;
+
+    /**
+     * 顾客邮箱
+     */
+    private String customerEmail;
+
+    /**
+     * 订单分配人微信Id
+     */
+    private String orderAssignToWxId;
+
+    /**
      * 是否包含附件
      */
     private Boolean hasOrderAttachment;
@@ -102,4 +121,25 @@ public class OrderInfoPageVO implements Serializable
     private Date updateTime;
 
     private static final long serialVersionUID = 1L;
+
+
+    /**
+     * 转成PageVO
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @since 2024/6/26 下午8:59
+     */
+    public static OrderInfoPageVO ofPageVO(OrderInfoEsDTO dto)
+    {
+        OrderInfoPageVO vo = new OrderInfoPageVO();
+        BeanUtils.copyProperties(dto, vo);
+        vo.setOrderStatus(CommonUtils.isPresent(OrderStatusEnum.getByCode(dto.getOrderStatus()), "未知状态", OrderStatusEnum::getDesc));
+        vo.setHasOrderAttachment(CommonUtils.isPresent(dto.getOrderAttachmentNum(), 0) > 0);
+        vo.setIsAssigned(dto.getIsAssignedValue());
+        vo.setOrderSource(dto.getOrderSourceText());
+        vo.setOrderCategoryName(dto.getCategoryName());
+
+        return vo;
+    }
 }

@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 查询请求
@@ -14,13 +15,25 @@ import java.io.Serializable;
 public class OrderInfoQueryRequest extends PageRequest implements Serializable
 {
     /**
+     * 系统id
+     */
+    private Long id;
+
+
+    /**
      * 订单id
      */
     private String orderId;
     /**
-     * 创建人id
+     * 订单标题
      */
     private String orderTitle;
+
+    /**
+     * 订单总额
+     */
+    private BigDecimal amount;
+
     /**
      * 创建人名称
      */
@@ -28,15 +41,17 @@ public class OrderInfoQueryRequest extends PageRequest implements Serializable
     /**
      * 语言名称
      */
-    private String langName;
+
+    private Long langId;
+
     /**
      * 分类名称
      */
-    private String categoryName;
+    private Long orderCategoryId;
     /**
      * 订单状态
      */
-    private String orderStatus;
+    private Integer orderStatus;
     /**
      * 是否分配
      */
@@ -49,6 +64,21 @@ public class OrderInfoQueryRequest extends PageRequest implements Serializable
      * 订单来源
      */
     private String orderSource;
+
+    /**
+     * 订单联系方式
+     */
+    private String customerContact;
+
+    /**
+     * 顾客邮箱
+     */
+    private String customerEmail;
+
+    /**
+     * 订单分配人微信Id
+     */
+    private String orderAssignToWxId;
 
     private static final long serialVersionUID = 1L;
 }

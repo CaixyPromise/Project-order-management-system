@@ -5,21 +5,22 @@ import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTException;
 import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.caixy.adminSystem.annotation.FileUploadActionTarget;
 import com.caixy.adminSystem.common.ErrorCode;
+import com.caixy.adminSystem.esdao.OrderEsRepository;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.exception.FileUploadActionException;
 import com.caixy.adminSystem.mapper.OrderInfoMapper;
+import com.caixy.adminSystem.model.common.EsPage;
 import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
 import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import com.caixy.adminSystem.model.dto.file.UploadFileRequest;
 import com.caixy.adminSystem.model.dto.order.OrderInfoEsDTO;
 import com.caixy.adminSystem.model.dto.order.OrderInfoQueryRequest;
-import com.caixy.adminSystem.model.entity.*;
+import com.caixy.adminSystem.model.entity.OrderFileInfo;
+import com.caixy.adminSystem.model.entity.OrderInfo;
 import com.caixy.adminSystem.model.enums.*;
-import com.caixy.adminSystem.model.vo.file.OrderFileVO;
 import com.caixy.adminSystem.model.vo.order.EventVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
@@ -31,14 +32,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -60,9 +65,6 @@ import java.util.stream.Collectors;
 public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo>
         implements OrderInfoService, FileUploadActionService
 {
-    private static final Integer MAX_DESC_SIZE = 1024;
-
-    private static final Integer MAX_TITLE_SIZE = 30;
 
     private static final byte[] TOKEN_SIGN = "orderAttachment_syu".getBytes();
 
@@ -85,9 +87,11 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     private OrderFileInfoService orderFileInfoService;
 
     @Resource
-    private ElasticsearchRestTemplate elasticsearchRestTemplate;
+    private ElasticsearchRestTemplate elasticsearchTemplate;
 
     private OrderValidator orderValidator;
+    @Resource
+    private OrderEsRepository orderEsRepository;
 
     @PostConstruct
     public void init()
@@ -116,115 +120,70 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     }
 
     @Override
-    public Page<OrderInfo> searchFromEs(OrderInfoQueryRequest postQueryRequest)
+    public EsPage<OrderInfoPageVO> searchFromEs(OrderInfoQueryRequest postQueryRequest)
     {
-        return null;
+        int pageSize = postQueryRequest.getPageSize();
+        int current = postQueryRequest.getCurrent();
+
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+
+        addToQuery(boolQueryBuilder, "id", postQueryRequest.getId());
+        addToQuery(boolQueryBuilder, "orderId", postQueryRequest.getOrderId());
+        addToQuery(boolQueryBuilder, "orderTitle", postQueryRequest.getOrderTitle());
+        addToQuery(boolQueryBuilder, "creatorName", postQueryRequest.getCreatorName());
+        addToQuery(boolQueryBuilder, "amount", postQueryRequest.getAmount());
+        addToQuery(boolQueryBuilder, "orderLangId", postQueryRequest.getLangId());
+        addToQuery(boolQueryBuilder, "orderCategoryId", postQueryRequest.getOrderCategoryId());
+        addToQuery(boolQueryBuilder, "orderStatusCode", postQueryRequest.getOrderStatus());
+        addToQuery(boolQueryBuilder, "isAssigned", postQueryRequest.getIsAssigned());
+        addToQuery(boolQueryBuilder, "isPaid", postQueryRequest.getIsPaid());
+        addToQuery(boolQueryBuilder, "orderSourceCode", postQueryRequest.getOrderSource());
+        addToQuery(boolQueryBuilder, "customerContact", postQueryRequest.getCustomerContact());
+        addToQuery(boolQueryBuilder, "customerEmail", postQueryRequest.getCustomerEmail());
+        addToQuery(boolQueryBuilder, "orderAssignToWxId", postQueryRequest.getOrderAssignToWxId());
+
+        NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
+                .withQuery(boolQueryBuilder)
+                .withSort(Sort.by(Sort.Order.desc("orderDeadline")));
+
+        // 处理 searchAfter 参数
+        List<Object> searchAfterValue = postQueryRequest.getSearchAfter();
+        if (searchAfterValue != null && !searchAfterValue.isEmpty())
+        {
+            queryBuilder.withSearchAfter(searchAfterValue);
+        }
+        // 只使用size，不使用页码
+        queryBuilder.withPageable(PageRequest.of(0, pageSize));
+
+        NativeSearchQuery searchQuery = queryBuilder.build();
+        SearchHits<OrderInfoEsDTO> searchHits = elasticsearchTemplate.search(searchQuery, OrderInfoEsDTO.class);
+        // 获取最后一个文档的排序值
+        List<Object> lastSearchAfterValue = !searchHits.getSearchHits().isEmpty() ?
+                                            searchHits.getSearchHits().get(searchHits.getSearchHits().size() - 1).getSortValues() :
+                                            null;
+        List<OrderInfoPageVO> orderInfoPageVOS = searchHits.getSearchHits().stream()
+                .map(SearchHit::getContent)
+                .map(OrderInfoPageVO::ofPageVO)
+                .collect(Collectors.toList());
+        EsPage<OrderInfoPageVO> pageVOPage = new EsPage<>(current, pageSize, lastSearchAfterValue);
+        pageVOPage.setTotal(searchHits.getTotalHits());
+        pageVOPage.setRecords(orderInfoPageVOS);
+        return pageVOPage;
     }
 
-    private void addToQuery(BoolQueryBuilder boolQueryBuilder, String fieldName, Object value) {
-        if (value != null) {
-            boolQueryBuilder.must(QueryBuilders.matchQuery(fieldName, value));
+    private void addToQuery(BoolQueryBuilder boolQueryBuilder, String fieldName, Object value)
+    {
+        if (value != null && !value.toString().isEmpty())
+        {
+            boolQueryBuilder.filter(QueryBuilders.termQuery(fieldName, value));
         }
     }
 
     @Override
-    public OrderInfoVO getOrderInfoVO(OrderInfo post)
+    public OrderInfoVO getOrderInfoVO(Long id)
     {
-        OrderInfoVO orderInfoVO = new OrderInfoVO();
-        BeanUtils.copyProperties(post, orderInfoVO);
-        // 获取用户名
-        Long creatorId = post.getCreatorId();
-        Optional<User> creatorInfo = Optional.ofNullable(userService.getById(creatorId));
-        if (creatorInfo.isPresent())
-        {
-            String creatorName = creatorInfo.get().getUserName();
-            orderInfoVO.setCreatorName(creatorName);
-        }
-        else
-        {
-            orderInfoVO.setCreatorName("未知用户");
-        }
-
-        // 获取语言名
-        Long orderLangId = post.getOrderLangId();
-        Optional<LanguageType> langInfo = Optional.ofNullable(languageTypeService.getById(orderLangId));
-        if (langInfo.isPresent())
-        {
-            String langName = langInfo.get().getLanguageName();
-            orderInfoVO.setLangName(langName);
-        }
-        else
-        {
-            orderInfoVO.setLangName("未知语言");
-        }
-
-        // 获取分类名
-        Long orderCategoryId = post.getOrderCategoryId();
-        Optional<OrderCategory> categoryInfo = Optional.ofNullable(orderCategoryService.getById(orderCategoryId));
-        if (categoryInfo.isPresent())
-        {
-            String categoryName = categoryInfo.get().getCategoryName();
-            orderInfoVO.setCategoryName(categoryName);
-        }
-        else
-        {
-            orderInfoVO.setCategoryName("未知分类");
-        }
-
-        // 获取订单附件信息
-        List<OrderFileVO> orderFileInfoList = orderFileInfoService.getOrderFileInfoListByOrderId(post.getId());
-        orderInfoVO.setOrderAttachmentList(orderFileInfoList);
-        return orderInfoVO;
-    }
-
-    @Override
-    public Page<OrderInfoPageVO> getOrderInfoPageVO(Page<OrderInfo> postPage, HttpServletRequest request)
-    {
-        Page<OrderInfoPageVO> orderInfoVOPage = new Page<>(postPage.getCurrent(), postPage.getSize());
-        List<OrderInfo> orderInfos = postPage.getRecords();
-        Set<Long> userIds = new HashSet<>();
-        Set<Long> langIds = new HashSet<>();
-        Set<Long> categoryIds = new HashSet<>();
-
-        orderInfos.forEach(item -> {
-            userIds.add(item.getCreatorId());
-            langIds.add(item.getOrderLangId());
-            categoryIds.add(item.getOrderCategoryId());
-        });
-        if (userIds.isEmpty() || langIds.isEmpty() || categoryIds.isEmpty())
-        {
-            orderInfoVOPage.setRecords(Collections.emptyList());
-            orderInfoVOPage.setTotal(0);
-            return orderInfoVOPage;
-        }
-
-        // todo: 性能优化，这里可以将lang和分类等长期不更新的数据放入缓存，降低数据库使用率，或是创建ES宽表
-        Map<Long, String> userNameByIds = userService.getUserNameByIds(userIds);
-        Map<Long, String> langNameByIds = languageTypeService.getLangNameByIds(langIds);
-        Map<Long, String> categoryNameByIds = orderCategoryService.getCategoryNameByIds(categoryIds);
-
-        List<OrderInfoPageVO> orderInfoPageVOList = orderInfos.stream().map(item -> {
-            OrderInfoPageVO orderInfoPageVO = new OrderInfoPageVO();
-            BeanUtils.copyProperties(item, orderInfoPageVO);
-            OrderStatusEnum orderStatus = OrderStatusEnum.getByCode(item.getOrderStatus());
-            OrderSourceEnum orderSource = OrderSourceEnum.getByCode(item.getOrderSource());
-
-            orderInfoPageVO.setIsAssigned(CommonUtils.integerToBool(item.getIsAssigned()));
-            orderInfoPageVO.setIsPaid(CommonUtils.integerToBool(item.getIsPaid()));
-            orderInfoPageVO.setHasOrderAttachment(CommonUtils.integerToBool(item.getOrderAttachmentNum()));
-            orderInfoPageVO.setOrderStatus(orderStatus == null ? "未知状态" : orderStatus.getDesc());
-            orderInfoPageVO.setOrderSource(orderSource == null ? "未知来源" : orderSource.getDesc());
-            orderInfoPageVO.setCreatorName(userNameByIds.get(item.getCreatorId()) == null ? "未知用户" :
-                                           userNameByIds.get(item.getCreatorId()));
-            orderInfoPageVO.setLangName(langNameByIds.get(item.getOrderLangId()) == null ? "未知语言" :
-                                        langNameByIds.get(item.getOrderLangId()));
-            orderInfoPageVO.setOrderCategoryName(categoryNameByIds.get(item.getOrderCategoryId()) == null ? "未知分类" :
-                                                 categoryNameByIds.get(item.getOrderCategoryId()));
-            return orderInfoPageVO;
-        }).collect(Collectors.toList());
-        orderInfoVOPage.setRecords(orderInfoPageVOList);
-        orderInfoVOPage.setTotal(postPage.getTotal());
-        return orderInfoVOPage;
+        Optional<OrderInfoEsDTO> orderInfoById = orderEsRepository.findById(id);
+        return orderInfoById.map(OrderInfoVO::of).orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ERROR));
     }
 
     @Override
@@ -264,39 +223,48 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         queryWrapper.eq("orderId", orderId);
         return orderFileInfoService.count(queryWrapper);
     }
+
     @Override
     public List<EventVO<OrderInfoVO>> getEvents(Integer year, Integer month, Long userId)
     {
+        // 获取当前月份的第一天
         LocalDate startOfMonth = LocalDate.of(year, month, 1);
+        // 获取当前月份的最后一天
         LocalDate endOfMonth = startOfMonth.with(TemporalAdjusters.lastDayOfMonth());
 
         // 将 LocalDate 转换为 Date
         Date startDate = Date.from(startOfMonth.atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date endDate = Date.from(endOfMonth.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
 
-        QueryWrapper<OrderInfo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.between("orderDeadline", startDate, endDate);
-        queryWrapper.eq("creatorId", userId);
-        List<OrderInfo> orderInfoList = this.list(queryWrapper);
+        // 构建 BoolQueryBuilder 查询条件
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery()
+                .filter(QueryBuilders.termQuery("creatorId", userId))
+                .filter(QueryBuilders.rangeQuery("orderDeadline").gte(startDate).lte(endDate));
 
-        return orderInfoList.isEmpty() ? Collections.emptyList() :
-               orderInfoList.stream()
-                       .map(this::convertEventOrderInfo)
-                       .collect(Collectors.toList());
+        // 构建查询
+        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+                .withQuery(boolQueryBuilder)
+                .build();
+
+        // 执行查询
+        SearchHits<OrderInfoEsDTO> searchHits = elasticsearchTemplate.search(searchQuery, OrderInfoEsDTO.class);
+
+        // 将查询结果转换为 VO 对象
+        return searchHits.getSearchHits().stream()
+                .map(hit -> OrderInfoVO.of(hit.getContent()))
+                .map(this::convertEventOrderInfo)
+                .collect(Collectors.toList());
     }
 
-    public EventVO<OrderInfoVO> convertEventOrderInfo(OrderInfo item)
+    public EventVO<OrderInfoVO> convertEventOrderInfo(OrderInfoVO item)
     {
         EventVO<OrderInfoVO> eventVO = new EventVO<>();
-        OrderInfoVO orderInfoVO = new OrderInfoVO();
-        BeanUtils.copyProperties(item, orderInfoVO);
-
         LocalDate today = LocalDate.now();
         LocalDate deadline = item.getOrderDeadline().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         long daysUntilDeadline = today.until(deadline, ChronoUnit.DAYS);
 
         eventVO.setId(item.getId());
-        eventVO.setContent(orderInfoVO);
+        eventVO.setContent(item);
         eventVO.setDate(Date.from(deadline.atStartOfDay(ZoneId.systemDefault()).toInstant()));
         eventVO.setLevel(UrgencyLevelEnum.getUrgency(daysUntilDeadline).getLevel());
         return eventVO;
@@ -696,5 +664,5 @@ class OrderValidator
         }
     }
 
-    
+
 }

@@ -5,7 +5,10 @@ import com.baomidou.mybatisplus.annotation.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+
+import com.caixy.adminSystem.model.dto.order.OrderInfoEsDTO;
 import lombok.Data;
+import org.springframework.beans.BeanUtils;
 
 /**
  * 订单信息
@@ -168,4 +171,12 @@ public class OrderInfo implements Serializable
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
+
+    public static OrderInfo of(OrderInfoEsDTO orderInfoEsDTO)
+    {
+        OrderInfo orderInfo = new OrderInfo();
+        BeanUtils.copyProperties(orderInfoEsDTO, orderInfo);
+        return orderInfo;
+    }
 }

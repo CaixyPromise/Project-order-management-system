@@ -4,6 +4,7 @@ package com.caixy.adminSystem.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.caixy.adminSystem.model.common.EsPage;
 import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import com.caixy.adminSystem.model.dto.order.OrderInfoEsDTO;
 import com.caixy.adminSystem.model.dto.order.OrderInfoQueryRequest;
@@ -13,7 +14,6 @@ import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +47,7 @@ public interface OrderInfoService extends IService<OrderInfo>
      * @param postQueryRequest
      * @return
      */
-    Page<OrderInfo> searchFromEs(OrderInfoQueryRequest postQueryRequest);
+    EsPage<OrderInfoPageVO> searchFromEs(OrderInfoQueryRequest postQueryRequest);
 
     /**
      * 获取帖子封装
@@ -55,16 +55,7 @@ public interface OrderInfoService extends IService<OrderInfo>
      * @param post
      * @return
      */
-    OrderInfoVO getOrderInfoVO(OrderInfo post);
-
-    /**
-     * 分页获取帖子封装
-     *
-     * @param postPage
-     * @param request
-     * @return
-     */
-    Page<OrderInfoPageVO> getOrderInfoPageVO(Page<OrderInfo> postPage, HttpServletRequest request);
+    OrderInfoVO getOrderInfoVO(Long id);
 
     Map<String, String> generateFileUploadToken(List<UploadFileInfoDTO> fileInfoList,
                                                 Long orderId);

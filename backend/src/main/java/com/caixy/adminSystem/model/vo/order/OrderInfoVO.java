@@ -1,7 +1,10 @@
 package com.caixy.adminSystem.model.vo.order;
 
+import com.caixy.adminSystem.model.dto.order.OrderInfoEsDTO;
 import com.caixy.adminSystem.model.vo.file.OrderFileVO;
+import com.caixy.adminSystem.utils.JsonUtils;
 import lombok.Data;
+import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -173,4 +176,23 @@ public class OrderInfoVO implements Serializable
     private List<OrderFileVO> orderAttachmentList;
 
     private static final long serialVersionUID = 1L;
+
+    /**
+     * 转成InfoVO
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @since 2024/6/26 下午8:58
+     */
+    public static OrderInfoVO of(OrderInfoEsDTO dto)
+    {
+        OrderInfoVO vo = new OrderInfoVO();
+        BeanUtils.copyProperties(dto, vo);
+        vo.setOrderStatus(dto.getOrderStatus());
+        vo.setOrderSource(dto.getOrderSource());
+        vo.setPaymentMethod(dto.getPaymentMethodText());
+        vo.setPaymentMethodCode(dto.getPaymentMethod());
+        vo.setOrderTags(JsonUtils.toJsonString(dto.getOrderTags()));
+        return vo;
+    }
 }

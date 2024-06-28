@@ -1,33 +1,24 @@
-package com.caixy.adminSystem.job.once;
+package com.caixy.adminSystem.job.cycle;
 
 import cn.hutool.core.collection.CollUtil;
 import com.caixy.adminSystem.esdao.OrderEsRepository;
 import com.caixy.adminSystem.model.dto.order.OrderInfoEsDTO;
-import com.caixy.adminSystem.model.entity.OrderFileInfo;
 import com.caixy.adminSystem.model.entity.OrderInfo;
-import com.caixy.adminSystem.model.enums.OrderSourceEnum;
-import com.caixy.adminSystem.model.enums.OrderStatusEnum;
-import com.caixy.adminSystem.model.enums.PaymentMethodEnum;
-import com.caixy.adminSystem.service.*;
-import com.caixy.adminSystem.utils.CommonUtils;
-import com.caixy.adminSystem.utils.JsonUtils;
+import com.caixy.adminSystem.service.OrderInfoService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.Resource;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.Date;
+import java.util.List;
 
 /**
- * 全量同步帖子到 es
+ * 增量同步帖子到 es
  */
 // todo 取消注释开启任务
-@Component
+//@Component
 @Slf4j
-public class FullSyncPostToEs implements CommandLineRunner
+public class IncSyncOrderInfoToEs
 {
     @Resource
     private OrderInfoService orderInfoService;
@@ -35,26 +26,30 @@ public class FullSyncPostToEs implements CommandLineRunner
     @Resource
     private OrderEsRepository orderEsRepository;
 
-
-    @Override
-    public void run(String... args)
+    /**
+     * 每分钟执行一次
+     */
+    @Scheduled(fixedRate = 60 * 1000)
+    public void run()
     {
-        List<OrderInfo> postList = orderInfoService.list();
+        // 查询近 2 分钟内的数据
+        Date fiveMinutesAgoDate = new Date(new Date().getTime() - 2 * 60 * 1000L);
+        List<OrderInfo> postList = orderInfoService.listOrderInfoWithDeleteByUpdateDate(fiveMinutesAgoDate);
         if (CollUtil.isEmpty(postList))
         {
+            log.info("no inc post");
             return;
         }
         List<OrderInfoEsDTO> orderInfoEsDTOS = orderInfoService.getOrderInfoEsDTOList(postList);
         final int pageSize = 500;
         int total = orderInfoEsDTOS.size();
-        log.info("FullSyncPostToEs start, total {}", total);
+        log.info("IncSyncOrderInfoToEs start, total {}", total);
         for (int i = 0; i < total; i += pageSize)
         {
             int end = Math.min(i + pageSize, total);
             log.info("sync from {} to {}", i, end);
             orderEsRepository.saveAll(orderInfoEsDTOS.subList(i, end));
         }
-        log.info("FullSyncPostToEs end, total {}", total);
+        log.info("IncSyncOrderInfoToEs end, total {}", total);
     }
-
 }
