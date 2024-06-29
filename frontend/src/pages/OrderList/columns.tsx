@@ -1,25 +1,12 @@
 import type {ProColumns} from "@ant-design/pro-components";
-import {Space, Tag, Typography} from "antd";
-import React from "react";
-import {ColumnsParams} from "@/typings";
+import {Space, Typography} from "antd";
 import OrderActionButton from "@/pages/OrderList/components/OrderActionButton";
 import {OrderStatusEnum} from "@/enums/OrderStatusEnum";
 import {history} from "@@/exports";
-import {fetchCategory, fetchLangType} from "@/pages/OrderForm/server";
 import {OrderSourceEnum} from "@/enums/OrderSourceEnum";
-
-const BooleanTag = ({ text }: { text: boolean | undefined }) =>
-{
-    if (text)
-    {
-        return <Tag color="green">是</Tag>
-    }
-    else
-    {
-        return <Tag color="red">否</Tag>
-    }
-}
-
+import BooleanTag from "@/components/BooleanTag";
+import {fetchCategory, fetchLangType} from "@/pages/OrderForm/utils";
+import {ColumnsParams} from "@/typings";
 
 export const getOrderListColumn = ({
     setCurrentRow, setDetailsModalVisible, handleDelete
@@ -32,8 +19,6 @@ export const getOrderListColumn = ({
         valueType: 'text',
         hideInForm: true,
         editable: false
-
-
     },
     {
         title: "平台订单id",
@@ -41,6 +26,24 @@ export const getOrderListColumn = ({
         valueType: "text",
         width: 100,
         editable: false
+    },
+    {
+        title: "客户联系方式",
+        dataIndex: "customerContact",
+        valueType: "text",
+        hideInTable: true,
+    },
+    {
+        title: "客户邮箱",
+        dataIndex: "customerEmail",
+        valueType: "text",
+        hideInTable: true,
+    },
+    {
+        title: "订单分配人微信Id",
+        dataIndex: "orderAssignToWxId",
+        valueType: "text",
+        hideInTable: true,
     },
     {
         title: "订单描述名称",
@@ -54,12 +57,11 @@ export const getOrderListColumn = ({
         valueType: "text",
         hideInForm: true,
         editable: false
-
     },
     {
         title: "总金额",
         dataIndex: "amount",
-        valueType: "text",
+        valueType: "digit",
         hideInForm: true,
     },
     {
@@ -71,8 +73,9 @@ export const getOrderListColumn = ({
     {
         title: "订单编程语言",
         dataIndex: "langName",
-        valueType: "text",
-        request: async () => {
+        valueType: "select",
+        request: async () =>
+        {
             return fetchLangType()
         },
         editable: false,
@@ -80,8 +83,9 @@ export const getOrderListColumn = ({
     {
         title: "订单分类名称",
         dataIndex: "orderCategoryName",
-        valueType: "text",
-        request: async () => {
+        valueType: "select",
+        request: async () =>
+        {
             return fetchCategory()
         },
         editable: false

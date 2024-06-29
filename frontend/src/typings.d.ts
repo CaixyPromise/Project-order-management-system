@@ -74,7 +74,7 @@ interface ColumnsParams<T>
 {
     setCurrentRow: React.Dispatch<React.SetStateAction<T>>;
     setUpdateModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
-    handleDelete: (record: T) => void;
+    handleDelete: (record: T, actionRef ?: React.Ref<any>) => void;
 }
 
 

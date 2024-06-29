@@ -7,30 +7,24 @@ import {uploadFileUsingPost1} from "@/services/backend/fileController";
 import {OrderFormServer} from "@/pages/OrderForm/typings";
 
 
-const fetchCategory = async () =>
+const queryCategory = async () =>
 {
     const { data, code } = await getCategoryOptionListUsingGet1();
     if (code === 0 && data)
     {
         // 确保value以字符串形式处理
-        return data.map(item => ({
-            ...item,
-            value: item?.value.toString()
-        })) as OrderFormServer.CategoryResponse;
+        return data;
     }
     return [] as OrderFormServer.CategoryResponse;
 }
 
-const fetchLangType = async () =>
+const queryLangType = async () =>
 {
     const { data, code } = await getLanguageTypeOptionListUsingGet1();
     if (code === 0 && data)
     {
         // 确保value以字符串形式处理
-        return data.map(item => ({
-            ...item,
-            value: String(item.value)
-        })) as OrderFormServer.LangTypeResponse;
+        return data
     }
     return [] as OrderFormServer.LangTypeResponse;
 }
@@ -63,8 +57,8 @@ const uploadAttachment = async (file: RcFile, token: string): Promise<boolean> =
 
 
 export {
-    fetchCategory,
-    fetchLangType,
+    queryCategory,
+    queryLangType,
     postOrderInfo,
     uploadAttachment
 }

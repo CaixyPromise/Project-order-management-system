@@ -2,7 +2,6 @@ package com.caixy.adminSystem.service;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.caixy.adminSystem.model.common.EsPage;
 import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
@@ -39,7 +38,7 @@ public interface OrderInfoService extends IService<OrderInfo>
      * @param postQueryRequest
      * @return
      */
-    QueryWrapper<OrderInfo> getQueryWrapper(OrderInfoQueryRequest postQueryRequest);
+    EsPage<OrderInfoPageVO> searchFromEs(OrderInfoQueryRequest postQueryRequest);
 
     /**
      * 从 ES 查询
@@ -47,7 +46,7 @@ public interface OrderInfoService extends IService<OrderInfo>
      * @param postQueryRequest
      * @return
      */
-    EsPage<OrderInfoPageVO> searchFromEs(OrderInfoQueryRequest postQueryRequest);
+    EsPage<OrderInfoPageVO> getPageVoFromEs(OrderInfoQueryRequest postQueryRequest);
 
     /**
      * 获取帖子封装

@@ -199,30 +199,30 @@ public class OrderController
         }
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        EsPage<OrderInfoPageVO> postPage = orderInfoService.searchFromEs(postQueryRequest);
+        EsPage<OrderInfoPageVO> postPage = orderInfoService.getPageVoFromEs(postQueryRequest);
         return ResultUtils.success(postPage);
     }
 
 
     // endregion
 
-//    /**
-//     * 分页搜索（从 ES 查询，封装类）
-//     *
-//     * @param postQueryRequest
-//     * @param request
-//     * @return
-//     */
-//    @PostMapping("/search/page/vo")
-//    public BaseResponse<Page<OrderInfoPageVO>> searchOrderInfoVOByPage(@RequestBody OrderInfoQueryRequest postQueryRequest,
-//                                                                       HttpServletRequest request)
-//    {
-//        long size = postQueryRequest.getPageSize();
-//        // 限制爬虫
-//        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-//        Page<OrderInfoPageVO> postPage = orderInfoService.searchFromEs(postQueryRequest);
-//        return ResultUtils.success(postPage);
-//    }
+    /**
+     * 分页搜索（从 ES 查询，封装类）
+     *
+     * @param postQueryRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/search/page/vo")
+    public BaseResponse<Page<OrderInfoPageVO>> searchOrderInfoVOByPage(@RequestBody OrderInfoQueryRequest postQueryRequest,
+                                                                       HttpServletRequest request)
+    {
+        long size = postQueryRequest.getPageSize();
+        // 限制爬虫
+        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+        Page<OrderInfoPageVO> postPage = orderInfoService.searchFromEs(postQueryRequest);
+        return ResultUtils.success(postPage);
+    }
 
     @GetMapping("/getEvent")
     public BaseResponse<List<EventVO<OrderInfoVO>>> getOrderEventList(

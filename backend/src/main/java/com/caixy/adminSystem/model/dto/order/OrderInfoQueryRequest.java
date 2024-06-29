@@ -19,7 +19,6 @@ public class OrderInfoQueryRequest extends PageRequest implements Serializable
      */
     private Long id;
 
-
     /**
      * 订单id
      */
@@ -42,12 +41,12 @@ public class OrderInfoQueryRequest extends PageRequest implements Serializable
      * 语言名称
      */
 
-    private Long langId;
+    private Long langName;
 
     /**
      * 分类名称
      */
-    private Long orderCategoryId;
+    private Long orderCategoryName;
     /**
      * 订单状态
      */
@@ -55,11 +54,11 @@ public class OrderInfoQueryRequest extends PageRequest implements Serializable
     /**
      * 是否分配
      */
-    private Boolean isAssigned;
+    private Integer isAssigned;
     /**
      * 是否支付
      */
-    private Boolean isPaid;
+    private Integer isPaid;
     /**
      * 订单来源
      */

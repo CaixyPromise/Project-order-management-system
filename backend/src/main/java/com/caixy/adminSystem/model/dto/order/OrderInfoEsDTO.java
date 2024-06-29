@@ -21,7 +21,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 /**
- * 帖子 ES 包装类
+ * 订单 ES 包装类
  **/
 @Document(indexName = "order")
 @Data

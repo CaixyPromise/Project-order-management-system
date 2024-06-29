@@ -17,7 +17,6 @@ import UploadBox, {UploadBoxHandle} from "@/pages/OrderForm/components/UploadBox
 import useAsyncHandler from "@/hooks/useAsyncHandler";
 import EditableTags from "@/pages/OrderForm/components/EditableTags";
 import useStyles from "@/pages/OrderForm/style.style";
-import {fetchCategory, fetchLangType, postOrderInfo, uploadAttachment} from "@/pages/OrderForm/server";
 import {OptionArray} from "@/typings";
 import {history} from "@umijs/max";
 import {
@@ -31,6 +30,8 @@ import {
 import {queryOrderVO} from "@/pages/OrderList/server";
 import JsonUtils from "@/utils/JsonUtils";
 import {OrderFormServer, OrderFormType} from "@/pages/OrderForm/typings";
+import {fetchCategory, fetchLangType} from "@/pages/OrderForm/utils";
+import {postOrderInfo, uploadAttachment} from "@/pages/OrderForm/server";
 
 
 const Index: React.FC = () =>

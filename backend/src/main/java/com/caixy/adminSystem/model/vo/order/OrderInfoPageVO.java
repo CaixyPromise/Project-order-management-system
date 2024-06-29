@@ -139,7 +139,7 @@ public class OrderInfoPageVO implements Serializable
         vo.setIsAssigned(dto.getIsAssignedValue());
         vo.setOrderSource(dto.getOrderSourceText());
         vo.setOrderCategoryName(dto.getCategoryName());
-
+        vo.setIsPaid(dto.getIsPaidValue());
         return vo;
     }
 }

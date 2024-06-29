@@ -67,7 +67,7 @@ export async function listOrderInfoVoByPageUsingPost1(
   body: API.OrderInfoQueryRequest,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponsePageOrderInfoPageVO_>('/api/order/list/page/vo', {
+  return request<API.BaseResponseEsPageOrderInfoPageVO_>('/api/order/list/page/vo', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

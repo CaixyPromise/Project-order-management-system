@@ -33,6 +33,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseEsPageOrderInfoPageVO_ = {
+    code?: number;
+    data?: EsPageOrderInfoPageVO_;
+    message?: string;
+  };
+
   type BaseResponseInt_ = {
     code?: number;
     data?: number;
@@ -180,6 +186,20 @@ declare namespace API {
     id?: number;
   };
 
+  type EsPageOrderInfoPageVO_ = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: OrderInfoPageVO[];
+    searchAfter?: Record<string, any>[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
   type EventVOOrderInfoVO_ = {
     content?: OrderInfoVO;
     date?: string;
@@ -234,6 +254,7 @@ declare namespace API {
     id?: number;
     notId?: number;
     pageSize?: number;
+    searchAfter?: Record<string, any>[];
     searchText?: string;
     sortField?: string;
     sortOrder?: string;
@@ -286,6 +307,7 @@ declare namespace API {
     id?: number;
     notId?: number;
     pageSize?: number;
+    searchAfter?: Record<string, any>[];
     searchText?: string;
     sortField?: string;
     sortOrder?: string;
@@ -353,11 +375,14 @@ declare namespace API {
     amountPaid?: number;
     createTime?: string;
     creatorName?: string;
+    customerContact?: string;
+    customerEmail?: string;
     hasOrderAttachment?: boolean;
     id?: number;
     isAssigned?: boolean;
     isPaid?: boolean;
     langName?: string;
+    orderAssignToWxId?: string;
     orderCategoryName?: string;
     orderDeadline?: string;
     orderId?: string;
@@ -368,19 +393,25 @@ declare namespace API {
   };
 
   type OrderInfoQueryRequest = {
-    content?: string;
+    amount?: number;
+    creatorName?: string;
     current?: number;
-    favourUserId?: number;
+    customerContact?: string;
+    customerEmail?: string;
     id?: number;
-    notId?: number;
-    orTags?: string[];
+    isAssigned?: number;
+    isPaid?: number;
+    langId?: number;
+    orderAssignToWxId?: string;
+    orderCategoryId?: number;
+    orderId?: string;
+    orderSource?: string;
+    orderStatus?: number;
+    orderTitle?: string;
     pageSize?: number;
-    searchText?: string;
+    searchAfter?: Record<string, any>[];
     sortField?: string;
     sortOrder?: string;
-    tags?: string[];
-    title?: string;
-    userId?: number;
   };
 
   type OrderInfoUpdateRequest = {
@@ -445,7 +476,8 @@ declare namespace API {
     orderStatus?: number;
     orderTags?: string;
     orderTitle?: string;
-    paymentMethod?: number;
+    paymentMethod?: string;
+    paymentMethodCode?: number;
     updateTime?: string;
   };
 
@@ -579,6 +611,7 @@ declare namespace API {
     current?: number;
     pageSize?: number;
     postQueryRequest?: PostQueryRequest;
+    searchAfter?: Record<string, any>[];
     sortField?: string;
     sortOrder?: string;
     userId?: number;
@@ -592,6 +625,7 @@ declare namespace API {
     notId?: number;
     orTags?: string[];
     pageSize?: number;
+    searchAfter?: Record<string, any>[];
     searchText?: string;
     sortField?: string;
     sortOrder?: string;
@@ -686,6 +720,7 @@ declare namespace API {
     id?: number;
     mpOpenId?: string;
     pageSize?: number;
+    searchAfter?: Record<string, any>[];
     sortField?: string;
     sortOrder?: string;
     unionId?: string;

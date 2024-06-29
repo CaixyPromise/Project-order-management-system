@@ -113,43 +113,78 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         }
     }
 
-    @Override
-    public QueryWrapper<OrderInfo> getQueryWrapper(OrderInfoQueryRequest postQueryRequest)
-    {
-        return null;
-    }
-
+    /**
+     * 针对从es内查询订单信息
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @since 2024/6/29 下午2:18
+     */
     @Override
     public EsPage<OrderInfoPageVO> searchFromEs(OrderInfoQueryRequest postQueryRequest)
     {
         int pageSize = postQueryRequest.getPageSize();
         int current = postQueryRequest.getCurrent();
-
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
         addToQuery(boolQueryBuilder, "id", postQueryRequest.getId());
         addToQuery(boolQueryBuilder, "orderId", postQueryRequest.getOrderId());
-        addToQuery(boolQueryBuilder, "orderTitle", postQueryRequest.getOrderTitle());
         addToQuery(boolQueryBuilder, "creatorName", postQueryRequest.getCreatorName());
         addToQuery(boolQueryBuilder, "amount", postQueryRequest.getAmount());
-        addToQuery(boolQueryBuilder, "orderLangId", postQueryRequest.getLangId());
-        addToQuery(boolQueryBuilder, "orderCategoryId", postQueryRequest.getOrderCategoryId());
-        addToQuery(boolQueryBuilder, "orderStatusCode", postQueryRequest.getOrderStatus());
+        addToQuery(boolQueryBuilder, "orderLangId", postQueryRequest.getLangName());
+        addToQuery(boolQueryBuilder, "orderCategoryId", postQueryRequest.getOrderCategoryName());
+        addToQuery(boolQueryBuilder, "orderStatus", postQueryRequest.getOrderStatus());
         addToQuery(boolQueryBuilder, "isAssigned", postQueryRequest.getIsAssigned());
         addToQuery(boolQueryBuilder, "isPaid", postQueryRequest.getIsPaid());
         addToQuery(boolQueryBuilder, "orderSourceCode", postQueryRequest.getOrderSource());
         addToQuery(boolQueryBuilder, "customerContact", postQueryRequest.getCustomerContact());
         addToQuery(boolQueryBuilder, "customerEmail", postQueryRequest.getCustomerEmail());
         addToQuery(boolQueryBuilder, "orderAssignToWxId", postQueryRequest.getOrderAssignToWxId());
-
+        addToQuery(boolQueryBuilder, "isDelete", 0);
+        if (StringUtils.isNotBlank(postQueryRequest.getOrderTitle()))
+        {
+            boolQueryBuilder.filter(QueryBuilders.matchQuery("orderTitle", postQueryRequest.getOrderTitle()));
+        }
         NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
                 .withQuery(boolQueryBuilder)
-                .withSort(Sort.by(Sort.Order.desc("orderDeadline")));
+                .withSort(Sort.by(Sort.Order.desc("orderDeadline")))
+                .withSort(Sort.by(Sort.Order.asc("id")));
+        NativeSearchQuery searchQuery = queryBuilder.build();
+        SearchHits<OrderInfoEsDTO> searchHits = elasticsearchTemplate.search(searchQuery, OrderInfoEsDTO.class);
+        List<OrderInfoPageVO> orderInfoPageVOS = searchHits.getSearchHits().stream()
+                .map(SearchHit::getContent)
+                .map(OrderInfoPageVO::ofPageVO)
+                .collect(Collectors.toList());
+        EsPage<OrderInfoPageVO> pageVOPage = new EsPage<>(current, pageSize);
+        pageVOPage.setTotal(searchHits.getTotalHits());
+        pageVOPage.setRecords(orderInfoPageVOS);
+        return pageVOPage;
+    }
+
+    /**
+     * 根据es进行分页查找
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @since 2024/6/29 下午2:19
+     */
+    @Override
+    public EsPage<OrderInfoPageVO> getPageVoFromEs(OrderInfoQueryRequest postQueryRequest)
+    {
+        int pageSize = postQueryRequest.getPageSize();
+        int current = postQueryRequest.getCurrent();
+
+        NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
+                .withSort(Sort.by(Sort.Order.desc("orderDeadline")))
+                .withSort(Sort.by(Sort.Order.asc("id")));
 
         // 处理 searchAfter 参数
         List<Object> searchAfterValue = postQueryRequest.getSearchAfter();
         if (searchAfterValue != null && !searchAfterValue.isEmpty())
         {
+            Object timestamp = searchAfterValue.get(0);
+            searchAfterValue.remove(0);
+            searchAfterValue.add(0, new Date(Long.parseLong(timestamp.toString())).getTime());
             queryBuilder.withSearchAfter(searchAfterValue);
         }
         // 只使用size，不使用页码
