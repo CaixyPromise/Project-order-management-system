@@ -1,6 +1,8 @@
-package com.caixy.adminSystem.config.properties;
+package com.caixy.adminSystem.config.properties.RabbitMQ;
 
+import com.caixy.adminSystem.config.properties.RabbitMQ.core.ExchangeTypeEnum;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -10,7 +12,7 @@ import java.util.List;
  * RabbitMQ配置类
  *
  * @author CAIXYPROMISE
- * @name com.caixy.adminSystem.config.properties.RabbitMQProperties
+ * @name com.caixy.adminSystem.config.properties.RabbitMQ.RabbitMQProperties
  * @since 2024-06-19 22:42
  **/
 @Configuration
@@ -18,14 +20,6 @@ import java.util.List;
 @Data
 public class RabbitMQProperties
 {
-    public static final String DIRECT_EXCHANGE = "direct";
-
-    public static final String TOPIC_EXCHANGE = "topic";
-
-    public static final String DELAY_EXCHANGE_TYPE = "x-delayed-message";
-
-    public static final String FANOUT_EXCHANGE = "fanout";
-
     public static final String DELAY_QUEUE_ARGS = "x-delay";
 
     /**
@@ -43,10 +37,22 @@ public class RabbitMQProperties
          * 交换机名称
          */
         private String name;
+
+        /**
+         * 对应交换机的死信队列的交换机
+         */
+        private String deadLetterExchangeName;
+
         /**
          * 交换机类型
          */
-        private String type;
+        private ExchangeTypeEnum type;
+
+        /**
+         * 对应交换机类型
+         */
+        private ExchangeTypeEnum deadLetterExchangeType = ExchangeTypeEnum.DIRECT;
+
         /**
          * 绑定信息
          */
@@ -76,6 +82,12 @@ public class RabbitMQProperties
          * 路由键
          */
         private String routingKey;
+
+        /**
+         * 死信队列路由键
+         */
+        private String deadLetterRoutingKey;
+
         /**
          * 死信队列名称
          */

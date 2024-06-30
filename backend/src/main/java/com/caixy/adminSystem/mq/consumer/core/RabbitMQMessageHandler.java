@@ -20,7 +20,7 @@ public interface RabbitMQMessageHandler<T>
      * @param rawMessage 原始消息对象
      * @throws Exception 处理消息过程中可能抛出的异常
      */
-    void handleMessage(T message, Channel channel, Message rawMessage) throws Exception;
+    void handleMessage(T message, Channel channel, Message rawMessage, String messageId) throws Exception;
 
     /**
      * 处理死信队列中的消息

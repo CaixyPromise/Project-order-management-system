@@ -14,8 +14,9 @@ public interface RabbitMQProducerHandler<T>
     /**
      * 发送消息的方法
      *
-     * @param queueEnum 队列枚举信息
      * @param message   要发送的消息内容
      */
-    void sendMessage(RabbitMQQueueEnum queueEnum, T message);
+    void sendMessage(T message);
+
+    void sendDelayMessage(T message);
 }

@@ -16,12 +16,26 @@ import javax.annotation.Nullable;
 @Getter
 public enum RabbitMQQueueEnum
 {
+    /**
+     * 订单附件
+     */
     ORDER_ATTACHMENT("orderDelayExchange",
             "order.attachment",
-            "orderAttachmentQueue",
+            "orderDelayAttachmentQueue",
             "X-DeadLetter-Attachment-Queue",
             // 延迟时间，单位为毫秒, 10 分钟
-            60L * 1000L * 10L);
+            60L * 1000L * 10L,
+            true),
+    /**
+     * 订单更新
+     */
+    ORDER_ASYNC_SAVE_ES("orderInfoExchange",
+            "order.save",
+            "orderSaveQueue",
+            null,
+            null,
+            false
+    ),
     ;
     /**
      * 交换机名称
@@ -47,6 +61,12 @@ public enum RabbitMQQueueEnum
      * 延迟时间
      */
     private final Long delayTime;
+
+    /**
+     * 是否是延迟队列
+     */
+    private final Boolean isDelay;
+
 
 
     /**

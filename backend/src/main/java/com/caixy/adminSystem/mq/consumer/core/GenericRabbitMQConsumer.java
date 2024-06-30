@@ -54,25 +54,19 @@ public abstract class GenericRabbitMQConsumer<T> implements RabbitMQMessageHandl
         T message = JsonUtils.byteArrayToJson(rawMessage.getBody(), StandardCharsets.UTF_8, messageType);
         try
         {
-            handleMessage(message, channel, rawMessage);
+            handleMessage(message, channel, rawMessage, rawMessage.getMessageProperties().getMessageId());
         }
         catch (Exception e)
         {
             // 处理失败逻辑
-            rejectMessage(channel, rawMessage.getMessageProperties().getDeliveryTag(), false);
+            rejectMessage(channel, rawMessage, false);
         }
     }
 
-    // 处理死信队列的消息
-    @Override
-    public void handleDeadLetterMessage(T message, Channel channel, Message rawMessage) throws Exception
-    {
-        // 由子类实现
-    }
 
-    protected void confirmMessage(Channel channel, long deliveryTag) throws IOException
+    protected void confirmMessage(Channel channel, Message rawMessage) throws IOException
     {
-        channel.basicAck(deliveryTag, false);
+        channel.basicAck(rawMessage.getMessageProperties().getDeliveryTag(), false);
     }
 
     /**
@@ -94,9 +88,9 @@ public abstract class GenericRabbitMQConsumer<T> implements RabbitMQMessageHandl
      * @version 1.0
      * @since 2024/6/23 下午12:10
      */
-    protected void rejectMessage(Channel channel, long deliveryTag, boolean requeue) throws IOException
+    protected void rejectMessage(Channel channel, Message message, boolean requeue) throws IOException
     {
-        channel.basicNack(deliveryTag, false, requeue);
+        channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, requeue);
     }
 
     /**
