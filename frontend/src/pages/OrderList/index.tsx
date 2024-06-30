@@ -1,5 +1,3 @@
-import CreateModal from '@/pages/Admin/User/components/CreateModal';
-import UpdateModal from '@/pages/Admin/User/components/UpdateModal';
 import {PlusOutlined} from '@ant-design/icons';
 import type {ActionType} from '@ant-design/pro-components';
 import {ProTable} from '@ant-design/pro-components';
@@ -22,12 +20,9 @@ import {listOrderInfoVoByPageUsingPost1, searchOrderInfoVoByPageUsingPost1} from
 const OrderAdminPage: React.FC = () =>
 {
     const { id } = useParams();
-    // 是否显示更新窗口
-    const [ updateModalVisible, setUpdateModalVisible ] = useState<boolean>(false);
     const actionRef = useRef<ActionType>();
     // 当前用户点击的数据
     const [ currentRow, setCurrentRow ] = useState<API.OrderInfoPageVO>({});
-
     const [ queryHandler, pageLoading ] = useAsyncHandler<{
         code?: number;
         data?: API.EsPageOrderInfoPageVO_;
@@ -43,7 +38,6 @@ const OrderAdminPage: React.FC = () =>
         setCurrentRow,
         setDetailsModalVisible,
         handleDelete,
-        setUpdateModalVisible
     }), []); // 添加 editableKeys 作为依赖项，确保在其变化时重新计算
 
     useEffect(() =>
@@ -126,21 +120,7 @@ const OrderAdminPage: React.FC = () =>
                     columns={column}
                 />
             </Spin>
-            <UpdateModal
-                visible={updateModalVisible}
-                columns={column}
-                oldData={currentRow}
-                onSubmit={() =>
-                {
-                    setUpdateModalVisible(false);
-                    setCurrentRow({});
-                    actionRef.current?.reload();
-                }}
-                onCancel={() =>
-                {
-                    setUpdateModalVisible(false);
-                }}
-            />
+            {/*// @ts-ignore*/}
             <OrderDetailsModal currentRow={currentRow} open={detailsModalVisible} setOpen={setDetailsModalVisible}/>
         </>
     );

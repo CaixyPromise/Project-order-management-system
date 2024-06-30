@@ -72,9 +72,9 @@ interface InitialState
 
 interface ColumnsParams<T>
 {
-    setCurrentRow: React.Dispatch<React.SetStateAction<T>>;
-    setUpdateModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
-    handleDelete: (record: T, actionRef ?: React.Ref<any>) => void;
+    setCurrentRow?: React.Dispatch<React.SetStateAction<T>>;
+    setUpdateModalVisible?: React.Dispatch<React.SetStateAction<boolean>>;
+    handleDelete?: (record: T, actionRef ?: React.Ref<any>) => void;
 }
 
 

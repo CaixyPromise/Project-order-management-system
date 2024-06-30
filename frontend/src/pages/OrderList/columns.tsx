@@ -196,7 +196,7 @@ export const getOrderListColumn = ({
                 <Typography.Link
                     onClick={() =>
                     {
-                        setCurrentRow(record);
+                        setCurrentRow?.(record);
                         setDetailsModalVisible(true);
                     }}
                 >
@@ -210,7 +210,7 @@ export const getOrderListColumn = ({
                     编辑
                 </Typography.Link>
 
-                <Typography.Link type="danger" onClick={() => handleDelete(record)}>
+                <Typography.Link type="danger" onClick={() => handleDelete?.(record)}>
                     删除
                 </Typography.Link>
             </Space>
