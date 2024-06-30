@@ -80,10 +80,9 @@ public class OrderInfoVO implements Serializable
     /**
      * 支付方式
      */
-    private String paymentMethod;
+    private String paymentMethodText;
 
-    private Integer paymentMethodCode;
-
+    private Integer paymentMethod;
 
     /**
      * 订单来源
@@ -188,10 +187,6 @@ public class OrderInfoVO implements Serializable
     {
         OrderInfoVO vo = new OrderInfoVO();
         BeanUtils.copyProperties(dto, vo);
-        vo.setOrderStatus(dto.getOrderStatus());
-        vo.setOrderSource(dto.getOrderSource());
-        vo.setPaymentMethod(dto.getPaymentMethodText());
-        vo.setPaymentMethodCode(dto.getPaymentMethod());
         vo.setOrderTags(JsonUtils.toJsonString(dto.getOrderTags()));
         return vo;
     }

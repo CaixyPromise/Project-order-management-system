@@ -8,6 +8,7 @@ import com.caixy.adminSystem.common.DeleteRequest;
 import com.caixy.adminSystem.common.ErrorCode;
 import com.caixy.adminSystem.common.ResultUtils;
 import com.caixy.adminSystem.constant.UserConstant;
+import com.caixy.adminSystem.esdao.OrderEsRepository;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.exception.ThrowUtils;
 import com.caixy.adminSystem.model.common.EsPage;
@@ -19,7 +20,9 @@ import com.caixy.adminSystem.model.enums.RabbitMQQueueEnum;
 import com.caixy.adminSystem.model.vo.order.EventVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
-import com.caixy.adminSystem.mq.producer.OrderAttachmentProducer;
+import com.caixy.adminSystem.mq.consumer.exchange.OrderInfo.OrderInfoSaveConsumer;
+import com.caixy.adminSystem.mq.producer.exchange.OrderAttachment.OrderAttachmentProducer;
+import com.caixy.adminSystem.mq.producer.exchange.OrderInfo.OrderInfoSaveProducer;
 import com.caixy.adminSystem.service.OrderInfoService;
 import com.caixy.adminSystem.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +57,12 @@ public class OrderController
 
     @Resource
     private OrderAttachmentProducer orderAttachmentProducer;
+
+    @Resource
+    private OrderInfoSaveProducer orderInfoSaveProducer;
+
+    @Resource
+    private OrderEsRepository orderEsRepository;
 
     // region 增删改查
 
@@ -93,6 +102,7 @@ public class OrderController
         post.setOrderAttachmentNum(attachmentList.size());
         boolean result = orderInfoService.save(post);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        orderInfoSaveProducer.sendMessage(post.getId());
         return ResultUtils.success(buildOrderInfoResponse(post, hasAttachment, attachmentList, loginUser));
     }
 
@@ -121,7 +131,13 @@ public class OrderController
         {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
-        return ResultUtils.success(orderInfoService.deleteOrderInfo(oldOrderInfo));
+        Boolean deleted = orderInfoService.deleteOrderInfo(oldOrderInfo);
+        // 如果删除成功
+        if (deleted)
+        {
+            orderEsRepository.deleteById(oldOrderInfo.getId());
+        }
+        return ResultUtils.success(deleted);
     }
 
     /**
@@ -162,6 +178,7 @@ public class OrderController
         }
         boolean result = orderInfoService.updateById(post);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        orderInfoSaveProducer.sendMessage(post.getId());
         return ResultUtils.success(buildOrderInfoResponse(post, hasAttachment, attachmentList, loginUser));
     }
 
@@ -279,7 +296,7 @@ public class OrderController
             orderFileUploadMqDTO.setFileCount(attachmentList.size());
             orderFileUploadMqDTO.setOrderId(newOrderInfoId);
             orderFileUploadMqDTO.setUserId(loginUser.getId());
-            orderAttachmentProducer.sendMessage(RabbitMQQueueEnum.ORDER_ATTACHMENT, orderFileUploadMqDTO);
+            orderAttachmentProducer.sendMessage(orderFileUploadMqDTO);
             log.info("发送延迟消息: {}", orderFileUploadMqDTO);
         }
         else
