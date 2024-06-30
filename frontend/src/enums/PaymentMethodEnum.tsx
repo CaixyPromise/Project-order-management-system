@@ -17,13 +17,10 @@ class PaymentMethodEnum
 
     static getAllOptions(): OptionArray<number>
     {
-        return PaymentMethodEnum.allValues.map(item =>
-        {
-            return {
-                value: item.code,
-                label: item.text
-            }
-        })
+        return PaymentMethodEnum.allValues.map(item => ({
+            value: item.code,
+            label: item.text
+        }));
     }
 
     static getByCode(value: number | undefined): PaymentMethodEnum | null

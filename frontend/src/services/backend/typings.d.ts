@@ -401,9 +401,9 @@ declare namespace API {
     id?: number;
     isAssigned?: number;
     isPaid?: number;
-    langId?: number;
+    langName?: number;
     orderAssignToWxId?: string;
-    orderCategoryId?: number;
+    orderCategoryName?: number;
     orderId?: string;
     orderSource?: string;
     orderStatus?: number;
@@ -476,8 +476,8 @@ declare namespace API {
     orderStatus?: number;
     orderTags?: string;
     orderTitle?: string;
-    paymentMethod?: string;
-    paymentMethodCode?: number;
+    paymentMethod?: number;
+    paymentMethodText?: string;
     updateTime?: string;
   };
 

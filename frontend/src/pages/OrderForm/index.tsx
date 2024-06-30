@@ -73,6 +73,7 @@ const Index: React.FC = () =>
         const response = await fetchOrderInfoHandler(queryOrderVO, [ id ], () => message.error("获取订单信息失败，返回订单列表"))
         if (response)
         {
+            console.log("response is: ", response)
             formRef.setFieldsValue({
                 ...response,
                 orderDesc: BraftEditor.createEditorState(response.orderDesc),
@@ -97,6 +98,7 @@ const Index: React.FC = () =>
 
     const submitOrder = async (values: any) =>
     {
+        console.log(values)
         // 将 BraftEditor 的内容转换为 HTML 字符串
         const orderDescHtml = values.orderDesc ? values.orderDesc?.toHTML() : '';
         const orderRemarkHtml = values.orderRemark ? values.orderRemark?.toHTML() : '';
@@ -241,6 +243,7 @@ const Index: React.FC = () =>
                             required
                             initialValue={1}
                             options={statusOptions}
+                            rules={[ { required: true } ]}
                         />
 
                         <ProFormSelect

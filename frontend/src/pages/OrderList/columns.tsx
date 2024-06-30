@@ -105,6 +105,7 @@ export const getOrderListColumn = ({
         title: "订单状态",
         dataIndex: "orderStatus",
         valueType: "select",
+        valueEnum: OrderStatusEnum.getAllStatus,
         fieldProps: {
             options: OrderStatusEnum.getAllOptions()
         }

@@ -19,13 +19,10 @@ class ContactTypeEnum
 
     static getAllOptions(): OptionArray<number>
     {
-        return ContactTypeEnum.allValues.map(item =>
-        {
-            return {
-                value: item.code,
-                label: item.text
-            }
-        })
+        return ContactTypeEnum.allValues.map(item => ({
+            value: item.code,
+            label: item.text
+        }))
     }
 
 
