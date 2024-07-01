@@ -5,6 +5,8 @@ import com.caixy.adminSystem.utils.SizeUtils;
 import lombok.Getter;
 import org.apache.commons.lang3.ObjectUtils;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -105,26 +107,32 @@ public enum FileUploadBizEnum
 
 
     /**
-     * 构建文件保存路径
+     * 构建文件保存路径+名称
      *
      * @param userId   用户ID
      * @param fileName 文件名称
      * @return 文件路径
      */
-    public String buildFileAbsoluteName(Long userId, String fileName)
+    public Path buildFileAbsolutePathAndName(Long userId, String fileName)
     {
         // /{value}/{userId}/{fileName}
         // 格式：/attachment/12345/8d2f03a7-md5hash12345
-        return String.format("/%s/%s/%s", value, userId, fileName);
+        return Paths.get(value, userId.toString(), fileName);
     }
 
-    public String buildFilePath(Long userId)
+    /**
+     * 构建文件保存文件的路径
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @since 2024/6/30 下午7:46
+     */
+    public Path buildFilePath(Long userId)
     {
         // /{value}/{userId}
         // 格式：/attachment/12345/
-        return String.format("/%s/%s/", value, userId);
+        return Paths.get(value, userId.toString());
     }
-
 
 
     /**

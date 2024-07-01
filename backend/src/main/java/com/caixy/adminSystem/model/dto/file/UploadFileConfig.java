@@ -2,12 +2,15 @@ package com.caixy.adminSystem.model.dto.file;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.crypto.digest.DigestUtil;
+import com.caixy.adminSystem.manager.uploadManager.core.UploadFileMethodManager;
 import com.caixy.adminSystem.model.enums.FileUploadBizEnum;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.net.URL;
+import java.nio.file.Path;
 import java.util.UUID;
 
 /**
@@ -20,6 +23,7 @@ import java.util.UUID;
 @Data
 public class UploadFileConfig
 {
+    private UploadFileMethodManager uploadManager;
 
     /**
      * 上传人Id
@@ -78,12 +82,12 @@ public class UploadFileConfig
         /**
          * 文件保存路径+名字
          */
-        private String fileAbsolutePathAndName;
+        private Path fileAbsolutePathAndName;
 
         /**
          * 文件保存文件夹路径
          */
-        private String filePath;
+        private Path filePath;
 
         /**
          * 文件可访问路径
@@ -106,9 +110,9 @@ public class UploadFileConfig
         String fileSuffix = FileUtil.getSuffix(originalFilename);
 
         // 使用 FileUploadBizEnum 枚举类中的方法生成路径和URL
-        String fileAbsoluteName = fileUploadBizEnum.buildFileAbsoluteName(userId, filename);
+        Path fileAbsoluteName = fileUploadBizEnum.buildFileAbsolutePathAndName(userId, filename);
         String fileURL = fileUploadBizEnum.buildFileURL(userId, filename);
-        String filePath = fileUploadBizEnum.buildFilePath(userId);
+        Path filePath = fileUploadBizEnum.buildFilePath(userId);
 
         return FileInfo.builder()
                 .uuid(uuid)

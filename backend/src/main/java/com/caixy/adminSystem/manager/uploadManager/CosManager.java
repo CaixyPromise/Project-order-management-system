@@ -5,7 +5,7 @@ import com.caixy.adminSystem.common.ErrorCode;
 import com.caixy.adminSystem.config.CosClientConfig;
 import com.caixy.adminSystem.constant.FileConstant;
 import com.caixy.adminSystem.exception.BusinessException;
-import com.caixy.adminSystem.manager.uploadManager.core.UploadFileMethod;
+import com.caixy.adminSystem.manager.uploadManager.core.UploadFileMethodManager;
 import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
 import com.caixy.adminSystem.model.enums.SaveFileMethodEnum;
 import com.qcloud.cos.COSClient;
@@ -18,6 +18,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Cos 对象存储操作
@@ -26,7 +28,7 @@ import java.io.IOException;
 @AllArgsConstructor
 @UploadMethodTarget(SaveFileMethodEnum.TENCENT_COS_SAVE)
 @Slf4j
-public class CosManager implements UploadFileMethod
+public class CosManager implements UploadFileMethodManager
 {
     private final CosClientConfig cosClientConfig;
 
@@ -78,21 +80,21 @@ public class CosManager implements UploadFileMethod
         }
     }
 
-    public String doSave(UploadFileConfig uploadFileConfig)
+    public Path doSave(UploadFileConfig uploadFileConfig)
     {
         MultipartFile multipartFile = uploadFileConfig.getMultipartFile();
         UploadFileConfig.FileInfo fileInfo = uploadFileConfig.getFileInfo();
-        String filepath = fileInfo.getFileAbsolutePathAndName();
+        Path filepath = fileInfo.getFileAbsolutePathAndName();
         File file = null;
         try
         {
             // 上传文件
-            file = File.createTempFile(filepath, null);
+            file = File.createTempFile(filepath.toString(), null);
             multipartFile.transferTo(file);
-            putObject(filepath, file);
+            PutObjectResult result = putObject(filepath.toString(), file);
             // 本地存储
             // 返回可访问地址
-            return FileConstant.COS_HOST + filepath;
+            return Paths.get(FileConstant.COS_HOST, filepath.toString());
         }
         catch (Exception e)
         {
@@ -105,16 +107,15 @@ public class CosManager implements UploadFileMethod
         }
     }
 
-
     @Override
-    public String saveFile(UploadFileConfig uploadFileConfig) throws IOException
+    public Path saveFile(UploadFileConfig uploadFileConfig)
     {
         return doSave(uploadFileConfig);
     }
 
     @Override
-    public void deleteFile(String key)
+    public void deleteFile(Path key)
     {
-        cosClient.deleteObject(cosClientConfig.getBucket(), key);
+        cosClient.deleteObject(cosClientConfig.getBucket(), key.toString());
     }
 }

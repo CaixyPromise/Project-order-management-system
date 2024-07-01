@@ -4,6 +4,7 @@ import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
 import com.caixy.adminSystem.model.enums.FileUploadBizEnum;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * @name: com.caixy.adminSystem.service.UploadFileService
@@ -21,9 +22,9 @@ public interface UploadFileService
 
 //    void deleteFileOnLocal(File file);
 
-    void deleteFile(FileUploadBizEnum fileUploadBizEnum, String filePath);
+    void deleteFile(FileUploadBizEnum fileUploadBizEnum, Path filePath);
 
     void deleteFile(FileUploadBizEnum fileUploadBizEnum, Long userId, String filename);
 
-    String saveFile(UploadFileConfig uploadFileConfig) throws IOException;
+    Path saveFile(UploadFileConfig uploadFileConfig) throws IOException;
 }

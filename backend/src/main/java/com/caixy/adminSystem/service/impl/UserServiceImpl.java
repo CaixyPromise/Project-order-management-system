@@ -10,6 +10,7 @@ import com.caixy.adminSystem.constant.CommonConstant;
 import com.caixy.adminSystem.constant.UserConstant;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.exception.ThrowUtils;
+import com.caixy.adminSystem.manager.uploadManager.core.UploadFileMethodManager;
 import com.caixy.adminSystem.mapper.UserMapper;
 import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
 import com.caixy.adminSystem.model.dto.file.UploadFileRequest;
@@ -35,6 +36,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -459,22 +462,44 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     /**
-     * 文件上传处理逻辑
+     * 头像文件上传处理逻辑
      *
      * @author CAIXYPROMISE
      * @version 1.0
      * @since 2024/6/7 下午4:31
      */
     @Override
-    public Boolean doAfterUploadAction(UploadFileConfig uploadFileConfig, String savePath, UploadFileRequest uploadFileRequest)
+    public Boolean doAfterUploadAction(UploadFileConfig uploadFileConfig, Path savePath, UploadFileRequest uploadFileRequest) throws IOException
     {
-        User user = this.getById(uploadFileConfig.getUserId());
+        Long userId = uploadFileConfig.getUserId();
+        User user = this.getById(userId);
         if (user == null)
         {
             return false;
         }
+        String userAvatar = user.getUserAvatar();
         user.setUserAvatar(uploadFileConfig.getFileInfo().getFileURL());
-        return this.updateById(user);
+        UploadFileMethodManager uploadManager = uploadFileConfig.getUploadManager();
+        boolean updated = this.updateById(user);
+        if (updated)
+        {
+            if (StringUtils.isNotBlank(userAvatar))
+            {
+                FileUploadBizEnum uploadBizEnum = uploadFileConfig.getFileUploadBizEnum();
+
+                String[] filename = userAvatar.split("/");
+                if (filename.length >  0)
+                {
+                    Path filepath = uploadBizEnum.buildFileAbsolutePathAndName(userId, filename[filename.length - 1]);
+                    uploadManager.deleteFile(filepath);
+                    return true;
+                }
+                return false;
+            }
+            // 可能初始化的时候没有设置头像，可以设置一个默认头像，但不允许删除默认头像
+            return true;
+        }
+        return false;
     }
 
     /**

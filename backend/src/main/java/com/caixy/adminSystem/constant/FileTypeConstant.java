@@ -10,7 +10,7 @@ package com.caixy.adminSystem.constant;
 public interface FileTypeConstant
 {
     /**
-     * 用户投降
+     * 用户头像
      */
     String AVATAR = "user_avatar";
 

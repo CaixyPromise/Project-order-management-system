@@ -26,6 +26,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -63,8 +64,9 @@ public class FileController
             UploadFileRequest uploadFileRequest,
             HttpServletRequest request)
     {
-        String savePath = null;
+        Path savePath = null;
         UploadFileConfig uploadFileConfig = getUploadFileConfig(multipartFile, uploadFileRequest, request);
+        FileUploadBizEnum uploadBizEnum = uploadFileConfig.getFileUploadBizEnum();
         SaveFileMethodEnum saveFileMethod = uploadFileConfig.getFileUploadBizEnum().getSaveFileMethod();
         try
         {
@@ -90,15 +92,16 @@ public class FileController
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件上传成功，但后续处理失败");
             }
             log.info("{}：文件上传成功，文件路径：{}", saveFileMethod.getDesc(), savePath);
-            return ResultUtils.success(savePath);
+            return ResultUtils.success(uploadFileConfig.getFileInfo().getFileURL());
         }
-        catch (FileUploadActionException | IOException e)
+        catch (FileUploadActionException | BusinessException | IOException e)
         {
             log.error("{}: 文件上传失败，错误信息: {}", saveFileMethod.getDesc(), e.getMessage());
             // 如果 savePath 不为空，则意味着文件已经上传成功，需要删除它
             if (savePath != null)
             {
-                uploadFileService.deleteFile(uploadFileConfig.getFileUploadBizEnum(), savePath);
+                uploadFileService.deleteFile(uploadBizEnum,
+                        savePath);
                 log.info("{}：文件上传失败，删除文件成功，文件路径：{}", saveFileMethod.getDesc(), savePath);
             }
             // 抛出业务异常，以触发事务回滚
@@ -106,115 +109,6 @@ public class FileController
         }
     }
 
-
-//    /**
-//     * 文件上传
-//     *
-//     * @param multipartFile
-//     * @param uploadFileRequest
-//     * @param request
-//     * @return
-//     */
-//    @PostMapping("/upload/cos")
-//    public BaseResponse<String> uploadFileSaveOnCos(@RequestPart("file") MultipartFile multipartFile,
-//                                           @RequestBody UploadFileRequest uploadFileRequest,
-//                                           HttpServletRequest request)
-//    {
-//        String savePath = null;
-//        UploadFileConfig uploadFileConfig = getUploadFileConfig(multipartFile, uploadFileRequest, request);
-//        try
-//        {
-//            // 获取文件处理类，如果找不到就会直接报错
-//            FileUploadActionService actionService = getFileUploadActionService(uploadFileConfig);
-//            boolean doVerifyFileToken = doBeforeFileUploadAction(actionService, uploadFileConfig, uploadFileRequest);
-//            if (!doVerifyFileToken)
-//            {
-//                log.error("COS对象存储-验证token：文件上传失败，文件信息：{}, 上传用户Id: {}", uploadFileConfig.getFileInfo(),
-//                        uploadFileConfig.getUserId());
-//                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件上传失败");
-//            }
-//            savePath = uploadFileService.saveFile(uploadFileConfig);
-//            boolean doAfterFileUpload =
-//                    doAfterFileUploadAction(actionService, uploadFileConfig, savePath, uploadFileRequest);
-//            if (!doAfterFileUpload)
-//            {
-//                log.error("COS对象存储：文件上传成功，文件路径：{}，但后续处理失败", savePath);
-//                uploadFileService.deleteFile(uploadFileConfig.getFileUploadBizEnum(), savePath);
-//
-//                log.error("COS对象存储：文件上传成功，文件路径：{}，后处理失败后，成功删除文件", savePath);
-//                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件上传成功，但后续处理失败");
-//            }
-//            log.info("COS对象存储：文件上传成功，文件路径：{}", savePath);
-//            return ResultUtils.success(savePath);
-//        }
-//        catch (FileUploadActionException | IOException e)
-//        {
-//            log.error("文件上传失败，错误信息: {}", e.getMessage());
-//
-//            // 如果 savePath 不为空，则意味着文件已经上传成功，需要删除它
-//            if (savePath != null)
-//            {
-//                uploadFileService.deleteFile(uploadFileConfig.getFileUploadBizEnum(), savePath);
-//                log.info("COS对象存储：文件上传失败，删除文件成功，文件路径：{}", savePath);
-//            }
-//            // 抛出业务异常，以触发事务回滚
-//            throw new BusinessException(ErrorCode.SYSTEM_ERROR, e.getMessage());
-//        }
-//    }
-//
-//
-//    /**
-//     * 保存文件到本地
-//     *
-//     * @author CAIXYPROMISE
-//     * @version 1.0
-//     * @since 2024/5/21 下午10:36
-//     */
-//    @PostMapping("/upload/local")
-//    public BaseResponse<String> uploadFileToLocal(@RequestPart("file") MultipartFile multipartFile,
-//                                                  UploadFileRequest uploadFileRequest,
-//                                                  HttpServletRequest request)
-//    {
-//        String savePath = null;
-//        UploadFileConfig uploadFileConfig = getUploadFileConfig(multipartFile, uploadFileRequest, request);
-//        try
-//        {
-//            // 获取文件处理类，如果找不到就会直接报错
-//            FileUploadActionService actionService = getFileUploadActionService(uploadFileConfig);
-//            boolean doVerifyFileToken = doBeforeFileUploadAction(actionService, uploadFileConfig, uploadFileRequest);
-//            if (!doVerifyFileToken)
-//            {
-//                log.error("本地文件存储-验证token：文件上传失败，文件信息：{}, 上传用户Id: {}", uploadFileConfig.getFileInfo(),
-//                        uploadFileConfig.getUserId());
-//                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件上传失败");
-//            }
-//            savePath = uploadFileService.saveFile(uploadFileConfig);
-//            log.info("本地存储：文件上传成功，文件路径：{}", savePath);
-//            boolean doAfterFileUpload =
-//                    doAfterFileUploadAction(actionService, uploadFileConfig, savePath, uploadFileRequest);
-//            if (!doAfterFileUpload)
-//            {
-//                log.error("本地文件存储：文件上传成功，文件路径：{}，但后续处理失败", savePath);
-//                uploadFileService.deleteFile(uploadFileConfig.getFileUploadBizEnum(), savePath);
-//                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件上传成功，但后续处理失败");
-//            }
-//            return ResultUtils.success(uploadFileConfig.getFileInfo().getFileURL());
-//        }
-//        catch (FileUploadActionException | IOException e)
-//        {
-//            log.error("本地文件上传失败，错误信息: {}", e.getMessage());
-//
-//            // 如果 savePath 不为空，则意味着文件已经上传成功，需要删除它
-//            if (savePath != null)
-//            {
-//                uploadFileService.deleteFile(uploadFileConfig.getFileUploadBizEnum(), savePath);
-//
-//                log.info("本地文件存储：文件上传失败，删除文件成功，文件路径：{}", savePath);
-//            }
-//            // 抛出业务异常，以触发事务回滚
-//            throw new BusinessException(ErrorCode.SYSTEM_ERROR, e.getMessage());
-//        }
-//    }
 
     /**
      * 校验文件
@@ -284,12 +178,12 @@ public class FileController
         FileUploadActionService actionService = serviceCache.get(fileUploadBizEnum);
         if (actionService == null)
         {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "暂无该文件操作处理类");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "暂无该文件上传对应业务的操作处理类");
         }
         return actionService;
     }
 
-    private boolean doAfterFileUploadAction(FileUploadActionService actionService, UploadFileConfig uploadFileConfig, String savePath, UploadFileRequest uploadFileRequest)
+    private boolean doAfterFileUploadAction(FileUploadActionService actionService, UploadFileConfig uploadFileConfig, Path savePath, UploadFileRequest uploadFileRequest) throws IOException
     {
         return actionService.doAfterUploadAction(uploadFileConfig, savePath, uploadFileRequest);
     }
