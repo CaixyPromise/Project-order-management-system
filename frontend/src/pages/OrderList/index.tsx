@@ -38,7 +38,7 @@ const OrderAdminPage: React.FC = () =>
         setCurrentRow,
         setDetailsModalVisible,
         handleDelete,
-    }), []); // 添加 editableKeys 作为依赖项，确保在其变化时重新计算
+    }), []);
 
     useEffect(() =>
     {
