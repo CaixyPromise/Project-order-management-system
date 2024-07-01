@@ -8,6 +8,7 @@ import { flushSync } from 'react-dom';
 import { Link } from 'umi';
 import HeaderDropdown from '../HeaderDropdown';
 import {userLogoutUsingPost1} from "@/services/backend/userController";
+import {STATIC_URL} from "@/constants";
 
 export type GlobalHeaderRightProps = {
   menu?: boolean;
@@ -46,7 +47,7 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu }) => {
         loginOut();
         return;
       }
-      history.push(`/account/${key}`);
+      history.push(`/account/settings/${key}`);
     },
     [setInitialState],
   );
@@ -67,12 +68,12 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu }) => {
     ...(menu
       ? [
           {
-            key: 'center',
+            key: 'base',
             icon: <UserOutlined />,
             label: '个人中心',
           },
           {
-            key: 'settings',
+            key: 'security',
             icon: <SettingOutlined />,
             label: '个人设置',
           },
@@ -98,11 +99,11 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu }) => {
     >
       <Space>
         {currentUser?.userAvatar ? (
-          <Avatar size="small" src={currentUser?.userAvatar} />
+          <Avatar size="default" src={`${STATIC_URL}${currentUser?.userAvatar}`} />
         ) : (
           <Avatar size="small" icon={<UserOutlined />} />
         )}
-        <span className="anticon">{currentUser?.userName ?? '无名'}</span>
+        <span className="anticon">{currentUser?.userName ?? '用户'}</span>
       </Space>
     </HeaderDropdown>
   );
