@@ -7,6 +7,7 @@ import {UserContext} from './context';
 import useStyles from './style.style';
 import useAsyncHandler from "@/hooks/useAsyncHandler";
 import {getMeUsingGet1} from "@/services/backend/userController";
+import {useParams} from "@@/exports";
 
 type SettingsStateKeys = 'base' | 'security';
 type SettingsState = {
@@ -15,6 +16,7 @@ type SettingsState = {
 };
 const Settings: React.FC = () =>
 {
+    const {operation} = useParams<{operation: SettingsStateKeys | undefined}>()
     const [ userData, setUserData ] = useState<API.AboutMeVO>({});
     const [ queryUserInfoHandler, isPending ] = useAsyncHandler<API.AboutMeVO>();
 
@@ -25,9 +27,20 @@ const Settings: React.FC = () =>
     };
     const [ initConfig, setInitConfig ] = useState<SettingsState>({
         mode: 'inline',
-        selectKey: 'base',
+        selectKey: operation ? operation : "base",
     });
     const dom = useRef<HTMLDivElement>();
+    useEffect(() =>
+    {
+        if (operation)
+        {
+            setInitConfig(prevState =>  ({
+                ...prevState,
+                selectKey: operation,
+            }))
+        }
+    }, [operation]);
+
     const resize = () =>
     {
         requestAnimationFrame(() =>
@@ -74,12 +87,12 @@ const Settings: React.FC = () =>
         const { selectKey } = initConfig;
         switch (selectKey)
         {
-            case 'base':
-                return <BaseView/>;
             case 'security':
                 return <SecurityView/>;
+            // 默认返回base
+            case 'base':
             default:
-                return null;
+                return <BaseView/>;
         }
     };
 

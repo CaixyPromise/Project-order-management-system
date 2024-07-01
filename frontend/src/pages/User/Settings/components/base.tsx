@@ -1,10 +1,10 @@
 import {ProForm, ProFormText,} from '@ant-design/pro-components';
 import {Button, Image, message, Spin, Upload} from 'antd';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import useStyles from './index.style';
 import {updateMyUserUsingPost1} from "@/services/backend/userController";
 import {ProFormSelect} from "@ant-design/pro-form/lib";
-import {UploadOutlined} from "@ant-design/icons";
+import {UploadOutlined, UserOutlined} from "@ant-design/icons";
 import {useUserData} from "@/pages/User/Settings/context";
 import {RcFile} from "antd/lib/upload";
 import useAsyncHandler from "@/hooks/useAsyncHandler";
@@ -14,11 +14,14 @@ import {STATIC_URL} from "@/constants";
 
 const BaseView: React.FC = () =>
 {
-
     const { styles } = useStyles();
     const { userData, setUserData } = useUserData()
     const [ form ] = ProForm.useForm();
     const [ uploadFileHandler, uploading ] = useAsyncHandler<string>()
+
+    const userAvatar = useMemo(() => {
+        return userData.userAvatar ? `${STATIC_URL}${userData.userAvatar}` : null
+    }, [userData])
 
     const uploadFile = async (file: RcFile): Promise<string> =>
     {
@@ -43,15 +46,18 @@ const BaseView: React.FC = () =>
         return "";
     }
 
-    const AvatarView = ({ avatar }: { avatar: string }) => (
+    const AvatarView = () => (
         <>
             <div className={styles.avatar_title}>头像</div>
             <div className={styles.avatar}>
-                <Image src={`${STATIC_URL}${avatar}`} alt="avatar"/>
+                {userAvatar ? <Image src={userAvatar} alt="avatar" /> : <UserOutlined />}
             </div>
             <Upload showUploadList={false} accept={'.png,.jpg,.jpeg'}
                     action={uploadFile}
                     disabled={uploading}
+                    progress={{
+
+                    }}
             >
                 <div className={styles.button_view}>
                     <Spin spinning={uploading}>
@@ -166,7 +172,7 @@ const BaseView: React.FC = () =>
                 </ProForm>
             </div>
             <div className={styles.right}>
-                <AvatarView avatar={userData.userAvatar || ""}/>
+                <AvatarView />
             </div>
         </div>
     );
