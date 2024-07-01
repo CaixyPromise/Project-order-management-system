@@ -46,6 +46,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -336,7 +337,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     }
 
     @Override
-    public Boolean doAfterUploadAction(UploadFileConfig uploadFileConfig, String savePath, UploadFileRequest uploadFileRequest)
+    public Boolean doAfterUploadAction(UploadFileConfig uploadFileConfig, Path savePath, UploadFileRequest uploadFileRequest)
     {
         String token = uploadFileRequest.getToken();
         Map<String, Object> payload = getTokenPayload(token);

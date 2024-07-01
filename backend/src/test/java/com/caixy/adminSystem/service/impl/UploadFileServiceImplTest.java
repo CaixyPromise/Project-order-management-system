@@ -11,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 
 @SpringBootTest
-class UploadUploadFileServiceImplTest
+class UploadFileServiceImplTest
 {
     @Resource
     private UploadFileService uploadFileService;
