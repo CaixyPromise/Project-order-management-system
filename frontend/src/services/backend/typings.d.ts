@@ -332,15 +332,24 @@ declare namespace API {
     vos?: Record<string, any>;
   };
 
+  type OrderFilePageVO = {
+    createTime?: string;
+    fileName?: string;
+    fileSize?: number;
+    id?: number;
+    orderId?: number;
+    updateTime?: string;
+  };
+
   type OrderFileVO = {
     createTime?: string;
-    creatorName?: string;
     fileName?: string;
     fileSha256?: string;
     fileSize?: number;
     id?: string;
     orderId?: number;
     updateTime?: string;
+    userId?: number;
   };
 
   type OrderInfoAddRequest = {
@@ -383,6 +392,7 @@ declare namespace API {
     isPaid?: boolean;
     langName?: string;
     orderAssignToWxId?: string;
+    orderAttachmentList?: OrderFilePageVO[];
     orderCategoryName?: string;
     orderDeadline?: string;
     orderId?: string;
