@@ -1,7 +1,7 @@
 package com.caixy.adminSystem.service;
 
-import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
-import com.caixy.adminSystem.model.enums.FileUploadBizEnum;
+import com.caixy.adminSystem.model.dto.file.UploadFileDTO;
+import com.caixy.adminSystem.model.enums.FileActionBizEnum;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -14,17 +14,11 @@ import java.nio.file.Path;
  **/
 public interface UploadFileService
 {
+    org.springframework.core.io.Resource getFile(FileActionBizEnum fileActionBizEnum, Path filePath) throws IOException;
 
+    void deleteFile(FileActionBizEnum fileActionBizEnum, Path filePath);
 
-//    void deleteFileOnCos(String filepath);
-//
-//    void deleteFileOnLocal(String filePath);
+    void deleteFile(FileActionBizEnum fileActionBizEnum, Long userId, String filename);
 
-//    void deleteFileOnLocal(File file);
-
-    void deleteFile(FileUploadBizEnum fileUploadBizEnum, Path filePath);
-
-    void deleteFile(FileUploadBizEnum fileUploadBizEnum, Long userId, String filename);
-
-    Path saveFile(UploadFileConfig uploadFileConfig) throws IOException;
+    Path saveFile(UploadFileDTO uploadFileDTO) throws IOException;
 }

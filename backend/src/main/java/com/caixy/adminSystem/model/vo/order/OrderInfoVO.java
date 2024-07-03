@@ -1,7 +1,7 @@
 package com.caixy.adminSystem.model.vo.order;
 
 import com.caixy.adminSystem.model.dto.order.OrderInfoEsDTO;
-import com.caixy.adminSystem.model.vo.file.OrderFileVO;
+import com.caixy.adminSystem.model.vo.file.DownloadFileVO;
 import com.caixy.adminSystem.utils.JsonUtils;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
@@ -172,7 +172,7 @@ public class OrderInfoVO implements Serializable
     /**
      * 订单附件列表
      */
-    private List<OrderFileVO> orderAttachmentList;
+    private List<DownloadFileVO> orderAttachmentList;
 
     private static final long serialVersionUID = 1L;
 

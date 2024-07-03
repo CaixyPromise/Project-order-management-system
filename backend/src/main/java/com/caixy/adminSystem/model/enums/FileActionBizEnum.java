@@ -15,7 +15,7 @@ import java.util.Set;
  * 文件上传业务类型枚举
  */
 @Getter
-public enum FileUploadBizEnum
+public enum FileActionBizEnum
 {
 
     USER_AVATAR(
@@ -68,7 +68,7 @@ public enum FileUploadBizEnum
      */
     private final SaveFileMethodEnum saveFileMethod;
 
-    FileUploadBizEnum(String text,
+    FileActionBizEnum(String text,
                       String routePath,
                       String value,
                       SizeUtils.ByteSize maxSize,
@@ -89,13 +89,13 @@ public enum FileUploadBizEnum
      * @param value
      * @return
      */
-    public static FileUploadBizEnum getEnumByValue(String value)
+    public static FileActionBizEnum getEnumByValue(String value)
     {
         if (ObjectUtils.isEmpty(value))
         {
             return null;
         }
-        for (FileUploadBizEnum anEnum : FileUploadBizEnum.values())
+        for (FileActionBizEnum anEnum : FileActionBizEnum.values())
         {
             if (anEnum.value.equals(value))
             {

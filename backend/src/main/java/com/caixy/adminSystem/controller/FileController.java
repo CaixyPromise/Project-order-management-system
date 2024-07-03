@@ -7,25 +7,30 @@ import com.caixy.adminSystem.common.ErrorCode;
 import com.caixy.adminSystem.common.ResultUtils;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.exception.FileUploadActionException;
-import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
+import com.caixy.adminSystem.model.dto.file.DownloadFileDTO;
+import com.caixy.adminSystem.model.dto.file.UploadFileDTO;
 import com.caixy.adminSystem.model.dto.file.UploadFileRequest;
 import com.caixy.adminSystem.model.entity.User;
-import com.caixy.adminSystem.model.enums.FileUploadBizEnum;
+import com.caixy.adminSystem.model.enums.FileActionBizEnum;
 import com.caixy.adminSystem.model.enums.SaveFileMethodEnum;
-import com.caixy.adminSystem.service.FileUploadActionService;
+import com.caixy.adminSystem.service.FileActionService;
 import com.caixy.adminSystem.service.UploadFileService;
 import com.caixy.adminSystem.service.UserService;
 import com.caixy.adminSystem.utils.FileUtils;
 import com.caixy.adminSystem.utils.SpringContextUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +42,7 @@ import java.util.Set;
 @RestController
 @RequestMapping("/file")
 @Slf4j
+
 public class FileController
 {
     @Resource
@@ -46,15 +52,15 @@ public class FileController
     private UploadFileService uploadFileService;
 
     @Resource
-    private List<FileUploadActionService> fileUploadActionService;
+    private List<FileActionService> fileActionService;
 
-    private HashMap<FileUploadBizEnum, FileUploadActionService> serviceCache;
+    private HashMap<FileActionBizEnum, FileActionService> serviceCache;
 
     @PostConstruct
     public void initActionService()
     {
         serviceCache =
-                SpringContextUtils.getServiceFromAnnotation(fileUploadActionService, FileUploadActionTarget.class);
+                SpringContextUtils.getServiceFromAnnotation(fileActionService, FileUploadActionTarget.class);
     }
 
     @PostMapping("/upload")
@@ -65,34 +71,34 @@ public class FileController
             HttpServletRequest request)
     {
         Path savePath = null;
-        UploadFileConfig uploadFileConfig = getUploadFileConfig(multipartFile, uploadFileRequest, request);
-        FileUploadBizEnum uploadBizEnum = uploadFileConfig.getFileUploadBizEnum();
-        SaveFileMethodEnum saveFileMethod = uploadFileConfig.getFileUploadBizEnum().getSaveFileMethod();
+        UploadFileDTO uploadFileDTO = getUploadFileConfig(multipartFile, uploadFileRequest, request);
+        FileActionBizEnum uploadBizEnum = uploadFileDTO.getFileActionBizEnum();
+        SaveFileMethodEnum saveFileMethod = uploadFileDTO.getFileActionBizEnum().getSaveFileMethod();
         try
         {
             // 获取文件处理类，如果找不到就会直接报错
-            FileUploadActionService actionService = getFileUploadActionService(uploadFileConfig);
-            boolean doVerifyFileToken = doBeforeFileUploadAction(actionService, uploadFileConfig, uploadFileRequest);
+            FileActionService actionService = getFileActionService(uploadBizEnum);
+            boolean doVerifyFileToken = doBeforeFileUploadAction(actionService, uploadFileDTO, uploadFileRequest);
             if (!doVerifyFileToken)
             {
                 log.error("{}-验证token：文件上传失败，文件信息：{}, 上传用户Id: {}", saveFileMethod.getDesc(),
-                        uploadFileConfig.getFileInfo(),
-                        uploadFileConfig.getUserId());
+                        uploadFileDTO.getFileInfo(),
+                        uploadFileDTO.getUserId());
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件上传失败");
             }
-            savePath = uploadFileService.saveFile(uploadFileConfig);
+            savePath = uploadFileService.saveFile(uploadFileDTO);
             boolean doAfterFileUpload =
-                    doAfterFileUploadAction(actionService, uploadFileConfig, savePath, uploadFileRequest);
+                    doAfterFileUploadAction(actionService, uploadFileDTO, savePath, uploadFileRequest);
             if (!doAfterFileUpload)
             {
                 log.error("{}：文件上传成功，文件路径：{}，但后续处理失败", saveFileMethod.getDesc(), savePath);
-                uploadFileService.deleteFile(uploadFileConfig.getFileUploadBizEnum(), savePath);
+                uploadFileService.deleteFile(uploadFileDTO.getFileActionBizEnum(), savePath);
 
                 log.error("{}：文件上传成功，文件路径：{}，后处理失败后，成功删除文件", saveFileMethod.getDesc(), savePath);
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件上传成功，但后续处理失败");
             }
             log.info("{}：文件上传成功，文件路径：{}", saveFileMethod.getDesc(), savePath);
-            return ResultUtils.success(uploadFileConfig.getFileInfo().getFileURL());
+            return ResultUtils.success(uploadFileDTO.getFileInfo().getFileURL());
         }
         catch (FileUploadActionException | BusinessException | IOException e)
         {
@@ -109,17 +115,80 @@ public class FileController
         }
     }
 
+    @GetMapping("/download")
+    public void downloadFileById(@RequestParam("id") String id,
+                                 @RequestParam("bizName") String bizName,
+                                 HttpServletRequest request,
+                                 HttpServletResponse response)
+    {
+
+        FileActionBizEnum fileActionBizEnum = FileActionBizEnum.getEnumByValue(bizName);
+        if (fileActionBizEnum == null)
+        {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "业务类型不存在");
+        }
+        User loginUser = userService.getLoginUser(request);
+
+        FileActionService fileActionService = getFileActionService(fileActionBizEnum);
+        DownloadFileDTO downloadFileDTO = new DownloadFileDTO();
+        downloadFileDTO.setFileId(id);
+        downloadFileDTO.setFileActionBizEnum(fileActionBizEnum);
+        downloadFileDTO.setUserId(loginUser.getId());
+        Boolean beforeDownloadAction = fileActionService.doBeforeDownloadAction(downloadFileDTO);
+        if (!beforeDownloadAction)
+        {
+            log.error("文件下载操作前处理失败: userId: {}, 下载文件信息：{}", loginUser.getId(), downloadFileDTO);
+            throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "文件下载操作失败");
+        }
+        Path fileKey = downloadFileDTO.getFilePath();
+        try
+        {
+            if (fileKey == null)
+            {
+                throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "文件不存在");
+            }
+            else
+            {
+                org.springframework.core.io.Resource fileResource = uploadFileService.getFile(fileActionBizEnum, fileKey);
+                if (fileResource == null)
+                {
+                    throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "文件不存在");
+                }
+                else
+                {
+                    // 设置响应头
+                    buildDownloadResponse(downloadFileDTO, response);
+
+                    // 将文件写入响应输出流
+                    StreamUtils.copy(fileResource.getInputStream(), response.getOutputStream());
+                    response.flushBuffer();
+
+                    // 执行下载后的操作
+                    downloadFileDTO.setFileIsExist(true);
+                    if (!fileActionService.doAfterDownloadAction(downloadFileDTO))
+                    {
+                        log.error("文件下载操作后处理失败: userId: {}, 下载文件信息：{}", loginUser.getId(), downloadFileDTO);
+                        throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件下载操作失败");
+                    }
+                }
+            }
+        }
+        catch (IOException e)
+        {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "文件不存在");
+        }
+    }
 
     /**
      * 校验文件
      *
      * @param multipartFile
      */
-    private FileUploadBizEnum validFile(MultipartFile multipartFile, UploadFileRequest uploadFileRequest)
+    private FileActionBizEnum validFile(MultipartFile multipartFile, UploadFileRequest uploadFileRequest)
     {
         String biz = uploadFileRequest.getBiz();
-        FileUploadBizEnum fileUploadBizEnum = FileUploadBizEnum.getEnumByValue(biz);
-        if (fileUploadBizEnum == null)
+        FileActionBizEnum fileActionBizEnum = FileActionBizEnum.getEnumByValue(biz);
+        if (fileActionBizEnum == null)
         {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -128,17 +197,17 @@ public class FileController
         // 文件后缀
         String fileSuffix = FileUtil.getSuffix(multipartFile.getOriginalFilename());
 
-        Set<String> acceptFileSuffixList = fileUploadBizEnum.getFileSuffix();
+        Set<String> acceptFileSuffixList = fileActionBizEnum.getFileSuffix();
         if (!acceptFileSuffixList.contains(fileSuffix))
         {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件格式不正确");
         }
-        boolean lessThanOrEqualTo = fileUploadBizEnum.getMaxSize().isLessThanOrEqualTo(fileSize);
+        boolean lessThanOrEqualTo = fileActionBizEnum.getMaxSize().isLessThanOrEqualTo(fileSize);
         if (!lessThanOrEqualTo)
         {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件大小超过限制");
         }
-        return fileUploadBizEnum;
+        return fileActionBizEnum;
     }
 
     /**
@@ -148,22 +217,32 @@ public class FileController
      * @version 1.0
      * @since 2024/5/21 下午10:54
      */
-    private UploadFileConfig getUploadFileConfig(MultipartFile multipartFile,
-                                                 UploadFileRequest uploadFileRequest,
-                                                 HttpServletRequest request)
+    private UploadFileDTO getUploadFileConfig(MultipartFile multipartFile,
+                                              UploadFileRequest uploadFileRequest,
+                                              HttpServletRequest request)
     {
-        FileUploadBizEnum fileUploadBizEnum = validFile(multipartFile, uploadFileRequest);
+        FileActionBizEnum fileActionBizEnum = validFile(multipartFile, uploadFileRequest);
         User loginUser = userService.getLoginUser(request);
-        UploadFileConfig uploadFileConfig = new UploadFileConfig();
-        uploadFileConfig.setFileUploadBizEnum(fileUploadBizEnum);
-        uploadFileConfig.setMultipartFile(multipartFile);
-        uploadFileConfig.setUserId(loginUser.getId());
-        uploadFileConfig.setSha256(FileUtils.getMultiPartFileSha256(multipartFile));
-        uploadFileConfig.setFileSize(multipartFile.getSize());
-        UploadFileConfig.FileInfo fileInfo = uploadFileConfig.convertFileInfo();
-        uploadFileConfig.setFileInfo(fileInfo);
-        return uploadFileConfig;
+        UploadFileDTO uploadFileDTO = new UploadFileDTO();
+        uploadFileDTO.setFileActionBizEnum(fileActionBizEnum);
+        uploadFileDTO.setMultipartFile(multipartFile);
+        uploadFileDTO.setUserId(loginUser.getId());
+        uploadFileDTO.setSha256(FileUtils.getMultiPartFileSha256(multipartFile));
+        uploadFileDTO.setFileSize(multipartFile.getSize());
+        UploadFileDTO.FileInfo fileInfo = uploadFileDTO.convertFileInfo();
+        uploadFileDTO.setFileInfo(fileInfo);
+        return uploadFileDTO;
     }
+
+    private void buildDownloadResponse(DownloadFileDTO downloadFileDTO, HttpServletResponse response)
+    {
+        String fileName = downloadFileDTO.getFileRealName();
+        response.setContentType("application/octet-stream;charset=UTF-8;filename=" + fileName);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName);
+        response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+    }
+
 
     /**
      * 获取业务文件上传处理器
@@ -172,25 +251,24 @@ public class FileController
      * @version 1.0
      * @since 2024/6/11 下午8:00
      */
-    private FileUploadActionService getFileUploadActionService(UploadFileConfig uploadFileConfig)
+    private FileActionService getFileActionService(FileActionBizEnum fileActionBizEnum)
     {
-        FileUploadBizEnum fileUploadBizEnum = uploadFileConfig.getFileUploadBizEnum();
-        FileUploadActionService actionService = serviceCache.get(fileUploadBizEnum);
+        FileActionService actionService = serviceCache.get(fileActionBizEnum);
         if (actionService == null)
         {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "暂无该文件上传对应业务的操作处理类");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "暂无该文件对应业务的操作");
         }
         return actionService;
     }
 
-    private boolean doAfterFileUploadAction(FileUploadActionService actionService, UploadFileConfig uploadFileConfig, Path savePath, UploadFileRequest uploadFileRequest) throws IOException
+    private boolean doAfterFileUploadAction(FileActionService actionService, UploadFileDTO uploadFileDTO, Path savePath, UploadFileRequest uploadFileRequest) throws IOException
     {
-        return actionService.doAfterUploadAction(uploadFileConfig, savePath, uploadFileRequest);
+        return actionService.doAfterUploadAction(uploadFileDTO, savePath, uploadFileRequest);
     }
 
-    private boolean doBeforeFileUploadAction(FileUploadActionService actionService, UploadFileConfig uploadFileConfig
+    private boolean doBeforeFileUploadAction(FileActionService actionService, UploadFileDTO uploadFileDTO
             , UploadFileRequest uploadFileRequest)
     {
-        return actionService.doBeforeUploadAction(uploadFileConfig, uploadFileRequest);
+        return actionService.doBeforeUploadAction(uploadFileDTO, uploadFileRequest);
     }
 }

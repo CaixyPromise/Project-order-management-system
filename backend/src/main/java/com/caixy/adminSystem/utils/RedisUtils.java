@@ -159,6 +159,16 @@ public class RedisUtils
         return null;
     }
 
+    public <JsonType> JsonType getJson(RedisConstant keyEnum, Class<JsonType> returnType, String... items)
+    {
+        String cacheData = stringRedisTemplate.opsForValue().get(keyEnum.generateKey(items));
+        if (StringUtils.isNotBlank(cacheData))
+        {
+            return JsonUtils.jsonToObject(cacheData, returnType);
+        }
+        return null;
+    }
+
     /**
      * 放入一个对象数据
      *
@@ -168,12 +178,19 @@ public class RedisUtils
      */
     public void setObject(RedisConstant keyEnum, Object value, String... items)
     {
-        redisTemplate.opsForValue().set(keyEnum.generateKey(items), value);
+        setString(keyEnum, JsonUtils.toJsonString(value), items);
     }
 
+    /**
+     * 从redis获取对象，因为放入时已经处理序列化，所以在这里需要从json转对象
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @since 2024/7/2 下午9:18
+     */
     public <T> T getObject(RedisConstant keyEnum, Class<T> returnType, String... items)
     {
-        return returnType.cast(redisTemplate.opsForValue().get(keyEnum.generateKey(items)));
+        return getJson(keyEnum, returnType, items);
     }
 
 

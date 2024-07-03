@@ -13,7 +13,8 @@ import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.exception.FileUploadActionException;
 import com.caixy.adminSystem.mapper.OrderInfoMapper;
 import com.caixy.adminSystem.model.common.EsPage;
-import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
+import com.caixy.adminSystem.model.dto.file.DownloadFileDTO;
+import com.caixy.adminSystem.model.dto.file.UploadFileDTO;
 import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import com.caixy.adminSystem.model.dto.file.UploadFileRequest;
 import com.caixy.adminSystem.model.dto.order.OrderInfoEsDTO;
@@ -21,6 +22,7 @@ import com.caixy.adminSystem.model.dto.order.OrderInfoQueryRequest;
 import com.caixy.adminSystem.model.entity.OrderFileInfo;
 import com.caixy.adminSystem.model.entity.OrderInfo;
 import com.caixy.adminSystem.model.enums.*;
+import com.caixy.adminSystem.model.vo.file.DownloadFileVO;
 import com.caixy.adminSystem.model.vo.order.EventVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
@@ -61,10 +63,10 @@ import java.util.stream.Collectors;
  * @createDate 2024-06-04 20:50:04
  */
 @Service
-@FileUploadActionTarget(FileUploadBizEnum.ORDER_ATTACHMENT)
+@FileUploadActionTarget(FileActionBizEnum.ORDER_ATTACHMENT)
 @Slf4j
 public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo>
-        implements OrderInfoService, FileUploadActionService
+        implements OrderInfoService, FileActionService
 {
 
     private static final byte[] TOKEN_SIGN = "orderAttachment_syu".getBytes();
@@ -337,26 +339,26 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     }
 
     @Override
-    public Boolean doAfterUploadAction(UploadFileConfig uploadFileConfig, Path savePath, UploadFileRequest uploadFileRequest)
+    public Boolean doAfterUploadAction(UploadFileDTO uploadFileDTO, Path savePath, UploadFileRequest uploadFileRequest)
     {
         String token = uploadFileRequest.getToken();
         Map<String, Object> payload = getTokenPayload(token);
         Long orderId = Long.parseLong(payload.get("orderId").toString());
         OrderFileInfo orderFileInfo = new OrderFileInfo();
         orderFileInfo.setOrderId(orderId);
-        orderFileInfo.setUserId(uploadFileConfig.getUserId());
-        orderFileInfo.setFileSize(uploadFileConfig.getFileSize());
-        orderFileInfo.setFileSha256(uploadFileConfig.getSha256());
-        orderFileInfo.setFileName(uploadFileConfig.getFileInfo().getFileInnerName());
-        orderFileInfo.setFileRealName(uploadFileConfig.getFileInfo().getFileRealName());
-        orderFileInfo.setFileSuffix(uploadFileConfig.getFileInfo().getFileSuffix());
+        orderFileInfo.setUserId(uploadFileDTO.getUserId());
+        orderFileInfo.setFileSize(uploadFileDTO.getFileSize());
+        orderFileInfo.setFileSha256(uploadFileDTO.getSha256());
+        orderFileInfo.setFileName(uploadFileDTO.getFileInfo().getFileInnerName());
+        orderFileInfo.setFileRealName(uploadFileDTO.getFileInfo().getFileRealName());
+        orderFileInfo.setFileSuffix(uploadFileDTO.getFileInfo().getFileSuffix());
         boolean save = orderFileInfoService.save(orderFileInfo);
         if (!save)
         {
             removeById(orderId);
             throw new FileUploadActionException(ErrorCode.SYSTEM_ERROR, "文件上传失败");
         }
-        log.info("文件上传成功，文件信息已保存, 订单ID: {}，文件UUID: {}", orderId, uploadFileConfig.getFileInfo().getUuid());
+        log.info("文件上传成功，文件信息已保存, 订单ID: {}，文件UUID: {}", orderId, uploadFileDTO.getFileInfo().getUuid());
         return true;
     }
 
@@ -384,7 +386,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 
 
     @Override
-    public Boolean doBeforeUploadAction(UploadFileConfig uploadFileConfig,
+    public Boolean doBeforeUploadAction(UploadFileDTO uploadFileDTO,
                                         UploadFileRequest uploadFileRequest)
     {
         String token = uploadFileRequest.getToken();
@@ -392,7 +394,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         {
             throw new FileUploadActionException(ErrorCode.PARAMS_ERROR, "Token 不存在");
         }
-        String uploadFileSha256 = uploadFileConfig.getSha256();
+        String uploadFileSha256 = uploadFileDTO.getSha256();
 
         Map<String, Object> payload = getTokenPayload(token);
         String orderId = payload.get("orderId").toString();
@@ -471,6 +473,60 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
                 orderFileInfoList)).collect(Collectors.toList());
     }
 
+    /**
+     * 根据文件id、订单id获取获取文件下载id
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @since 2024/7/2 下午4:48
+     */
+    @Override
+    public DownloadFileVO getOrderFileDownloadUrlById(Long fileId, Long orderId, Long userId)
+    {
+        QueryWrapper<OrderFileInfo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("id", fileId);
+        queryWrapper.eq("orderId", orderId);
+        queryWrapper.eq("userId", userId);
+        OrderFileInfo orderFileInfo = orderFileInfoService.getOne(queryWrapper);
+        if (orderFileInfo == null)
+        {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "文件不存在");
+        }
+        return orderFileInfoService.generateOrderFileVO(orderFileInfo);
+    }
+
+    /**
+     * 根据文件id、订单id获取获取文件下载id
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @since 2024/7/2 下午8:07
+     */
+    @Override
+    public Boolean doBeforeDownloadAction(DownloadFileDTO downloadFileDTO)
+    {
+        OrderFileInfo fileInfoFromCache = orderFileInfoService.getFileInfoFromCache(downloadFileDTO.getFileId());
+        if (fileInfoFromCache == null)
+        {
+            return false;
+        }
+        downloadFileDTO.setFilePath(
+                downloadFileDTO.getFileActionBizEnum()
+                        .buildFileAbsolutePathAndName(downloadFileDTO.getUserId(), fileInfoFromCache.getFileName())
+        );
+        downloadFileDTO.setFileRealName(fileInfoFromCache.getFileRealName());
+        return true;
+    }
+    @Override
+    public Boolean doAfterDownloadAction(DownloadFileDTO downloadFileDTO)
+    {
+        if (downloadFileDTO.getFileIsExist())
+        {
+            orderFileInfoService.removeFileInfoFromCache(downloadFileDTO.getFileId());
+            return true;
+        }
+        return false;
+    }
 }
 
 class OrderValidator

@@ -12,6 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -222,36 +223,36 @@ public class OrderInfoEsDTO implements Serializable
     /**
      * 创建时间
      */
-    @Field(index = false, store = true, type = FieldType.Date, format = {}, pattern = CommonConstant.DATE_TIME_PATTERN)
+    @Field(index = false, store = true, type = FieldType.Date, format = {DateFormat.date_time}, pattern = CommonConstant.DATE_TIME_PATTERN)
     private Date createTime;
 
     /**
      * 更新时间
      */
-    @Field(index = false, store = true, type = FieldType.Date, format = {}, pattern = CommonConstant.DATE_TIME_PATTERN)
+    @Field(index = false, store = true, type = FieldType.Date, format = {DateFormat.date_time}, pattern = CommonConstant.DATE_TIME_PATTERN)
     private Date updateTime;
     /**
      * 交付截止日期
      */
-    @Field(store = true, type = FieldType.Date, format = {}, pattern = CommonConstant.DATE_TIME_PATTERN)
+    @Field(store = true, type = FieldType.Date, format = {DateFormat.date_time}, pattern = CommonConstant.DATE_TIME_PATTERN)
     private Date orderDeadline;
 
     /**
      * 订单完成时间
      */
-    @Field(index = false, store = true, type = FieldType.Date, format = {}, pattern = CommonConstant.DATE_TIME_PATTERN)
+    @Field(index = false, store = true, type = FieldType.Date, format = {DateFormat.date_time}, pattern = CommonConstant.DATE_TIME_PATTERN)
     private Date orderCompletionTime;
 
     /**
      * 订单开始日期
      */
-    @Field(index = false, store = true, type = FieldType.Date, format = {}, pattern = CommonConstant.DATE_TIME_PATTERN)
+    @Field(index = false, store = true, type = FieldType.Date, format = {DateFormat.date_time}, pattern = CommonConstant.DATE_TIME_PATTERN)
     private Date orderStartDate;
 
     /**
      * 订单结束日期
      */
-    @Field(index = false, store = true, type = FieldType.Date, format = {}, pattern = CommonConstant.DATE_TIME_PATTERN)
+    @Field(index = false, store = true, type = FieldType.Date, format = {DateFormat.date_time}, pattern = CommonConstant.DATE_TIME_PATTERN)
     private Date orderEndDate;
 
     /**

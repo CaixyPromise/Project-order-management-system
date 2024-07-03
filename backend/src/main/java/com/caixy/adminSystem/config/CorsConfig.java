@@ -1,9 +1,10 @@
 package com.caixy.adminSystem.config;
 
-import com.caixy.adminSystem.model.enums.FileUploadBizEnum;
+import com.caixy.adminSystem.model.enums.FileActionBizEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -30,6 +31,7 @@ public class CorsConfig implements WebMvcConfigurer
                 // 放行哪些域名（必须用 patterns，否则 * 会和 allowCredentials 冲突）
                 .allowedOriginPatterns("*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .exposedHeaders(HttpHeaders.CONTENT_DISPOSITION)
                 .allowedHeaders("*")
                 .exposedHeaders("*");
     }
@@ -37,7 +39,7 @@ public class CorsConfig implements WebMvcConfigurer
     @Override
     public void addResourceHandlers(@NotNull ResourceHandlerRegistry registry)
     {
-        for (FileUploadBizEnum bizEnum : FileUploadBizEnum.values())
+        for (FileActionBizEnum bizEnum : FileActionBizEnum.values())
         {
             String pathPattern = localFileConfig.getStaticPath() + "/" + bizEnum.getRoutePath() + "/**";
             String location =

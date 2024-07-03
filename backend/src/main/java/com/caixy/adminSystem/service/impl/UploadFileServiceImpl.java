@@ -4,8 +4,8 @@ import com.caixy.adminSystem.annotation.UploadMethodTarget;
 import com.caixy.adminSystem.common.ErrorCode;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.manager.uploadManager.core.UploadFileMethodManager;
-import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
-import com.caixy.adminSystem.model.enums.FileUploadBizEnum;
+import com.caixy.adminSystem.model.dto.file.UploadFileDTO;
+import com.caixy.adminSystem.model.enums.FileActionBizEnum;
 import com.caixy.adminSystem.model.enums.SaveFileMethodEnum;
 import com.caixy.adminSystem.service.UploadFileService;
 import com.caixy.adminSystem.utils.SpringContextUtils;
@@ -43,9 +43,16 @@ public class UploadFileServiceImpl implements UploadFileService
     }
 
     @Override
-    public void deleteFile(FileUploadBizEnum fileUploadBizEnum, Path filePath)
+    public org.springframework.core.io.Resource getFile(FileActionBizEnum fileActionBizEnum, Path filePath) throws IOException
     {
-        UploadFileMethodManager uploadFileMethodManager = safetyGetUploadFileMethod(fileUploadBizEnum.getSaveFileMethod());
+        UploadFileMethodManager uploadFileMethodManager = safetyGetUploadFileMethod(fileActionBizEnum.getSaveFileMethod());
+        return uploadFileMethodManager.getFile(filePath);
+    }
+
+    @Override
+    public void deleteFile(FileActionBizEnum fileActionBizEnum, Path filePath)
+    {
+        UploadFileMethodManager uploadFileMethodManager = safetyGetUploadFileMethod(fileActionBizEnum.getSaveFileMethod());
         try
         {
             uploadFileMethodManager.deleteFile(filePath);
@@ -59,10 +66,10 @@ public class UploadFileServiceImpl implements UploadFileService
 
 
     @Override
-    public void deleteFile(FileUploadBizEnum fileUploadBizEnum, Long userId, String filename)
+    public void deleteFile(FileActionBizEnum fileActionBizEnum, Long userId, String filename)
     {
-        Path filePath = fileUploadBizEnum.buildFileAbsolutePathAndName(userId, filename);
-        UploadFileMethodManager uploadFileMethodManager = safetyGetUploadFileMethod(fileUploadBizEnum.getSaveFileMethod());
+        Path filePath = fileActionBizEnum.buildFileAbsolutePathAndName(userId, filename);
+        UploadFileMethodManager uploadFileMethodManager = safetyGetUploadFileMethod(fileActionBizEnum.getSaveFileMethod());
         try
         {
             uploadFileMethodManager.deleteFile(filePath);
@@ -75,13 +82,13 @@ public class UploadFileServiceImpl implements UploadFileService
     }
 
     @Override
-    public Path saveFile(UploadFileConfig uploadFileConfig) throws IOException
+    public Path saveFile(UploadFileDTO uploadFileDTO) throws IOException
     {
-        FileUploadBizEnum fileUploadBizEnum = uploadFileConfig.getFileUploadBizEnum();
-        UploadFileMethodManager uploadFileMethodManager = safetyGetUploadFileMethod(fileUploadBizEnum.getSaveFileMethod());
+        FileActionBizEnum fileActionBizEnum = uploadFileDTO.getFileActionBizEnum();
+        UploadFileMethodManager uploadFileMethodManager = safetyGetUploadFileMethod(fileActionBizEnum.getSaveFileMethod());
         // 把上传服务处理类暴露给 后处理操作 ，例如需要删除前置文件信息等
-        uploadFileConfig.setUploadManager(uploadFileMethodManager);
-        return uploadFileMethodManager.saveFile(uploadFileConfig);
+        uploadFileDTO.setUploadManager(uploadFileMethodManager);
+        return uploadFileMethodManager.saveFile(uploadFileDTO);
     }
 
     private UploadFileMethodManager safetyGetUploadFileMethod(SaveFileMethodEnum saveFileMethodEnum)
@@ -89,7 +96,7 @@ public class UploadFileServiceImpl implements UploadFileService
         UploadFileMethodManager uploadFileMethodManager = uploadFileMethodMap.get(saveFileMethodEnum);
         if (uploadFileMethodManager == null)
         {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "不支持的文件存储方式");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "不支持的文件操作方式");
         }
         return uploadFileMethodManager;
     }

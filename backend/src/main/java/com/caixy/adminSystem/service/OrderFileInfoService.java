@@ -3,7 +3,7 @@ package com.caixy.adminSystem.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.caixy.adminSystem.model.entity.OrderFileInfo;
 import com.caixy.adminSystem.model.entity.OrderInfo;
-import com.caixy.adminSystem.model.vo.file.OrderFileVO;
+import com.caixy.adminSystem.model.vo.file.DownloadFileVO;
 
 import java.util.Collection;
 import java.util.List;
@@ -16,10 +16,13 @@ import java.util.Map;
  */
 public interface OrderFileInfoService extends IService<OrderFileInfo>
 {
-
     Map<Long, List<OrderFileInfo>> getOrderFileInfoListByOrderIdList(Collection<Long> orderIdList);
 
-    List<OrderFileVO> getOrderFileInfoListByOrderId(Long orderId);
+    DownloadFileVO generateOrderFileVO(OrderFileInfo orderFileInfo);
+
+    OrderFileInfo getFileInfoFromCache(String fileId);
+
+    void removeFileInfoFromCache(String fileId);
 
     Boolean removeOrderFileInfo(OrderInfo orderInfo);
 }

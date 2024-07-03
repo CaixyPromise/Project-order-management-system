@@ -6,13 +6,18 @@ import com.caixy.adminSystem.config.CosClientConfig;
 import com.caixy.adminSystem.constant.FileConstant;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.manager.uploadManager.core.UploadFileMethodManager;
-import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
+import com.caixy.adminSystem.model.dto.file.UploadFileDTO;
 import com.caixy.adminSystem.model.enums.SaveFileMethodEnum;
 import com.qcloud.cos.COSClient;
+import com.qcloud.cos.model.COSObject;
+import com.qcloud.cos.model.GetObjectRequest;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.model.PutObjectResult;
+import com.qcloud.cos.utils.IOUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -80,10 +85,10 @@ public class CosManager implements UploadFileMethodManager
         }
     }
 
-    public Path doSave(UploadFileConfig uploadFileConfig)
+    public Path doSave(UploadFileDTO uploadFileDTO)
     {
-        MultipartFile multipartFile = uploadFileConfig.getMultipartFile();
-        UploadFileConfig.FileInfo fileInfo = uploadFileConfig.getFileInfo();
+        MultipartFile multipartFile = uploadFileDTO.getMultipartFile();
+        UploadFileDTO.FileInfo fileInfo = uploadFileDTO.getFileInfo();
         Path filepath = fileInfo.getFileAbsolutePathAndName();
         File file = null;
         try
@@ -108,14 +113,23 @@ public class CosManager implements UploadFileMethodManager
     }
 
     @Override
-    public Path saveFile(UploadFileConfig uploadFileConfig)
+    public Path saveFile(UploadFileDTO uploadFileDTO)
     {
-        return doSave(uploadFileConfig);
+        return doSave(uploadFileDTO);
     }
 
     @Override
     public void deleteFile(Path key)
     {
         cosClient.deleteObject(cosClientConfig.getBucket(), key.toString());
+    }
+
+    @Override
+    public Resource getFile(Path key) throws IOException
+    {
+        GetObjectRequest objectRequest = new GetObjectRequest(cosClientConfig.getBucket(), key.toString());
+        COSObject fileObject = cosClient.getObject(objectRequest);
+        byte[] bytes = IOUtils.toByteArray(fileObject.getObjectContent());
+        return new ByteArrayResource(bytes);
     }
 }

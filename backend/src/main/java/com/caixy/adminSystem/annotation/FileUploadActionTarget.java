@@ -1,6 +1,6 @@
 package com.caixy.adminSystem.annotation;
 
-import com.caixy.adminSystem.model.enums.FileUploadBizEnum;
+import com.caixy.adminSystem.model.enums.FileActionBizEnum;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -17,5 +17,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface FileUploadActionTarget
 {
-    FileUploadBizEnum value();
+    FileActionBizEnum value();
 }

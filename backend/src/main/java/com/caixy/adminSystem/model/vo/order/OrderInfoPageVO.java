@@ -2,6 +2,7 @@ package com.caixy.adminSystem.model.vo.order;
 
 import com.caixy.adminSystem.model.dto.order.OrderInfoEsDTO;
 import com.caixy.adminSystem.model.enums.OrderStatusEnum;
+import com.caixy.adminSystem.model.vo.file.OrderFilePageVO;
 import com.caixy.adminSystem.utils.CommonUtils;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
@@ -9,6 +10,8 @@ import org.springframework.beans.BeanUtils;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 订单信息VO
@@ -111,6 +114,11 @@ public class OrderInfoPageVO implements Serializable
     private String orderStatus;
 
     /**
+     * 订单附件列表
+     */
+    private List<OrderFilePageVO> orderAttachmentList;
+
+    /**
      * 创建时间
      */
     private Date createTime;
@@ -140,6 +148,9 @@ public class OrderInfoPageVO implements Serializable
         vo.setOrderSource(dto.getOrderSourceText());
         vo.setOrderCategoryName(dto.getCategoryName());
         vo.setIsPaid(dto.getIsPaidValue());
+        vo.setOrderAttachmentList(dto.getOrderAttachmentList().stream()
+                .map(OrderFilePageVO::of)
+                .collect(Collectors.toList()));
         return vo;
     }
 }

@@ -1,13 +1,13 @@
 package com.caixy.adminSystem.service;
 
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.caixy.adminSystem.model.common.EsPage;
 import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import com.caixy.adminSystem.model.dto.order.OrderInfoEsDTO;
 import com.caixy.adminSystem.model.dto.order.OrderInfoQueryRequest;
 import com.caixy.adminSystem.model.entity.OrderInfo;
+import com.caixy.adminSystem.model.vo.file.DownloadFileVO;
 import com.caixy.adminSystem.model.vo.order.EventVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
@@ -71,4 +71,6 @@ public interface OrderInfoService extends IService<OrderInfo>
     List<OrderInfo> listOrderInfoWithDeleteByUpdateDate(Date updateTime);
 
     List<OrderInfoEsDTO> getOrderInfoEsDTOList(List<OrderInfo> orderInfos);
+
+    DownloadFileVO getOrderFileDownloadUrlById(Long fileId, Long orderId, Long userId);
 }

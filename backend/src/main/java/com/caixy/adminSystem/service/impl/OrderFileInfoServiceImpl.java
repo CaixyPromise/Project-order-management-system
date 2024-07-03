@@ -5,14 +5,13 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.caixy.adminSystem.mapper.OrderFileInfoMapper;
 import com.caixy.adminSystem.model.entity.OrderFileInfo;
 import com.caixy.adminSystem.model.entity.OrderInfo;
-import com.caixy.adminSystem.model.enums.FileUploadBizEnum;
+import com.caixy.adminSystem.model.enums.FileActionBizEnum;
 import com.caixy.adminSystem.model.enums.RedisConstant;
-import com.caixy.adminSystem.model.vo.file.OrderFileVO;
+import com.caixy.adminSystem.model.vo.file.DownloadFileVO;
 import com.caixy.adminSystem.service.OrderFileInfoService;
 import com.caixy.adminSystem.service.UploadFileService;
 import com.caixy.adminSystem.utils.RedisUtils;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,28 +41,44 @@ public class OrderFileInfoServiceImpl extends ServiceImpl<OrderFileInfoMapper, O
     }
 
 
+    /**
+     * 生成订单文件下载VO
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @since 2024/7/2 下午4:47
+     */
+    @Override
+    public DownloadFileVO generateOrderFileVO(OrderFileInfo orderFileInfo)
+    {
+        String fileId = UUID.randomUUID().toString();
+        DownloadFileVO downloadFileVO = new DownloadFileVO();
+        downloadFileVO.setId(fileId);
+        downloadFileVO.setFileCategoryName(FileActionBizEnum.ORDER_ATTACHMENT.getValue());
+        downloadFileVO.setSha256(orderFileInfo.getFileSha256());
+        redisUtils.setObject(RedisConstant.DOWNLOAD_FILE_KEY, orderFileInfo, fileId);
+        return downloadFileVO;
+    }
 
     @Override
-    public List<OrderFileVO> getOrderFileInfoListByOrderId(Long orderId)
+    public OrderFileInfo getFileInfoFromCache(String fileId)
     {
-        QueryWrapper<OrderFileInfo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("orderId", orderId);
-        List<OrderFileInfo> orderFileInfoList = this.list(queryWrapper);
-
-        if (orderFileInfoList != null && !orderFileInfoList.isEmpty())
-        {
-            return orderFileInfoList.stream().map(item -> {
-                String fileId = UUID.randomUUID().toString();
-                OrderFileVO orderFileVO = new OrderFileVO();
-                BeanUtils.copyProperties(item, orderFileVO);
-                orderFileVO.setFileSha256(null);
-                orderFileVO.setId(fileId);
-                redisUtils.setObject(RedisConstant.DOWNLOAD_FILE_KEY, orderFileVO, fileId);
-                return orderFileVO;
-            }).collect(Collectors.toList());
-        }
-        return Collections.emptyList();
+        return redisUtils.getObject(RedisConstant.DOWNLOAD_FILE_KEY, OrderFileInfo.class, fileId);
     }
+
+    /**
+     * 删除缓存key
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @since 2024/7/2 下午9:07
+     */
+    @Override
+    public void removeFileInfoFromCache(String fileId)
+    {
+        redisUtils.delete(RedisConstant.DOWNLOAD_FILE_KEY, fileId);
+    }
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -87,7 +102,7 @@ public class OrderFileInfoServiceImpl extends ServiceImpl<OrderFileInfoMapper, O
 
     private void removeFile(Long userId, String filename)
     {
-        uploadFileService.deleteFile(FileUploadBizEnum.ORDER_ATTACHMENT, userId, filename);
+        uploadFileService.deleteFile(FileActionBizEnum.ORDER_ATTACHMENT, userId, filename);
     }
 
 }
