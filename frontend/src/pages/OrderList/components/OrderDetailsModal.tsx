@@ -8,6 +8,7 @@ import {OrderSourceEnum} from "@/enums/OrderSourceEnum";
 import {PaymentMethodEnum} from "@/enums/PaymentMethodEnum";
 import {OrderStatusEnum} from "@/enums/OrderStatusEnum";
 import Paragraph from "antd/es/typography/Paragraph";
+import OrderFileTable from "@/pages/OrderList/components/OrderFileTable";
 
 interface InfoModalProps
 {
@@ -208,10 +209,8 @@ const InfoModal: React.FC<InfoModalProps> = ({ currentRow, open, setOpen }) =>
                     data.orderDesc)}</Descriptions.Item>
                 <Descriptions.Item label="订单备注" span={2}>{getMarkdownContent(
                     data.orderRemark)}</Descriptions.Item>
-
             </Descriptions>
         </Modal>
-
     </>
 }
 

@@ -16,11 +16,10 @@ import com.caixy.adminSystem.model.dto.file.UploadFileInfoDTO;
 import com.caixy.adminSystem.model.dto.order.*;
 import com.caixy.adminSystem.model.entity.OrderInfo;
 import com.caixy.adminSystem.model.entity.User;
-import com.caixy.adminSystem.model.enums.RabbitMQQueueEnum;
+import com.caixy.adminSystem.model.vo.file.DownloadFileVO;
 import com.caixy.adminSystem.model.vo.order.EventVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoPageVO;
 import com.caixy.adminSystem.model.vo.order.OrderInfoVO;
-import com.caixy.adminSystem.mq.consumer.exchange.OrderInfo.OrderInfoSaveConsumer;
 import com.caixy.adminSystem.mq.producer.exchange.OrderAttachment.OrderAttachmentProducer;
 import com.caixy.adminSystem.mq.producer.exchange.OrderInfo.OrderInfoSaveProducer;
 import com.caixy.adminSystem.service.OrderInfoService;
@@ -259,9 +258,21 @@ public class OrderController
             month = now.getMonthValue();
         }
         User loginUser = userService.getLoginUser(request);
-
         return ResultUtils.success(orderInfoService.getEvents(year, month, loginUser.getId()));
     }
+
+    @GetMapping("/get/downloadUrl")
+    public BaseResponse<DownloadFileVO> getOrderFileDownloadUrlById(
+                @RequestParam("id") Long id,
+                @RequestParam("orderId") Long orderId,
+                HttpServletRequest request
+        )
+    {
+        User loginUser = userService.getLoginUser(request);
+        DownloadFileVO downloadVo = orderInfoService.getOrderFileDownloadUrlById(id, orderId, loginUser.getId());
+        return ResultUtils.success(downloadVo);
+    }
+
 
     private void validTags(List<String> tags)
     {

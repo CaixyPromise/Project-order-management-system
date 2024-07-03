@@ -1,5 +1,6 @@
 package com.caixy.adminSystem.utils;
 
+import com.caixy.adminSystem.constant.CommonConstant;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 
@@ -27,7 +28,7 @@ import java.util.Map;
 public class JsonUtils
 {
     private static final Gson gson = new GsonBuilder()
-            .setDateFormat("yyyy-MM-dd HH:mm:ss")
+            .setDateFormat(CommonConstant.DATE_TIME_PATTERN)
             .setLongSerializationPolicy(LongSerializationPolicy.STRING)
             .serializeNulls().create();
 

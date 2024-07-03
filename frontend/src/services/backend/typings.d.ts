@@ -33,6 +33,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseDownloadFileVO_ = {
+    code?: number;
+    data?: DownloadFileVO;
+    message?: string;
+  };
+
   type BaseResponseEsPageOrderInfoPageVO_ = {
     code?: number;
     data?: EsPageOrderInfoPageVO_;
@@ -186,6 +192,19 @@ declare namespace API {
     id?: number;
   };
 
+  type downloadFileByIdUsingGET1Params = {
+    /** bizName */
+    bizName: string;
+    /** id */
+    id: string;
+  };
+
+  type DownloadFileVO = {
+    fileCategoryName?: string;
+    id?: string;
+    sha256?: string;
+  };
+
   type EsPageOrderInfoPageVO_ = {
     countId?: string;
     current?: number;
@@ -222,6 +241,13 @@ declare namespace API {
     startMonth?: number;
     /** startYear */
     startYear?: number;
+  };
+
+  type getOrderFileDownloadUrlByIdUsingGET1Params = {
+    /** id */
+    id: number;
+    /** orderId */
+    orderId: number;
   };
 
   type getOrderInfoVOByIdUsingGET1Params = {
@@ -339,17 +365,6 @@ declare namespace API {
     id?: number;
     orderId?: number;
     updateTime?: string;
-  };
-
-  type OrderFileVO = {
-    createTime?: string;
-    fileName?: string;
-    fileSha256?: string;
-    fileSize?: number;
-    id?: string;
-    orderId?: number;
-    updateTime?: string;
-    userId?: number;
   };
 
   type OrderInfoAddRequest = {
@@ -472,7 +487,7 @@ declare namespace API {
     isValid?: number;
     langName?: string;
     orderAssignToWxId?: string;
-    orderAttachmentList?: OrderFileVO[];
+    orderAttachmentList?: DownloadFileVO[];
     orderAttachmentNum?: number;
     orderCommissionRate?: number;
     orderCompletionTime?: string;

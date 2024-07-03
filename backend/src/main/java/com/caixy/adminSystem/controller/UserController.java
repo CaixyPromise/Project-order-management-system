@@ -378,8 +378,7 @@ public class UserController
      * @return
      */
     @PostMapping("/update/my")
-    public BaseResponse<Boolean> updateMyUser(@RequestBody
-                                              UserUpdateMyRequest userUpdateMyRequest,
+    public BaseResponse<Boolean> updateMyUser(@RequestBody UserUpdateMyRequest userUpdateMyRequest,
                                               HttpServletRequest request)
     {
         if (userUpdateMyRequest == null)

@@ -1,7 +1,10 @@
 package com.caixy.adminSystem.model.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.caixy.adminSystem.constant.CommonConstant;
 import lombok.Data;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -59,11 +62,13 @@ public class OrderFileInfo implements Serializable
     /**
      * 创建时间
      */
+    @Field(index = false, store = true, type = FieldType.Date, format = {}, pattern = CommonConstant.DATE_TIME_PATTERN)
     private Date createTime;
 
     /**
      * 更新时间
      */
+    @Field(index = false, store = true, type = FieldType.Date, format = {}, pattern = CommonConstant.DATE_TIME_PATTERN)
     private Date updateTime;
 
     /**
@@ -74,4 +79,9 @@ public class OrderFileInfo implements Serializable
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
+    public String buildFileName()
+    {
+        return String.format("%s.%s", this.getFileRealName(), this.getFileSuffix());
+    }
 }

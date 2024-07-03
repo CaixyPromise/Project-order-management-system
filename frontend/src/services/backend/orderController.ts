@@ -32,6 +32,21 @@ export async function deleteOrderInfoUsingPost1(
   });
 }
 
+/** getOrderFileDownloadUrlById GET /api/order/get/downloadUrl */
+export async function getOrderFileDownloadUrlByIdUsingGet1(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getOrderFileDownloadUrlByIdUsingGET1Params,
+  options?: { [key: string]: any },
+) {
+  return request<API.BaseResponseDownloadFileVO_>('/api/order/get/downloadUrl', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 /** getOrderInfoVOById GET /api/order/get/vo */
 export async function getOrderInfoVoByIdUsingGet1(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

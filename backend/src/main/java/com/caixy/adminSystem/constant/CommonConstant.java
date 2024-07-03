@@ -2,11 +2,9 @@ package com.caixy.adminSystem.constant;
 
 /**
  * 通用常量
- *
- 
  */
-public interface CommonConstant {
-
+public interface CommonConstant
+{
     /**
      * 升序
      */
@@ -22,6 +20,5 @@ public interface CommonConstant {
      */
     Long SYSTEM_ID_CODE = 0L;
 
-    String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
-
+    String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
 }

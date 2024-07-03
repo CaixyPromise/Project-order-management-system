@@ -5,11 +5,13 @@ import com.caixy.adminSystem.common.ErrorCode;
 import com.caixy.adminSystem.config.LocalFileConfig;
 import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.manager.uploadManager.core.UploadFileMethodManager;
-import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
-import com.caixy.adminSystem.model.enums.FileUploadBizEnum;
+import com.caixy.adminSystem.model.dto.file.UploadFileDTO;
+import com.caixy.adminSystem.model.enums.FileActionBizEnum;
 import com.caixy.adminSystem.model.enums.SaveFileMethodEnum;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,12 +35,12 @@ public class LocalFileManagerManager implements UploadFileMethodManager
 {
     private final LocalFileConfig localFileConfig;
 
-    public Path saveFile(MultipartFile multipartFile, UploadFileConfig fileConfig)
+    public Path saveFile(MultipartFile multipartFile, UploadFileDTO fileConfig)
     {
-        UploadFileConfig.FileInfo fileInfo = fileConfig.getFileInfo();
+        UploadFileDTO.FileInfo fileInfo = fileConfig.getFileInfo();
         String filename = fileInfo.getFileInnerName(); // 文件名
         Path filePath = fileInfo.getFilePath();
-        FileUploadBizEnum fileUploadBizEnum = fileConfig.getFileUploadBizEnum();
+        FileActionBizEnum fileActionBizEnum = fileConfig.getFileActionBizEnum();
         Long userId = fileConfig.getUserId();
 
         // 创建完整的文件路径：<root>/<业务名称>/<用户id>
@@ -56,9 +58,9 @@ public class LocalFileManagerManager implements UploadFileMethodManager
         try
         {
             multipartFile.transferTo(file); // 保存文件到指定位置
-            // 返回文件的相对路径：<saveLocation>/<fileUploadBizEnum>/<userId>/<filename>
+            // 返回文件的相对路径：<saveLocation>/<fileActionBizEnum>/<userId>/<filename>
             return localFileConfig.getRootLocation().resolve(
-                    Paths.get(fileUploadBizEnum.getValue(),
+                    Paths.get(fileActionBizEnum.getValue(),
                             String.valueOf(userId),
                             filename));
         }
@@ -71,10 +73,10 @@ public class LocalFileManagerManager implements UploadFileMethodManager
 
 
     @Override
-    public Path saveFile(UploadFileConfig uploadFileConfig) throws IOException
+    public Path saveFile(UploadFileDTO uploadFileDTO) throws IOException
     {
-        MultipartFile multipartFile = uploadFileConfig.getMultipartFile();
-        return saveFile(multipartFile, uploadFileConfig);
+        MultipartFile multipartFile = uploadFileDTO.getMultipartFile();
+        return saveFile(multipartFile, uploadFileDTO);
     }
 
     @Override
@@ -86,5 +88,13 @@ public class LocalFileManagerManager implements UploadFileMethodManager
         {
             throw new IOException("Failed to delete file: " + file.getPath());
         }
+    }
+
+    @Override
+    public Resource getFile(Path key) throws IOException
+    {
+        Path finalPath = localFileConfig.getRootLocation().resolve(key);
+        File file = finalPath.toFile();
+        return new FileSystemResource(file);
     }
 }

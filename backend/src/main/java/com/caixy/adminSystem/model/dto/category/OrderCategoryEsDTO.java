@@ -3,6 +3,7 @@ package com.caixy.adminSystem.model.dto.category;
 import com.caixy.adminSystem.constant.CommonConstant;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -49,6 +50,6 @@ public class OrderCategoryEsDTO implements Serializable
     /**
      * 更新时间
      */
-    @Field(index = false, store = true, type = FieldType.Date, format = {}, pattern = CommonConstant.DATE_TIME_PATTERN)
+    @Field(index = false, store = true, type = FieldType.Date, format = {DateFormat.date_time}, pattern = CommonConstant.DATE_TIME_PATTERN)
     private Date updateTime;
 }

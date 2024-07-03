@@ -12,19 +12,20 @@ import com.caixy.adminSystem.exception.BusinessException;
 import com.caixy.adminSystem.exception.ThrowUtils;
 import com.caixy.adminSystem.manager.uploadManager.core.UploadFileMethodManager;
 import com.caixy.adminSystem.mapper.UserMapper;
-import com.caixy.adminSystem.model.dto.file.UploadFileConfig;
+import com.caixy.adminSystem.model.dto.file.DownloadFileDTO;
+import com.caixy.adminSystem.model.dto.file.UploadFileDTO;
 import com.caixy.adminSystem.model.dto.file.UploadFileRequest;
 import com.caixy.adminSystem.model.dto.user.UserLoginRequest;
 import com.caixy.adminSystem.model.dto.user.UserModifyPasswordRequest;
 import com.caixy.adminSystem.model.dto.user.UserQueryRequest;
 import com.caixy.adminSystem.model.dto.user.UserRegisterRequest;
 import com.caixy.adminSystem.model.entity.User;
-import com.caixy.adminSystem.model.enums.FileUploadBizEnum;
+import com.caixy.adminSystem.model.enums.FileActionBizEnum;
 import com.caixy.adminSystem.model.enums.UserGenderEnum;
 import com.caixy.adminSystem.model.enums.UserRoleEnum;
 import com.caixy.adminSystem.model.vo.user.LoginUserVO;
 import com.caixy.adminSystem.model.vo.user.UserVO;
-import com.caixy.adminSystem.service.FileUploadActionService;
+import com.caixy.adminSystem.service.FileActionService;
 import com.caixy.adminSystem.service.UserService;
 import com.caixy.adminSystem.utils.EncryptionUtils;
 import com.caixy.adminSystem.utils.RegexUtils;
@@ -48,8 +49,8 @@ import static com.caixy.adminSystem.constant.UserConstant.USER_LOGIN_STATE;
  */
 @Service
 @Slf4j
-@FileUploadActionTarget(FileUploadBizEnum.USER_AVATAR)
-public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService, FileUploadActionService
+@FileUploadActionTarget(FileActionBizEnum.USER_AVATAR)
+public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService, FileActionService
 {
 
     @Override
@@ -455,7 +456,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             ThrowUtils.throwIf(count > 0, ErrorCode.PARAMS_ERROR, "账号已存在");
         }
         Integer gender = user.getUserGender();
-        if (gender != null && UserGenderEnum.getEnumByValue(gender) == null)
+        if (UserGenderEnum.getEnumByValue(gender) == null)
         {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "性别参数错误");
         }
@@ -469,23 +470,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @since 2024/6/7 下午4:31
      */
     @Override
-    public Boolean doAfterUploadAction(UploadFileConfig uploadFileConfig, Path savePath, UploadFileRequest uploadFileRequest) throws IOException
+    public Boolean doAfterUploadAction(UploadFileDTO uploadFileDTO, Path savePath, UploadFileRequest uploadFileRequest) throws IOException
     {
-        Long userId = uploadFileConfig.getUserId();
+        Long userId = uploadFileDTO.getUserId();
         User user = this.getById(userId);
         if (user == null)
         {
             return false;
         }
         String userAvatar = user.getUserAvatar();
-        user.setUserAvatar(uploadFileConfig.getFileInfo().getFileURL());
-        UploadFileMethodManager uploadManager = uploadFileConfig.getUploadManager();
+        user.setUserAvatar(uploadFileDTO.getFileInfo().getFileURL());
+        UploadFileMethodManager uploadManager = uploadFileDTO.getUploadManager();
         boolean updated = this.updateById(user);
         if (updated)
         {
             if (StringUtils.isNotBlank(userAvatar))
             {
-                FileUploadBizEnum uploadBizEnum = uploadFileConfig.getFileUploadBizEnum();
+                FileActionBizEnum uploadBizEnum = uploadFileDTO.getFileActionBizEnum();
 
                 String[] filename = userAvatar.split("/");
                 if (filename.length >  0)
@@ -501,6 +502,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         return false;
     }
+
+
 
     /**
      * 批量根据id获取用户名称

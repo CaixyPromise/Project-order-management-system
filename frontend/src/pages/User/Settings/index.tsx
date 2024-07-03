@@ -19,7 +19,6 @@ const Settings: React.FC = () =>
     const {operation} = useParams<{operation: SettingsStateKeys | undefined}>()
     const [ userData, setUserData ] = useState<API.AboutMeVO>({});
     const [ queryUserInfoHandler, isPending ] = useAsyncHandler<API.AboutMeVO>();
-
     const { styles } = useStyles();
     const menuMap: Record<string, React.ReactNode> = {
         base: '基本设置',

@@ -11,6 +11,7 @@ import OrderDetailsModal from "@/pages/OrderList/components/OrderDetailsModal";
 import {useParams} from "@@/exports";
 import {handleDelete} from "@/pages/OrderList/server";
 import {listOrderInfoVoByPageUsingPost1, searchOrderInfoVoByPageUsingPost1} from "@/services/backend/orderController";
+import OrderFileTable from "@/pages/OrderList/components/OrderFileTable";
 
 /**
  * 订单管理页面
@@ -58,7 +59,12 @@ const OrderAdminPage: React.FC = () =>
                     headerTitle={'查询表格'}
                     actionRef={actionRef}
                     rowKey="id"
-
+                    expandable={{
+                        expandedRowRender: record => <OrderFileTable
+                            dataSource={record.orderAttachmentList}
+                            orderId={record.id}
+                        />
+                    }}
                     search={{
                         labelWidth: 250,
                     }}

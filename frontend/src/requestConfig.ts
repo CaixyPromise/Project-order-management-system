@@ -34,7 +34,10 @@ export const requestConfig: RequestConfig = {
     (response) => {
       // 请求地址
       const requestPath: string = response.config.url ?? '';
-
+      // 如果是下载请求，直接返回响应
+      if (requestPath.includes('/api/file/download')) {
+        return response;
+      }
       // 响应
       const { data } = response as unknown as ResponseStructure;
       if (!data) {

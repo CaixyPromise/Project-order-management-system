@@ -68,10 +68,4 @@ public class OrderEsRepositoryTest
         System.out.println(orderEsRepository.count());
     }
 
-    @Test
-    void testFindByCategory()
-    {
-        List<OrderInfoEsDTO> postEsDaoTestList = orderEsRepository.findByUserId(1L);
-        System.out.println(postEsDaoTestList);
-    }
 }
