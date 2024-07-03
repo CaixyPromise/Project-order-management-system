@@ -15,7 +15,7 @@ const Settings: ProLayoutProps & {
   fixedHeader: false,
   fixSiderbar: true,
   colorWeak: false,
-  title: '前端模板',
+  title: '订单统一管理平台',
   pwa: true,
   "splitMenus": false,
   "menuRender": false,

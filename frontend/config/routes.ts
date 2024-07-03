@@ -1,6 +1,5 @@
 export default [
     { path: '/user', layout: false, routes: [ { path: '/user/login', component: './User/Login' } ] },
-    { path: '/welcome', icon: 'smile', component: './Welcome', name: "欢迎页" },
     {
         path: "/orderList",
         icon: "AccountBook",
@@ -10,7 +9,7 @@ export default [
             { path: "/orderList/:id", exact: true, component: './OrderList', name: "订单详情", hideInMenu: true }
         ]
     },
-    { path: '/task', icon: 'aim', component: './OrderCalendar', name: "待办订单" },
+    { path: '/calendar', icon: 'aim', component: './OrderCalendar', name: "待办订单" },
     {
         path: '/addOrder',
         name: '添加订单',
@@ -55,6 +54,6 @@ export default [
             { path: "/account/settings/", redirect: '/account/settings' }
         ]
     },
-    { path: '/', redirect: '/welcome' },
+    { path: '/', redirect: '/calendar' },
     { path: '*', layout: false, component: './404' },
 ];

@@ -196,7 +196,7 @@ const Login: React.FC = () =>
                     }}
                     formRef={formRef}
                     logo={<img alt="logo" style={{ height: '100%' }} src="/logo.svg"/>}
-                    title="前端模板"
+                    title="订单统一管理平台"
                     subTitle={'快速开发属于自己的前端项目'}
                     initialValues={{
                         autoLogin: true,

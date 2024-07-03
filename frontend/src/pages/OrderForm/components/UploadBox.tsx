@@ -2,10 +2,10 @@ import React, {forwardRef, useImperativeHandle, useState} from "react";
 import {message, UploadFile, UploadProps} from "antd";
 import Dragger from "antd/lib/upload/Dragger";
 import {InboxOutlined} from "@ant-design/icons";
-import crypto from "crypto-js";
 import useAsyncHandler from "@/hooks/useAsyncHandler";
 import {RcFile} from "antd/lib/upload";
 import {history} from "@umijs/max";
+import {calculateSHA256} from "@/utils/CryptoUtils";
 
 interface UploadBoxProps
 {
@@ -22,20 +22,7 @@ const UploadBox: React.ForwardRefRenderFunction<UploadBoxHandle, UploadBoxProps>
     const [ fileList, setFileList ] = useState<UploadFile[]>([]);
     const [ uploadHandler, isRunning ] = useAsyncHandler<boolean>();
 
-    const calculateSHA256 = (file: File): Promise<string> =>
-    {
-        return new Promise((resolve, reject) =>
-        {
-            const reader = new FileReader();
-            reader.onload = () =>
-            {
-                const hash = crypto.SHA256(crypto.enc.Latin1.parse(reader.result as string)).toString();
-                resolve(hash);
-            };
-            reader.onerror = reject;
-            reader.readAsBinaryString(file);
-        });
-    };
+
 
     const handleChange: UploadProps["onChange"] = async (info) =>
     {

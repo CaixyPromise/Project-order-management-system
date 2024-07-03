@@ -73,7 +73,7 @@ export default defineConfig({
    * @name layout 插件
    * @doc https://umijs.org/docs/max/layout-menu
    */
-  title: '前端模板',
+  title: '订单统一管理平台',
   layout: {
     locale: true,
     ...defaultSettings,

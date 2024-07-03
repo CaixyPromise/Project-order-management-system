@@ -75,10 +75,14 @@ const BaseView: React.FC = () =>
     {
         try
         {
+            console.log(values)
             const { code } = await updateMyUserUsingPost1(values as API.AboutMeVO)
             if (code === 0)
             {
-                // setUserData(values)
+                setUserData(prevState => ({
+                    ...prevState,
+                    ...values,
+                }))
                 form.setFieldsValue(values);
                 message.success('更新基本信息成功');
             }

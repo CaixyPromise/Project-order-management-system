@@ -47,7 +47,7 @@ const Index: React.FC = () =>
     const [ langTypeHandle, isLangTypeLoading ] = useAsyncHandler<OrderFormServer.LangTypeResponse>();
     const [ categoryOption, setCategoryOption ] = useState<OptionArray<string>>([]);
     const [ langTypeOption, setLangTypeOption ] = useState<OptionArray<string>>([]);
-    const [ orderTag, setOrderTag ] = useState<string[]>([ "1", "2" ]);
+    const [ orderTag, setOrderTag ] = useState<string[]>([]);
     const [ fileInfo, setFileInfo ] = useState<OrderFormType.FileInfo[]>([]);
     const [ submitHandler ] = useAsyncHandler<API.OrderInfoUploadResponse>()
     const [ fetchOrderInfoHandler, fetchOrderLoading ] = useAsyncHandler<API.OrderInfoVO>()
@@ -134,29 +134,7 @@ const Index: React.FC = () =>
         setFileInfo(uids);
     };
 
-    const initialValue = {
-        "orderTitle": "123",
-        "orderSource": 1,
-        "orderId": "123",
-        "orderCategoryId": "1798994019288621057",
-        "orderLangId": "1798993735380377602",
-        "amount": 2,
-        "amountPaid": 3,
-        "isAssigned": 1,
-        "isPaid": 1,
-        "orderStatus": 5,
-        "customerContactType": 3,
-        "customerContact": "2",
-        "customerEmail": "1944630344@qq.com",
-        "orderStartDate": "2024-06-09",
-        "orderDeadline": "2024-06-28",
-        "orderCompletionTime": "2024-06-09",
-        "orderCommissionRate": 60,
-        "orderAssignToWxId": "4",
-        "orderRemark": "<p>123</p>",
-        "orderDesc": "<p>123</p>",
-        "paymentMethod": 1
-    }
+
 
 
     return <>
@@ -168,11 +146,6 @@ const Index: React.FC = () =>
                     gap: "10px"
                 }}
                 onFinish={submitOrder}
-                initialValues={{
-                    ...initialValue,
-                    "orderRemark": BraftEditor.createEditorState(initialValue.orderRemark),
-                    "orderDesc": BraftEditor.createEditorState(initialValue.orderDesc),
-                }}
             >
                 <Card bordered={false} className={styles.card}>
                     <ProFormText name="orderTitle" label="订单名称描述"
